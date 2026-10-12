@@ -11,6 +11,8 @@ TypeScript capabilities.
 
 ![qz collecting Hangzhou photos from Wikipedia](docs/images/workspace.png)
 
+https://github.com/user-attachments/assets/26ee85fd-540f-4427-af59-c196fadfa221
+
 ## Features
 
 - **Browser automation.** Interact through DOM elements or screenshots, fill forms, and work across tabs in desktop or mobile viewports.
