@@ -1,0 +1,5 @@
+/** Supported presentation helpers; mutable host state is accessed through extension ports. */
+export { getToolDisplayName, getToolTimelineFamilyInfo, isPageContextToolName, isToolResultErrorLike, toolKey } from "../../sidepanel/tools/tool-model.js";
+export { appendChipRow, appendCodeDetail, appendCompactLine, appendCompactParams, appendErrorSection, appendKeyValueSection, appendNoteSection, appendRecordsSection, appendScriptTrace, appendSlimList, appendStatGrid, appendTextSection, basename, clipDisplayText, cloneDisplayValue, codeLanguageForFilename, createCopyableCodeBlock, escapeJsonControlCharsInStrings, fieldLabel, firstNonEmpty, formatBytes, formatBytesProgress, formatDateLike, formatJavaScriptCode, formatTextSize, getResultEnvelope, isEmptyJsonObject, isLikelyIncompleteJsonText, linkifyText, localizeToolDisplayValue, normalizeFriendlyValue, parseJsonish, pickReadableFields, summarizeValue, unwrapResultValue } from "../../sidepanel/tools/generic-result-renderer.js";
+export type { ToolEvent, TranscriptEntry } from "./renderers.js";
+export { record, timelineGroupTools } from "../../sidepanel/tools/renderer-input.js";

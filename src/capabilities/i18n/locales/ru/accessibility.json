@@ -1,0 +1,15 @@
+{
+  "accessibility.inspectPageTree": "Проверить структуру страницы",
+  "accessibility.pageInspection": "Проверка страницы",
+  "accessibility.pageStructure": "Структура страницы",
+  "accessibility.element": "Элемент",
+  "accessibility.editable": "Редактируемый",
+  "accessibility.outsideViewport": "За пределами видимой области",
+  "accessibility.interactiveElements": "Интерактивные элементы",
+  "accessibility.attributes": "Атрибуты",
+  "accessibility.cannotResolveAxRoot": "Не найден корень структуры страницы: {selector}",
+  "accessibility.pageOverviewResponseIsInvalid": "Обзор страницы вернул некорректный ответ.",
+  "accessibility.items": "элементов",
+  "accessibility.showingTheFirst": "Показаны первые",
+  "accessibility.inspectPageTreeShort": "Проверить страницу"
+}

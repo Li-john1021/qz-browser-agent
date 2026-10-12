@@ -1,0 +1,4 @@
+{
+  "skills.siteAuthorName": "사이트 스킬 빌더",
+  "skills.siteAuthorDescription": "특정 웹사이트, 페이지, 도메인용 기능을 만듭니다. qz에 사이트 사용법을 가르치거나 사이트 스킬, 도구, 데이터 수집, 페이지 상호작용을 만들 때 사용하세요. skill-workbench와 달리 웹사이트 요구사항에서 시작해 전용 기능을 설계합니다. 이미 지정된 스킬과 내용, plugin.json, 스크립트, 리소스를 생성·업데이트·삭제·편집하려면 skill-workbench를 사용하세요."
+}

@@ -1,0 +1,15 @@
+@layer components {
+/* Tool presentation owned by this capability. */
+.tool-details-streaming.tool-details-profile-script .js-code-block {
+  height: clamp(160px, 28vh, 260px);
+  overflow-x: auto;
+  overflow-y: auto;
+  white-space: pre;
+  word-break: normal;
+  scrollbar-gutter: stable;
+}
+
+.tool-timeline-slot-body.tool-details-streaming.tool-details-profile-script .js-code-block {
+  height: clamp(140px, 24vh, 220px);
+}
+}

@@ -1,0 +1,38 @@
+import { defineMessages } from "#sdk/shared/i18n-definition";
+
+/** Package-owned interface text. Identifiers and user content remain untranslated. */
+export default defineMessages("diagnostics", {
+  "consoleRecording": { "zh-CN": "Console 监听中", en: "Recording console messages" },
+  "consoleEntries": { "zh-CN": "Console 记录", en: "Console entries" },
+  "entries": { "zh-CN": "{count} 条", en: "Entries: {count}" },
+  "buffer": { "zh-CN": "缓冲 {count}", en: "Buffered: {count}" },
+  "reset": { "zh-CN": "已重置", en: "Reset" },
+  "error": { "zh-CN": "错误", en: "Error" },
+  "notice": { "zh-CN": "提示", en: "Notice" },
+  "network": { "zh-CN": "网络", en: "Network" },
+  "request": { "zh-CN": "请求", en: "Request" },
+  "hasRequestBody": { "zh-CN": "有请求体", en: "Request body available" },
+  "requestBody": { "zh-CN": "请求体", en: "Request body" },
+  "responseBody": { "zh-CN": "响应体", en: "Response body" },
+  "truncated": { "zh-CN": "已截断", en: "Truncated" },
+  "complete": { "zh-CN": "未截断", en: "Complete" },
+  "logs": { "zh-CN": "日志", en: "Logs" },
+  "loading": { "zh-CN": "加载中…", en: "Loading…" },
+  "noLogs": { "zh-CN": "暂无日志", en: "No logs yet" },
+  "first": { "zh-CN": "前", en: "First" },
+  "monitorNetwork": { "zh-CN": "监听网络", en: "Monitor network" },
+  "viewNetworkRequests": { "zh-CN": "查看网络请求", en: "View network requests" },
+  "viewNetworkRequestsShort": { "zh-CN": "查看网络请求", en: "Network requests" },
+  "readResponseBody": { "zh-CN": "读取响应体", en: "Read response body" },
+  "readResponseBodyShort": { "zh-CN": "读取响应体", en: "Response body" },
+  "readRequestBody": { "zh-CN": "读取请求体", en: "Read request body" },
+  "readRequestBodyShort": { "zh-CN": "读取请求体", en: "Request body" },
+  "viewConsole": { "zh-CN": "查看 Console", en: "View console" },
+  "networkAndLogDiagnostics": { "zh-CN": "接口与日志诊断", en: "Network and log diagnostics" },
+  "landingHistoryCleared": { "zh-CN": "Landing 历史已清除", en: "Welcome screen history cleared" },
+  "refresh": { "zh-CN": "刷新", en: "Refresh" },
+  "clear": { "zh-CN": "清空", en: "Clear" },
+  "clearLandingHistory": { "zh-CN": "清除 Landing 历史", en: "Clear welcome screen history" },
+}, { historicalLabels: [
+  "monitorNetwork", "viewNetworkRequests", "readResponseBody", "viewConsole",
+] });

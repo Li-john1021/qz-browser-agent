@@ -1,0 +1,8 @@
+{
+  "media-tools.screenshotMaxWidth": "Largeur maximale de l’image renvoyée. Valeur par défaut et limite : 2048 ; la sortie encodée ne dépasse pas 2 MiB.",
+  "media-tools.screenshotMaxHeight": "Hauteur maximale de l’image renvoyée. Valeur par défaut et limite : 2048 ; la sortie encodée ne dépasse pas 2 MiB.",
+  "media-tools.collectImagesMaxWidth": "Largeur maximale de l’image à lire ou à stocker. Valeur par défaut et limite : 2048 ; la sortie encodée ne dépasse pas 2 MiB.",
+  "media-tools.collectImagesMaxHeight": "Hauteur maximale de l’image à lire ou à stocker. Valeur par défaut et limite : 2048 ; la sortie encodée ne dépasse pas 2 MiB.",
+  "media-tools.collectImagesMaxBytes": "Nombre maximal d’octets à lire par image provenant d’une URL. Valeur par défaut : 20 MiB ; limite : 32 MiB. La sortie encodée ne dépasse pas 2 MiB.",
+  "media-tools.readImageMaxBytes": "Nombre maximal d’octets à lire par image provenant d’une URL. Valeur par défaut : 20 MiB ; limite : 32 MiB. La sortie encodée ne dépasse pas 2 MiB."
+}

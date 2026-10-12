@@ -1,0 +1,4 @@
+{
+  "skills.siteAuthorName": "Website-Skill-Builder",
+  "skills.siteAuthorDescription": "Erstellt Funktionen für eine bestimmte Website, Seite oder Domain. Nutze diesen Skill, um qz den Umgang mit einer Website beizubringen oder deren Skills, Tools, Datensammlung oder Seiteninteraktionen zu erstellen. Anders als skill-workbench beginnt er bei den Anforderungen der Website und entwirft passende Funktionen. Nutze skill-workbench zum Erstellen, Aktualisieren, Löschen oder Bearbeiten eines bereits festgelegten Skills samt Inhalt, plugin.json, Skripten oder Ressourcen."
+}

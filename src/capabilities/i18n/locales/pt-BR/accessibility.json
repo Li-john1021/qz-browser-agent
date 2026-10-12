@@ -1,0 +1,15 @@
+{
+  "accessibility.inspectPageTree": "Inspecionar estrutura da página",
+  "accessibility.pageInspection": "Inspeção da página",
+  "accessibility.pageStructure": "Estrutura da página",
+  "accessibility.element": "Elemento",
+  "accessibility.editable": "Editável",
+  "accessibility.outsideViewport": "Fora da área visível",
+  "accessibility.interactiveElements": "Elementos interativos",
+  "accessibility.attributes": "Atributos",
+  "accessibility.cannotResolveAxRoot": "Raiz da estrutura da página não encontrada: {selector}",
+  "accessibility.pageOverviewResponseIsInvalid": "A visão geral da página retornou uma resposta inválida.",
+  "accessibility.items": "itens",
+  "accessibility.showingTheFirst": "Exibindo os primeiros",
+  "accessibility.inspectPageTreeShort": "Inspecionar página"
+}

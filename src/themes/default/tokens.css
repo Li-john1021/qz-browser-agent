@@ -1,0 +1,280 @@
+/* Shared visual tokens. Light and dark values remain the product skin contract. */
+
+:root {
+  color-scheme: light dark;
+
+  --bg-primary: #ffffff;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f4f4f2;
+  --bg-elevated: #f7f7f5;
+  --bg-glass: #ffffff;
+  --modal-backdrop: rgba(0, 0, 0, 0.22);
+  --modal-surface: #ffffff;
+  --modal-muted-surface: #fafafa;
+  --modal-card-surface:
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--modal-surface) 99%, var(--bg-primary) 1%),
+      color-mix(in srgb, var(--modal-surface) 96%, var(--modal-muted-surface) 4%));
+  --modal-card-border: color-mix(in srgb, var(--border) 78%, transparent);
+  --modal-card-shadow:
+    0 18px 44px rgba(16, 24, 40, 0.14),
+    0 2px 8px rgba(16, 24, 40, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  --surface-porcelain:
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--modal-surface) 99%, var(--bg-primary) 1%),
+      color-mix(in srgb, var(--modal-surface) 96%, var(--modal-muted-surface) 4%));
+  --surface-porcelain-border: color-mix(in srgb, var(--border) 72%, transparent);
+  --surface-porcelain-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.74),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.01),
+    0 1px 1px rgba(0, 0, 0, 0.014);
+  --popover-surface: #ffffff;
+  --lightbox-backdrop: rgba(0, 0, 0, 0.82);
+  --lightbox-surface: #000000;
+  --lightbox-border: rgba(255, 255, 255, 0.18);
+  --lightbox-control-surface: rgba(255, 255, 255, 0.08);
+  --lightbox-control-surface-hover: rgba(255, 255, 255, 0.14);
+  --lightbox-control-text: #f5f5f5;
+  --lightbox-shadow: 0 20px 70px rgba(0, 0, 0, 0.45);
+
+  --text-primary: #171717;
+  --text-secondary: #5f6368;
+  --text-muted: #8b8f94;
+  --text-faint: #aeb3b8;
+  --send-standby-bg: #989ca0;
+  --send-standby-mark: #f0f2f3;
+
+  --accent: #111111;
+  --accent-strong: #000000;
+  --accent-glow: rgba(0, 0, 0, 0.06);
+  --accent-subtle: rgba(0, 0, 0, 0.024);
+  --control-track: var(--bg-primary);
+  --control-hover-fill: var(--accent-subtle);
+  --control-active-fill: var(--accent-subtle);
+  --control-active-border: color-mix(in srgb, var(--border) 90%, transparent);
+  /* Control system: one density scale and one semantic state model. */
+  --control-height-xs: 22px;
+  --control-height-sm: 28px;
+  --control-height-md: 32px;
+  --control-height-lg: 38px;
+  --control-padding-xs: 7px;
+  --control-padding-sm: 10px;
+  --control-padding-md: 12px;
+  --control-padding-lg: 14px;
+  --control-gap-xs: 4px;
+  --control-gap-sm: 6px;
+  --control-radius: var(--radius-sm);
+  --control-font-xs: 10px;
+  --control-font-sm: 11px;
+  --control-font-md: 12px;
+  --control-font-lg: 13px;
+  --control-font-weight: 540;
+  --control-border: color-mix(in srgb, var(--border) 88%, transparent);
+  --control-border-hover: color-mix(in srgb, var(--border-focus) 58%, var(--border));
+  --control-surface: transparent;
+  --control-surface-hover: var(--control-hover-fill);
+  --control-surface-pressed: color-mix(in srgb, var(--control-hover-fill) 72%, var(--bg-elevated));
+  --control-text: var(--text-secondary);
+  --control-text-hover: var(--text-primary);
+  --control-primary-surface: var(--text-primary);
+  --control-primary-surface-hover: color-mix(in srgb, var(--text-primary) 90%, var(--bg-primary));
+  --control-primary-text: var(--bg-primary);
+  --control-danger-text: var(--red);
+  --control-danger-surface-hover: var(--danger-subtle);
+  --control-danger-border-hover: color-mix(in srgb, var(--red) 42%, var(--border));
+  --control-focus-ring: 0 0 0 3px color-mix(in srgb, var(--border-focus) 10%, transparent);
+  --control-disabled-opacity: 0.42;
+  --control-icon-xs: 13px;
+  --control-icon-sm: 15px;
+  --control-icon-md: 18px;
+  /* Form controls share the command-control material and state language. */
+  --field-height-sm: 28px;
+  --field-height-md: 34px;
+  --field-height-lg: 38px;
+  --field-padding-sm: 8px;
+  --field-padding-md: 10px;
+  --field-font-sm: 11.5px;
+  --field-font-md: 13px;
+  --field-border: var(--control-border);
+  --field-border-hover: var(--control-border-hover);
+  --field-border-focus: var(--border-focus);
+  --field-surface: var(--bg-primary);
+  --field-surface-disabled: var(--bg-secondary);
+  --field-text: var(--text-primary);
+  --field-placeholder: var(--text-muted);
+  --field-focus-ring: var(--control-focus-ring);
+  --choice-size-sm: 13px;
+  --choice-size-md: 15px;
+  --choice-radius: 3px;
+  --choice-border: color-mix(in srgb, var(--text-muted) 34%, var(--border));
+  --choice-border-hover: color-mix(in srgb, var(--text-muted) 54%, var(--border-focus));
+  --switch-width: 30px;
+  --switch-height: 18px;
+  --switch-thumb-size: 12px;
+  /* Floating surfaces own material only; placement remains component-specific. */
+  --popover-border: color-mix(in srgb, var(--border) 88%, transparent);
+  --popover-radius: var(--radius-sm);
+  --popover-shadow: var(--shadow-lg);
+  --popover-padding: 4px;
+  --menu-item-min-height: 30px;
+  --menu-item-padding: 7px 9px;
+  --toast-viewport-top: 66px;
+  --toast-inline-margin: 16px;
+  --toast-max-width: 380px;
+  --toast-min-height: 40px;
+  --user-bubble-bg: rgba(0, 0, 0, 0.045);
+  --user-bubble-text: var(--text-primary);
+  --user-bubble-selection-bg: #c1c4c7;
+  --user-bubble-selection-text: #202326;
+  --block-fill: rgba(0, 0, 0, 0.024);
+  --block-fill-hover: rgba(0, 0, 0, 0.035);
+  --block-radius: 7px;
+
+  --code-bg: #f7f7f5;
+  --code-border: rgba(9, 105, 218, 0.18);
+  --code-accent: #0969da;
+  --code-inline-bg: #f1f3f5;
+  --danger-subtle: rgba(180, 35, 47, 0.08);
+  --success-border: rgba(36, 132, 93, 0.32);
+  --selection-bg: rgba(0, 0, 0, 0.16);
+
+  --green: #24845d;
+  --orange: #a86f18;
+  --red: #b4232f;
+  /* One syntax system for rendered code and live editors. */
+  --syntax-plain: #59636e;
+  --syntax-keyword: #8250df;
+  --syntax-title: #0969da;
+  --syntax-string: #1a7f37;
+  --syntax-comment: #656d76;
+  --syntax-number: #9a6700;
+  --syntax-literal: #cf222e;
+  --syntax-meta: #57606a;
+  --syntax-addition: #1a7f37;
+  --syntax-deletion: #cf222e;
+
+  --border: rgba(0, 0, 0, 0.08);
+  --border-focus: rgba(0, 0, 0, 0.26);
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 8px;
+  --radius-pill: 999px;
+  --lane-header-height: 30px;
+  --chat-sticky-offset: 0px;
+  --lane-summary-width: 520px;
+  --lane-detail-width: 820px;
+  --qz-scrollbar-size: 4px;
+  --qz-scrollbar-radius: 2px;
+  --qz-scrollbar-thumb: color-mix(in srgb, var(--border) 72%, transparent);
+
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-fast: 120ms;
+  --motion-base: 180ms;
+  --motion-slow: 240ms;
+  --transition: var(--motion-fast) var(--ease-standard);
+  --transition-fast: var(--motion-fast) var(--ease-standard);
+  --transition-surface: background-color var(--transition), border-color var(--transition), color var(--transition), opacity var(--transition), transform var(--transition);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 10px 28px rgba(0, 0, 0, 0.10);
+  --shadow-lg: 0 18px 44px rgba(0, 0, 0, 0.14), 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-primary: #181818;
+    --bg-secondary: #1f1f1f;
+    --bg-tertiary: #2b2b2b;
+    --bg-elevated: #242424;
+    --bg-glass: #1f1f1f;
+    --modal-backdrop: rgba(0, 0, 0, 0.52);
+    --modal-surface: #202020;
+    --modal-muted-surface: #282828;
+    --modal-card-surface:
+      linear-gradient(180deg,
+        color-mix(in srgb, var(--modal-surface) 98%, #ffffff 2%),
+        color-mix(in srgb, var(--modal-surface) 92%, var(--modal-muted-surface) 8%));
+    --modal-card-border: color-mix(in srgb, var(--border) 84%, transparent);
+    --modal-card-shadow:
+      0 20px 48px rgba(0, 0, 0, 0.42),
+      0 2px 12px rgba(0, 0, 0, 0.26),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    --surface-porcelain:
+      linear-gradient(180deg,
+        color-mix(in srgb, var(--modal-surface) 96%, #ffffff 4%),
+        color-mix(in srgb, var(--modal-muted-surface) 92%, var(--modal-surface) 8%));
+    --surface-porcelain-border: color-mix(in srgb, var(--border) 84%, transparent);
+    --surface-porcelain-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+      0 1px 1px rgba(0, 0, 0, 0.18);
+    --popover-surface: #242424;
+    --lightbox-backdrop: rgba(0, 0, 0, 0.86);
+    --lightbox-surface: #000000;
+    --lightbox-border: rgba(255, 255, 255, 0.18);
+    --lightbox-control-surface: rgba(255, 255, 255, 0.08);
+    --lightbox-control-surface-hover: rgba(255, 255, 255, 0.14);
+    --lightbox-control-text: #f5f5f5;
+    --lightbox-shadow: 0 20px 70px rgba(0, 0, 0, 0.5);
+
+    --text-primary: #f4f4f4;
+    --text-secondary: #b8b8b8;
+    --text-muted: #8e8e8e;
+    --text-faint: #686868;
+    --send-standby-bg: #6d7175;
+    --send-standby-mark: #292c2f;
+
+    --accent: #f2f2f2;
+    --accent-strong: #ffffff;
+    --accent-glow: rgba(255, 255, 255, 0.07);
+    --accent-subtle: rgba(255, 255, 255, 0.038);
+    --control-hover-fill: var(--accent-subtle);
+    --control-active-fill: var(--accent-subtle);
+    --control-active-border: color-mix(in srgb, var(--border-focus) 22%, transparent);
+    --user-bubble-bg: #252525;
+    --user-bubble-text: var(--text-primary);
+    --user-bubble-selection-bg: #5a5e61;
+    --user-bubble-selection-text: #f2f3f4;
+    --block-fill: rgba(255, 255, 255, 0.038);
+    --block-fill-hover: rgba(255, 255, 255, 0.052);
+    --block-radius: 7px;
+
+    --code-bg: #161b22;
+    --code-border: rgba(121, 192, 255, 0.24);
+    --code-accent: #79c0ff;
+    --code-inline-bg: #20262f;
+    --danger-subtle: rgba(224, 108, 117, 0.1);
+    --success-border: rgba(117, 199, 155, 0.34);
+    --selection-bg: rgba(216, 224, 255, 0.22);
+
+    --green: #75c79b;
+    --orange: #d7a95d;
+    --red: #e06c75;
+    --syntax-plain: #b8c0cc;
+    --syntax-keyword: #d2a8ff;
+    --syntax-title: #79c0ff;
+    --syntax-string: #7ee787;
+    --syntax-comment: #8b949e;
+    --syntax-number: #d29922;
+    --syntax-literal: #ffab70;
+    --syntax-meta: #a5d6ff;
+    --syntax-addition: #7ee787;
+    --syntax-deletion: #ffa198;
+
+    --border: rgba(255, 255, 255, 0.09);
+    --border-focus: rgba(255, 255, 255, 0.22);
+    --choice-border: color-mix(in srgb, var(--text-muted) 44%, var(--border));
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.24);
+    --shadow-md: 0 12px 30px rgba(0, 0, 0, 0.34);
+    --shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.42), 0 2px 12px rgba(0, 0, 0, 0.26);
+  }
+}
+

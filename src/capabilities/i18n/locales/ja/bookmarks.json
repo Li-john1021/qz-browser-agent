@@ -1,0 +1,21 @@
+{
+  "bookmarks.bookmarks": "ブックマーク",
+  "bookmarks.history": "履歴",
+  "bookmarks.visits": "訪問回数：{count}",
+  "bookmarks.deleted": "{count} 件削除しました",
+  "bookmarks.manageBookmarks": "ブックマークを管理",
+  "bookmarks.browsingHistory": "閲覧履歴",
+  "bookmarks.manageBookmarksSearchRequiresANonEmptyQuery": "ブックマークの検索には空でない query が必要です。",
+  "bookmarks.manageBookmarksCreateRequiresTitleOrUrl": "ブックマークの作成には title または url が必要です。",
+  "bookmarks.manageBookmarksUpdateRequiresId": "ブックマークの更新には id が必要です。",
+  "bookmarks.manageBookmarksUpdateRequiresTitleOrUrlToMove": "ブックマークの更新には title または url が必要です。ブックマークやフォルダーの移動には action=move と parentId または index を指定してください。",
+  "bookmarks.manageBookmarksMoveRequiresId": "ブックマークの移動には id が必要です。",
+  "bookmarks.manageBookmarksMoveRequiresParentidOrIndex": "ブックマークの移動には parentId または index が必要です。",
+  "bookmarks.manageBookmarksDeleteRequiresId": "ブックマークの削除には id が必要です。",
+  "bookmarks.unsupportedManageBookmarksAction": "未対応の manage_bookmarks 操作：{action}",
+  "bookmarks.browseHistorySearchRequiresANonEmptyQuery": "閲覧履歴の検索には空でない query が必要です。",
+  "bookmarks.unsupportedBrowseHistoryAction": "未対応の browse_history 操作：{action}",
+  "bookmarks.items": "項目",
+  "bookmarks.manageBookmarksShort": "ブックマーク管理",
+  "bookmarks.browsingHistoryShort": "閲覧履歴"
+}

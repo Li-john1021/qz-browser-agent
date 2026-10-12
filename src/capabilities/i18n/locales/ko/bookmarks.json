@@ -1,0 +1,21 @@
+{
+  "bookmarks.bookmarks": "북마크",
+  "bookmarks.history": "방문 기록",
+  "bookmarks.visits": "방문 횟수: {count}",
+  "bookmarks.deleted": "{count}개 삭제됨",
+  "bookmarks.manageBookmarks": "북마크 관리",
+  "bookmarks.browsingHistory": "방문 기록",
+  "bookmarks.manageBookmarksSearchRequiresANonEmptyQuery": "북마크를 검색하려면 비어 있지 않은 query가 필요합니다.",
+  "bookmarks.manageBookmarksCreateRequiresTitleOrUrl": "북마크를 만들려면 title 또는 url이 필요합니다.",
+  "bookmarks.manageBookmarksUpdateRequiresId": "북마크를 업데이트하려면 id가 필요합니다.",
+  "bookmarks.manageBookmarksUpdateRequiresTitleOrUrlToMove": "북마크를 업데이트하려면 title 또는 url이 필요합니다. 북마크나 폴더를 이동하려면 action=move와 parentId 또는 index를 사용하세요.",
+  "bookmarks.manageBookmarksMoveRequiresId": "북마크를 이동하려면 id가 필요합니다.",
+  "bookmarks.manageBookmarksMoveRequiresParentidOrIndex": "북마크를 이동하려면 parentId 또는 index가 필요합니다.",
+  "bookmarks.manageBookmarksDeleteRequiresId": "북마크를 삭제하려면 id가 필요합니다.",
+  "bookmarks.unsupportedManageBookmarksAction": "지원하지 않는 manage_bookmarks 작업: {action}",
+  "bookmarks.browseHistorySearchRequiresANonEmptyQuery": "방문 기록을 검색하려면 비어 있지 않은 query가 필요합니다.",
+  "bookmarks.unsupportedBrowseHistoryAction": "지원하지 않는 browse_history 작업: {action}",
+  "bookmarks.items": "항목",
+  "bookmarks.manageBookmarksShort": "북마크 관리",
+  "bookmarks.browsingHistoryShort": "방문 기록"
+}

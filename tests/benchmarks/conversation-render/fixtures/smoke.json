@@ -1,0 +1,115 @@
+{
+  "name": "smoke",
+  "sessionId": "bench_smoke",
+  "title": "Conversation Render Smoke",
+  "transcript": [
+    {
+      "type": "user",
+      "text": "帮我读取页面并整理结果。",
+      "images": [],
+      "timestamp": "2026-07-10 01:00:00"
+    },
+    {
+      "type": "thinking",
+      "text": "先读取页面，再用脚本抽取结构化数据。",
+      "timestamp": "2026-07-10 01:00:01"
+    },
+    {
+      "type": "tool",
+      "toolCallId": "bench_tool_1",
+      "runId": "bench_run_1",
+      "name": "read_dom",
+      "args": { "selector": "main" },
+      "result": {
+        "title": "示例页面",
+        "nodes": [
+          { "tag": "h1", "text": "示例页面" },
+          { "tag": "p", "text": "这是一段用于 benchmark 的页面文本。" }
+        ]
+      },
+      "phase": "done",
+      "isRunning": false,
+      "isError": false,
+      "timestamp": "2026-07-10 01:00:02",
+      "endedAt": "2026-07-10 01:00:03"
+    },
+    {
+      "type": "tool",
+      "toolCallId": "bench_tool_2",
+      "runId": "bench_run_1",
+      "name": "run_script",
+      "args": {
+        "code": "return Array.from(document.querySelectorAll('a')).map(a => ({ text: a.textContent, href: a.href }));"
+      },
+      "result": {
+        "ok": true,
+        "resultType": "array",
+        "result": [
+          { "text": "首页", "href": "https://example.com/" },
+          { "text": "文档", "href": "https://example.com/docs" }
+        ]
+      },
+      "phase": "done",
+      "isRunning": false,
+      "isError": false,
+      "timestamp": "2026-07-10 01:00:03",
+      "endedAt": "2026-07-10 01:00:04"
+    },
+    {
+      "type": "assistant",
+      "content": "页面已经读取完成，我整理到了两个链接。",
+      "timestamp": "2026-07-10 01:00:05"
+    }
+  ],
+  "baseTranscript": [
+    {
+      "type": "user",
+      "text": "输出一段长回复，用于测试 live render。",
+      "images": [],
+      "timestamp": "2026-07-10 01:01:00"
+    },
+    {
+      "type": "tool",
+      "toolCallId": "bench_live_tool_1",
+      "runId": "bench_live_run",
+      "name": "read_dom",
+      "args": { "selector": "body" },
+      "result": { "text": "live replay context" },
+      "phase": "done",
+      "isRunning": false,
+      "isError": false,
+      "timestamp": "2026-07-10 01:01:01",
+      "endedAt": "2026-07-10 01:01:02"
+    }
+  ],
+  "events": [
+    {
+      "type": "message_start",
+      "runId": "bench_live_run",
+      "spanId": "bench_assistant_1",
+      "message": { "role": "assistant", "content": "" },
+      "timestamp": "2026-07-10 01:01:03"
+    },
+    {
+      "type": "message_update",
+      "runId": "bench_live_run",
+      "spanId": "bench_assistant_1",
+      "content": "第一句 live 输出。",
+      "timestamp": "2026-07-10 01:01:04"
+    },
+    {
+      "type": "message_update",
+      "runId": "bench_live_run",
+      "spanId": "bench_assistant_1",
+      "content": "第一句 live 输出。第二句继续输出。",
+      "timestamp": "2026-07-10 01:01:05"
+    },
+    {
+      "type": "message_end",
+      "runId": "bench_live_run",
+      "spanId": "bench_assistant_1",
+      "message": { "role": "assistant", "content": "第一句 live 输出。第二句继续输出。" },
+      "timestamp": "2026-07-10 01:01:06"
+    }
+  ]
+}

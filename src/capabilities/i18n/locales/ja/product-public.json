@@ -1,0 +1,5 @@
+{
+  "product-public.thisProductHasNoGitPublishingAdapterExportThe": "このバージョンではGitに直接公開できません。スキルをエクスポートし、リポジトリにコミットしてください。",
+  "product-public.configureModelEndpoint": "モデルに接続",
+  "product-public.connectingToGpt": "モデルに接続中…"
+}

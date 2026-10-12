@@ -1,0 +1,4 @@
+{
+  "skills.siteAuthorName": "サイトスキルビルダー",
+  "skills.siteAuthorDescription": "特定のウェブサイト、ページ、ドメイン向けの機能を作成します。軽舟にサイトの使い方を教えたり、サイト用スキル、ツール、データ収集、ページ操作を作る際に使います。skill-workbench とは異なり、サイトの要件から専用機能を設計します。指定済みのスキルやその内容、plugin.json、スクリプト、リソースの作成・更新・削除・編集には skill-workbench を使ってください。"
+}

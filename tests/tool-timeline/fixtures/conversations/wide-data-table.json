@@ -1,0 +1,115 @@
+{
+  "name": "wide-data-table",
+  "widths": [320, 360, 420],
+  "conversation": {
+    "title": "宽表和长字段",
+    "entries": [
+      { "type": "user", "_uiKey": "wdt-u1", "text": "把这些多字段数据写入表，注意不要撑破聊天流。" },
+      {
+        "type": "tool",
+        "_uiKey": "wdt-t1",
+        "toolCallId": "wdt-t1",
+        "name": "data_store",
+        "args": {
+          "action": "upsert",
+          "table": "wide_housing_compare",
+          "dedupField": "id",
+          "rows": [
+            {
+              "id": "row-001",
+              "community": "蒋村花园",
+              "avgPrice": "52000",
+              "trend": "近两年小幅上涨",
+              "compareShenhua": "比申花核心区低约 15%",
+              "compareFutureCity": "比未来科技城核心区低约 10%",
+              "dealCycle": "成交周期 45-60 天",
+              "source": "贝壳/链家/安居客交叉验证",
+              "sourceUrl": "https://example.com/housing/jiangcun?trace=very-long-table-url-for-horizontal-scroll-001",
+              "operatorNote": "这是一个很长的运营备注字段，用于验证单元格省略、表格内部滚动和卡片宽度稳定性。"
+            },
+            {
+              "id": "row-002",
+              "community": "西溪蝶园",
+              "avgPrice": "71000",
+              "trend": "高位震荡",
+              "compareShenhua": "与申花改善盘接近",
+              "compareFutureCity": "高于未来科技城外围",
+              "dealCycle": "成交周期 60-90 天",
+              "source": "贝壳/链家",
+              "sourceUrl": "https://example.com/housing/xixi?trace=very-long-table-url-for-horizontal-scroll-002",
+              "operatorNote": "改善盘样本，字段较多时不能让整页出现横向滚动。"
+            },
+            {
+              "id": "row-003",
+              "community": "三墩北交界",
+              "avgPrice": "48000",
+              "trend": "成交活跃",
+              "compareShenhua": "明显低于申花",
+              "compareFutureCity": "低于核心区",
+              "dealCycle": "成交周期 30-45 天",
+              "source": "安居客",
+              "sourceUrl": "https://example.com/housing/sandun?trace=very-long-table-url-for-horizontal-scroll-003",
+              "operatorNote": "刚需样本，适合测试更多列。"
+            }
+          ]
+        },
+        "result": {
+          "table": "wide_housing_compare",
+          "inserted": 3,
+          "updated": 0,
+          "totalRows": 3,
+          "rows": [
+            {
+              "id": "row-001",
+              "community": "蒋村花园",
+              "avgPrice": "52000",
+              "trend": "近两年小幅上涨",
+              "compareShenhua": "比申花核心区低约 15%",
+              "compareFutureCity": "比未来科技城核心区低约 10%",
+              "dealCycle": "成交周期 45-60 天",
+              "source": "贝壳/链家/安居客交叉验证",
+              "sourceUrl": "https://example.com/housing/jiangcun?trace=very-long-table-url-for-horizontal-scroll-001",
+              "operatorNote": "这是一个很长的运营备注字段，用于验证单元格省略、表格内部滚动和卡片宽度稳定性。"
+            },
+            {
+              "id": "row-002",
+              "community": "西溪蝶园",
+              "avgPrice": "71000",
+              "trend": "高位震荡",
+              "compareShenhua": "与申花改善盘接近",
+              "compareFutureCity": "高于未来科技城外围",
+              "dealCycle": "成交周期 60-90 天",
+              "source": "贝壳/链家",
+              "sourceUrl": "https://example.com/housing/xixi?trace=very-long-table-url-for-horizontal-scroll-002",
+              "operatorNote": "改善盘样本，字段较多时不能让整页出现横向滚动。"
+            },
+            {
+              "id": "row-003",
+              "community": "三墩北交界",
+              "avgPrice": "48000",
+              "trend": "成交活跃",
+              "compareShenhua": "明显低于申花",
+              "compareFutureCity": "低于核心区",
+              "dealCycle": "成交周期 30-45 天",
+              "source": "安居客",
+              "sourceUrl": "https://example.com/housing/sandun?trace=very-long-table-url-for-horizontal-scroll-003",
+              "operatorNote": "刚需样本，适合测试更多列。"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "steps": [
+    { "action": "assert", "expect": "singleToolCollapsed" },
+    { "action": "click", "selector": ".msg-tool > .tool-summary", "label": "展开数据表工具" },
+    { "action": "assert", "expect": "singleToolExpanded" },
+    { "action": "assert", "expect": "selectorCount", "selector": ".tool-data-table", "equals": 1 },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-data-table", "includes": "蒋村花园" },
+    { "action": "assert", "expect": "tableScrollable", "selector": ".tool-data-table-wrap" },
+    { "action": "assert", "expect": "footerEqualHeights", "selector": ".tool-event-footer-row" },
+    { "action": "assert", "expect": "noHorizontalOverflow" },
+    { "action": "click", "selector": ".tool-event-collapse-btn", "label": "收起数据表工具" },
+    { "action": "assert", "expect": "singleToolCollapsed" }
+  ]
+}

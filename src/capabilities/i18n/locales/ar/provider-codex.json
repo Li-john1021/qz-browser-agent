@@ -1,0 +1,12 @@
+{
+  "provider-codex.signInWithYourChatgptAccountToUseCodex": "سجّل الدخول بحساب ChatGPT لاستخدام نماذج Codex.",
+  "provider-codex.openaiCodexModelsApiReturnedAnEmptyModelList": "أعادت واجهة نماذج OpenAI Codex قائمة فارغة",
+  "provider-codex.theLoginSessionExpiredStartCodexLoginAgain": "انتهت صلاحية جلسة الدخول. سجّل الدخول إلى Codex مجددًا.",
+  "provider-codex.theCodexLoginCodeExpiredStartLoginAgain": "انتهت صلاحية رمز الدخول إلى Codex. ابدأ من جديد.",
+  "provider-codex.signInToOpenaiCodexInSettingsFirst": "سجّل الدخول أولًا إلى OpenAI Codex من الإعدادات.",
+  "provider-codex.openaiCodexLoginIsMissingAnAccessTokenSign": "لم يتم استلام رمز وصول من OpenAI Codex. سجّل الدخول مجددًا.",
+  "provider-codex.openaiCodexLoginExpiredOrLacksPermissionSignIn": "انتهت صلاحية جلسة OpenAI Codex أو أنها تفتقر إلى الأذونات المطلوبة ({status}). سجّل الدخول مجددًا. {detail}",
+  "provider-codex.couldNotReadTheChatgptAccountIdFromThe": "تعذّرت قراءة معرّف حساب ChatGPT من رمز OpenAI Codex",
+  "provider-codex.loginCanceledStartAgain": "تم إلغاء تسجيل الدخول. ابدأ من جديد.",
+  "provider-codex.allProviders": "جميع المزوّدين"
+}

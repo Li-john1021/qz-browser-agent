@@ -1,0 +1,5 @@
+{
+  "product-public.thisProductHasNoGitPublishingAdapterExportThe": "النشر المباشر إلى Git غير متاح في هذا الإصدار. صدّر المهارة ثم أضفها إلى مستودعك في commit.",
+  "product-public.configureModelEndpoint": "ربط نموذج",
+  "product-public.connectingToGpt": "جارٍ الاتصال بالنموذج…"
+}

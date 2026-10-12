@@ -1,0 +1,21 @@
+{
+  "bookmarks.bookmarks": "Favoris",
+  "bookmarks.history": "Historique",
+  "bookmarks.visits": "Visites : {count}",
+  "bookmarks.deleted": "Supprimés : {count}",
+  "bookmarks.manageBookmarks": "Gérer les favoris",
+  "bookmarks.browsingHistory": "Historique de navigation",
+  "bookmarks.manageBookmarksSearchRequiresANonEmptyQuery": "La recherche de favoris nécessite un query non vide.",
+  "bookmarks.manageBookmarksCreateRequiresTitleOrUrl": "La création d’un favori nécessite title ou url.",
+  "bookmarks.manageBookmarksUpdateRequiresId": "La mise à jour d’un favori nécessite id.",
+  "bookmarks.manageBookmarksUpdateRequiresTitleOrUrlToMove": "La mise à jour d’un favori nécessite title ou url. Pour déplacer un favori ou un dossier, utilisez action=move avec parentId ou index.",
+  "bookmarks.manageBookmarksMoveRequiresId": "Le déplacement d’un favori nécessite id.",
+  "bookmarks.manageBookmarksMoveRequiresParentidOrIndex": "Le déplacement d’un favori nécessite parentId ou index.",
+  "bookmarks.manageBookmarksDeleteRequiresId": "La suppression d’un favori nécessite id.",
+  "bookmarks.unsupportedManageBookmarksAction": "Action manage_bookmarks non prise en charge : {action}",
+  "bookmarks.browseHistorySearchRequiresANonEmptyQuery": "La recherche dans l’historique nécessite un query non vide.",
+  "bookmarks.unsupportedBrowseHistoryAction": "Action browse_history non prise en charge : {action}",
+  "bookmarks.items": "Éléments",
+  "bookmarks.manageBookmarksShort": "Gérer les favoris",
+  "bookmarks.browsingHistoryShort": "Historique"
+}

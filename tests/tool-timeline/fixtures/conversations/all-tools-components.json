@@ -1,0 +1,23 @@
+{
+  "name": "all-tools-components",
+  "scenario": "all-tools",
+  "widths": [420],
+  "steps": [
+    { "action": "assert", "expect": "selectorCount", "selector": ".visual-tool-component", "min": 50 },
+    { "action": "assert", "expect": "selectorCount", "selector": ".tool-summary", "min": 50 },
+    { "action": "assert", "expect": "selectorCount", "selector": ".tool-details", "min": 50 },
+    { "action": "clickCopy", "name": "run_script", "label": "复制 run_script 代码" },
+    { "action": "assert", "expect": "copyConfirmed", "includes": "querySelectorAll" },
+    { "action": "clickTreeToggle", "name": "get_ax_tree", "label": "操作页面树节点" },
+    { "action": "click", "selector": ".visual-tool-component[data-tool-name=\"update_skill\"] .tool-event-raw-btn:not(.hidden)", "label": "展开 update_skill 原始数据" },
+    { "action": "assert", "expect": "rawPanelScrollable", "selector": ".visual-tool-component[data-tool-name=\"update_skill\"] .tool-event-raw-panel .copyable-code-block pre" },
+    { "action": "assert", "expect": "js", "expression": "() => Boolean(document.querySelector('.visual-tool-component[data-tool-name=\"qingzhou_management__manage_settings\"] .tool-kv-grid'))", "message": "按需管理模型设置应复用专用设置视图" },
+    { "action": "assert", "expect": "js", "expression": "() => { const card = document.querySelector('.visual-tool-component[data-tool-name=\"qingzhou_management__manage_settings\"]'); const visibleDetails = card?.querySelector('.tool-details [data-tool-renderer] > .tool-friendly-section, .tool-details [data-tool-renderer] > .tool-compact-line'); return card?.querySelector('.tool-name')?.textContent.includes('读取设置') && Boolean(visibleDetails) && !card.querySelector('.tool-slim-list'); }", "message": "读取模型设置应显示具体动作且不展开服务商目录" },
+    { "action": "assert", "expect": "js", "expression": "() => Boolean(document.querySelector('.visual-tool-component[data-tool-name=\"qingzhou_management__manage_guardrails\"] .tool-slim-list'))", "message": "按需安全护栏应复用专用规则列表" },
+    { "action": "assert", "expect": "js", "expression": "() => !document.querySelector('.visual-tool-component[data-tool-name^=\"qingzhou_management__\"] .tool-script-trace')", "message": "轻舟管理不应显示通用脚本 trace" },
+    { "action": "assert", "expect": "js", "expression": "() => ['document_fetch','document_parse','document_read_chunk','document_create','document_download','document_list_artifacts'].every(name => { const raw = document.querySelector(`.visual-tool-component[data-tool-name=\"${name}\"]`); const plugin = document.querySelector(`.visual-tool-component[data-tool-name=\"qingzhou_documents__${name}\"]`); return raw && plugin && raw.querySelector('.tool-name')?.textContent === plugin.querySelector('.tool-name')?.textContent && raw.querySelector('.tool-details')?.innerText === plugin.querySelector('.tool-details')?.innerText && !plugin.querySelector('.tool-script-trace'); })", "message": "按需文档工具应原样复用旧版文档 UI" },
+    { "action": "collapseTool", "name": "ask_user", "label": "折叠 ask_user" },
+    { "action": "assert", "expect": "js", "expression": "() => document.querySelector('.visual-tool-component[data-tool-name=\"ask_user\"] .tool-details')?.classList.contains('hidden')", "message": "ask_user should collapse inside component matrix" },
+    { "action": "assert", "expect": "noHorizontalOverflow" }
+  ]
+}

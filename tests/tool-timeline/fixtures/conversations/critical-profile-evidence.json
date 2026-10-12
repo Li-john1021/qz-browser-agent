@@ -1,0 +1,153 @@
+{
+  "name": "critical-profile-evidence",
+  "widths": [360, 420],
+  "conversation": {
+    "title": "关键证据必须进预览",
+    "entries": [
+      { "type": "user", "_uiKey": "cpe-u1", "text": "调研蒋村房价，创建子任务，写表，并更新技能。" },
+      {
+        "type": "tool",
+        "_uiKey": "cpe-t1",
+        "toolCallId": "cpe-t1",
+        "name": "manage_sessions",
+        "args": {
+          "action": "create",
+          "title": "蒋村房价子任务",
+          "prompt": "请搜索杭州蒋村板块的主要楼盘房价信息，包括：主要小区名称、近两年房价走势、与申花和未来科技城的对比、性价比分析。只采集信息，不要提交表单。"
+        },
+        "result": { "status": "created", "sessionId": "child_jiangcun_001", "title": "蒋村房价子任务" }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "cpe-t2",
+        "toolCallId": "cpe-t2",
+        "name": "data_store",
+        "args": {
+          "action": "upsert",
+          "table": "housing_research",
+          "dedupField": "community",
+          "rows": [
+            { "community": "蒋村花园", "avgPrice": "52000", "trend": "近两年小幅上涨", "compare": "低于申花，高于老余杭", "source": "贝壳" },
+            { "community": "西溪蝶园", "avgPrice": "71000", "trend": "高位震荡", "compare": "接近申花改善盘", "source": "链家" },
+            { "community": "未来科技城三墩交界", "avgPrice": "48000", "trend": "成交活跃", "compare": "低于未来科技城核心", "source": "安居客" }
+          ]
+        },
+        "result": {
+          "table": "housing_research",
+          "inserted": 2,
+          "updated": 1,
+          "totalRows": 3,
+          "rows": [
+            { "community": "蒋村花园", "avgPrice": "52000", "trend": "近两年小幅上涨", "compare": "低于申花，高于老余杭", "source": "贝壳" },
+            { "community": "西溪蝶园", "avgPrice": "71000", "trend": "高位震荡", "compare": "接近申花改善盘", "source": "链家" },
+            { "community": "未来科技城三墩交界", "avgPrice": "48000", "trend": "成交活跃", "compare": "低于未来科技城核心", "source": "安居客" }
+          ]
+        }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "cpe-t3",
+        "toolCallId": "cpe-t3",
+        "name": "update_skill",
+        "args": {
+          "name": "xiaohongshu-note-publisher",
+          "appendContent": "## 富文本正文校验\n\n- 富文本正文必须通过粘贴或段落 HTML 保留换行。\n- 发布前读取 DOM 检查 p/br 数量。",
+          "edit": {
+            "path": "SKILL.md",
+            "find": "普通 fill 填正文",
+            "replace": "脚本模拟粘贴或插入段落 HTML"
+          }
+        },
+        "result": {
+          "skill": { "name": "xiaohongshu-note-publisher", "scope": "site", "resources": [{ "path": "SKILL.md", "type": "markdown", "size": 5312 }] },
+          "changes": [
+            { "action": "append", "path": "SKILL.md", "content": "## 富文本正文校验\n\n- 富文本正文必须通过粘贴或段落 HTML 保留换行。\n- 发布前读取 DOM 检查 p/br 数量。" },
+            { "action": "edit", "path": "SKILL.md", "before": "普通 fill 填正文", "after": "脚本模拟粘贴或插入段落 HTML" }
+          ]
+        }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "cpe-t4",
+        "toolCallId": "cpe-t4",
+        "name": "fill_input",
+        "args": { "selector": ".ProseMirror", "value": "第一段：结论\n\n第二段：证据\n\n第三段：建议" },
+        "result": {
+          "action": "fill",
+          "filled": "正文编辑区",
+          "selector": ".ProseMirror",
+          "method": "paste",
+          "submitted": false,
+          "fill": {
+            "ok": true,
+            "richText": {
+              "method": "paste",
+              "structure": {
+                "paragraphCount": 4,
+                "brCount": 0,
+                "blockCount": 4,
+                "lineBreakCount": 5,
+                "htmlSample": "<p>第一段：结论</p><p><br></p><p>第二段：证据</p><p>第三段：建议</p>"
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "cpe-t5",
+        "toolCallId": "cpe-t5",
+        "name": "network_body",
+        "args": { "requestId": "req_housing_01" },
+        "result": {
+          "requestId": "req_housing_01",
+          "method": "POST",
+          "url": "https://example.com/api/housing",
+          "status": 200,
+          "mimeType": "application/json",
+          "body": "{\"ok\":true,\"items\":[{\"community\":\"蒋村花园\",\"avgPrice\":52000}]}"
+        }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "cpe-t6",
+        "toolCallId": "cpe-t6",
+        "name": "ask_user",
+        "args": {
+          "title": "发布前确认",
+          "message": "将把整理好的蒋村房价摘要提交到外部编辑页，是否继续？",
+          "submitLabel": "批准提交",
+          "fields": [
+            { "id": "decision", "label": "是否批准", "type": "choice", "required": true, "options": [{ "label": "批准", "value": "yes" }, { "label": "取消", "value": "no" }] }
+          ]
+        },
+        "result": null,
+        "isRunning": true,
+        "phase": "preparing"
+      }
+    ]
+  },
+  "steps": [
+    { "action": "assert", "expect": "collapsedLane", "lane": "tool" },
+    { "action": "expandGroup", "group": 0, "label": "展开工具组" },
+    { "action": "assert", "expect": "navText", "equals": "6/6" },
+    { "action": "assert", "expect": "activeText", "includes": "向用户提问" },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "发布前确认" },
+    { "action": "clickStep", "group": 0, "step": "管理任务", "label": "查看子任务 prompt" },
+    { "action": "assert", "expect": "selectorCount", "selector": ".tool-session-prompt", "min": 1 },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "请搜索杭州蒋村板块" },
+    { "action": "clickStep", "group": 0, "step": "写入数据表", "label": "查看 upsert 表" },
+    { "action": "assert", "expect": "selectorCount", "selector": ".tool-data-table", "min": 1 },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-data-table", "includes": "蒋村花园" },
+    { "action": "clickStep", "group": 0, "step": "更新技能", "label": "查看技能变更" },
+    { "action": "assert", "expect": "selectorCount", "selector": ".tool-diff-card", "min": 2 },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "富文本正文必须通过粘贴" },
+    { "action": "clickStep", "group": 0, "step": "填写输入框", "label": "查看富文本结构" },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "DOM 校验 通过" },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "DOM 结构" },
+    { "action": "clickStep", "group": 0, "step": "读取响应体", "label": "查看网络响应" },
+    { "action": "assert", "expect": "selectorCount", "selector": ".tool-timeline-slot .json-block", "min": 1 },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "蒋村花园" },
+    { "action": "assert", "expect": "noHorizontalOverflow" }
+  ]
+}

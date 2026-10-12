@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Plugin Renderer Smoke Test</title>
+  <link rel="stylesheet" href="/extension/sidepanel/sidepanel.css">
+  <style>
+    body {
+      background: var(--bg);
+    }
+
+    .smoke-shell {
+      width: min(980px, calc(100vw - 32px));
+      margin: 24px auto;
+    }
+
+    .smoke-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .smoke-status {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 4px 8px;
+    }
+
+    .smoke-status.pass {
+      color: var(--green);
+      border-color: var(--success-border);
+    }
+
+    .smoke-status.fail {
+      color: var(--red);
+    }
+
+    .smoke-case {
+      margin: 0 0 14px;
+    }
+
+    .smoke-case-title {
+      margin: 0 0 6px;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 650;
+    }
+  </style>
+</head>
+<body>
+  <main class="smoke-shell">
+    <header class="smoke-head">
+      <span>PLUGIN RENDERER SMOKE</span>
+      <span id="status" class="smoke-status">running...</span>
+    </header>
+    <section id="cases"></section>
+  </main>
+
+  <script type="module">
+    import { setSkillToolUiCatalog } from "/extension/sidepanel/tools/skill-tool-ui-registry.js";
+    import { renderToolEvent } from "/extension/sidepanel/tools/tool-renderer.js";
+    import { listSkillRendererDefinitions } from "/extension/shared/skills/skill-renderers.js";
+
+    const casesEl = document.querySelector("#cases");
+    const statusEl = document.querySelector("#status");
+    const smoke = {
+      assertions: 0,
+      failures: [],
+      rendererTypes: [],
+    };
+
+    const dataImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect width='80' height='80' fill='%23f0f0f0'/%3E%3Cpath d='M18 50 L40 18 L62 50 Z' fill='%23171717'/%3E%3C/svg%3E";
+    const longToken = "https://example.com/" + "x".repeat(260) + "?signature=" + "abcdef0123456789".repeat(12);
+    const longCode = `const answer = 42; const url = "${longToken}"; const payload = { selector: ".feed-item[data-id='${"z".repeat(180)}']", url, answer }; return payload;`;
+
+    const rendererCases = {
+      summary: {
+        renderer: {
+          type: "summary",
+          titlePath: "title",
+          subtitlePath: "subtitle",
+          fields: [
+            { label: "Instance", path: "instanceId" },
+            { label: "状态", path: "status" },
+            { label: "耗时", path: "elapsed" },
+          ],
+        },
+        result: {
+          title: "摘要标题",
+          subtitle: "摘要副标题",
+          instanceId: "2026071701474721gzbg3fjzyzc",
+          status: "SUCCESS",
+          elapsed: "3.6 s",
+        },
+        selectors: [".tool-compact-line", ".tool-stat-grid"],
+        text: ["摘要标题", "Instance", "状态", "耗时"],
+      },
+      compact: {
+        renderer: { type: "compact", titlePath: "title", subtitlePath: "subtitle" },
+        result: { title: "紧凑标题", subtitle: "紧凑副标题" },
+        selectors: [".tool-compact-line"],
+        text: ["紧凑标题"],
+      },
+      metrics: {
+        renderer: { type: "metrics", fields: [{ label: "命中", path: "hits" }, { label: "耗时", path: "duration" }] },
+        result: { hits: 42, duration: "18ms" },
+        selectors: [".tool-stat-grid", ".tool-stat-item"],
+        text: ["命中", "42"],
+      },
+      fields: {
+        renderer: { type: "fields", fields: [{ label: "状态", path: "status" }, { label: "来源", path: "source" }] },
+        result: { status: "ready", source: "fixture" },
+        selectors: [".tool-kv-grid", ".tool-kv-item"],
+        text: ["状态", "ready"],
+      },
+      chips: {
+        renderer: { type: "chips" },
+        result: { chips: ["研究", "视频", "已完成"] },
+        selectors: [".tool-chip-row", ".tool-chip"],
+        text: ["研究", "已完成"],
+      },
+      note: {
+        renderer: { type: "note" },
+        result: { note: "这是一条提示。" },
+        selectors: [".tool-friendly-section", ".tool-text-preview"],
+        text: ["这是一条提示"],
+      },
+      text: {
+        renderer: { type: "text" },
+        result: { text: "这是一段文本预览。" },
+        selectors: [".tool-friendly-section", ".tool-text-preview"],
+        text: ["文本预览"],
+      },
+      article: {
+        renderer: { type: "article", commentsTitle: "回答区", commentMeta: [{ label: "身份", path: "role" }] },
+        result: {
+          title: "为什么这篇帖子值得看？",
+          author: { name: "知乎作者" },
+          publishedAt: "2026-06-26 10:30",
+          source: "知乎",
+          meta: [{ label: "主题", value: "产品体验" }],
+          body: "第一段正文，解释背景。\n\n第二段正文，给出观点。",
+          answers: [
+            { author: "答主 A", time: "2026-06-26", body: "补充一个回答。", role: "补充者" },
+          ],
+        },
+        selectors: [".tool-plugin-article", ".tool-plugin-article-title", ".tool-plugin-article-body", ".tool-plugin-article-comments", ".tool-plugin-article-comment"],
+        text: ["值得看", "知乎作者", "主题", "产品体验", "第二段正文", "回答区", "答主 A", "身份", "补充者"],
+      },
+      list: {
+        renderer: { type: "list", itemTitlePath: "title", itemSubtitlePath: "url", itemMeta: [{ label: "UP", path: "owner" }] },
+        result: { items: [{ title: "视频 A", url: "https://example.com/a", owner: "作者" }] },
+        selectors: [".tool-slim-list", ".tool-slim-row"],
+        text: ["视频 A", "作者"],
+      },
+      table: {
+        renderer: { type: "table", columns: [{ label: "标题", path: "title" }, { label: "UP主", path: "owner" }] },
+        result: { rows: [{ title: "视频 A", owner: "作者 A" }, { title: "视频 B", owner: "作者 B" }] },
+        selectors: [".tool-data-table-section", ".tool-data-table", ".tool-data-table-copy"],
+        text: ["标题", "作者 A", "复制 TSV"],
+      },
+      records: {
+        renderer: { type: "records" },
+        result: { records: [{ title: "记录 A", status: "ready" }] },
+        selectors: [".tool-record-list", ".tool-record-card"],
+        text: ["记录 A", "ready"],
+      },
+      image_grid: {
+        renderer: { type: "image_grid", maxItems: 4 },
+        result: { images: [{ url: dataImage, title: "封面图", width: 80, height: 80 }] },
+        selectors: [".tool-image-grid-section", ".tool-image-grid-card", ".tool-image-grid-thumb img"],
+        text: ["1 张"],
+      },
+      tree: {
+        renderer: { type: "tree" },
+        result: { title: "DOM 树", url: "https://example.com", nodes: [{ depth: 0, role: "heading", name: "Root" }] },
+        selectors: [".tool-tree-panel", ".tool-tree-line"],
+        text: ["DOM 树", "Root"],
+      },
+      diff: {
+        renderer: { type: "diff" },
+        result: { changes: [{ path: "a.js", preview: "- old\n+ new", kind: "update" }] },
+        selectors: [".tool-diff-section", ".tool-diff-block"],
+        text: ["a.js", "new"],
+      },
+      markdown: {
+        renderer: { type: "markdown" },
+        result: { markdown: "## 标题\n\n- 项目 A" },
+        selectors: [".tool-plugin-markdown", ".tool-plugin-markdown-body h2", ".tool-plugin-markdown-body li"],
+        text: ["标题", "项目 A"],
+      },
+      json: {
+        renderer: { type: "json" },
+        result: { ok: true, nested: { value: 1 } },
+        selectors: [".tool-json-code-section", ".tool-result-json-block"],
+        text: ["nested", "value"],
+      },
+      code: {
+        renderer: { type: "code" },
+        result: { code: longCode, language: "javascript", filename: "answer.js" },
+        selectors: [".tool-detail-section", ".code-block", ".code-copy-btn"],
+        text: ["answer", "42"],
+      },
+      skill: {
+        renderer: { type: "skill", action: "save" },
+        result: { action: "save", saved: true, name: "测试技能", scope: "global", domains: [], urlPatterns: [], resources: [] },
+        selectors: [".tool-details-skill-edit"],
+        text: ["测试技能"],
+      },
+    };
+
+    const pluginTools = Object.entries(rendererCases).map(([type, item]) => ({
+      name: `renderer_smoke__${type}`,
+      localName: type,
+      title: `Renderer ${type}`,
+      description: `Smoke renderer ${type}`,
+      runtime: "page",
+      renderer: item.renderer,
+    }));
+    pluginTools.push({
+      name: "renderer_smoke__layout",
+      localName: "layout",
+      title: "Renderer layout",
+      description: "Smoke composite renderer layout",
+      runtime: "page",
+      renderer: {
+        type: "summary",
+        layout: {
+          type: "stack",
+          blocks: [
+            { type: "summary", sourcePath: "summary", titlePath: "title", fields: [{ label: "数量", path: "count" }] },
+            { type: "table", sourcePath: "videos", columns: [{ label: "标题", path: "title" }] },
+            { type: "image_grid", sourcePath: "covers", maxItems: 2 },
+            { type: "markdown", sourcePath: "notes" },
+          ],
+        },
+      },
+    });
+    pluginTools.push({
+      name: "renderer_smoke__skill_update",
+      localName: "skill_update",
+      title: "Renderer skill update",
+      description: "Smoke skill update renderer duplicate suppression",
+      runtime: "page",
+      renderer: { type: "skill", action: "update" },
+    });
+    pluginTools.push({
+      name: "renderer_smoke__collection_states",
+      localName: "collection_states",
+      title: "Renderer collection states",
+      description: "Smoke collection missing, invalid, empty and ready states",
+      runtime: "page",
+      renderer: {
+        type: "summary",
+        layout: {
+          type: "stack",
+          blocks: [
+            { type: "summary", sourcePath: "summary", fields: [{ label: "状态", path: "status" }] },
+            { type: "table", title: "可选结果", sourcePath: "optional", itemsPath: "rows" },
+            { type: "table", title: "空结果", sourcePath: "empty", itemsPath: "rows", empty: "合法空结果" },
+            { type: "table", title: "错误结果", sourcePath: "invalid", itemsPath: "rows" },
+            { type: "table", title: "完整结果", sourcePath: "ready", itemsPath: "rows", totalPath: "totalRows", truncatedPath: "truncated" },
+          ],
+        },
+      },
+    });
+    pluginTools.push({
+      name: "renderer_smoke__all_missing_layout",
+      localName: "all_missing_layout",
+      title: "Renderer all-missing layout",
+      description: "Smoke generic fallback when no composite block applies",
+      runtime: "page",
+      script: "scripts/all-missing-layout.js",
+      renderer: {
+        type: "summary",
+        layout: {
+          type: "stack",
+          blocks: [
+            { type: "summary", sourcePath: "missingSummary", fields: [{ label: "状态", path: "status" }] },
+            { type: "table", sourcePath: "missingData", itemsPath: "rows" },
+          ],
+        },
+      },
+    });
+    pluginTools.push({
+      name: "renderer_smoke__skill_edit_resource",
+      localName: "skill_edit_resource",
+      title: "Renderer skill edit resource",
+      description: "Smoke skill edit resource renderer without full content",
+      runtime: "page",
+      renderer: { type: "skill", action: "edit_resource" },
+    });
+    pluginTools.push({
+      name: "renderer_smoke__script_raw",
+      localName: "script_raw",
+      title: "Renderer script raw",
+      description: "Smoke page-runtime script renderer without explicit UI renderer",
+      runtime: "page",
+      script: "scripts/raw.js",
+    });
+    pluginTools.push({
+      name: "renderer_smoke__json_long",
+      localName: "json_long",
+      title: "Renderer JSON long",
+      description: "Smoke JSON renderer long-line handling",
+      runtime: "page",
+      renderer: { type: "json" },
+    });
+    pluginTools.push({
+      name: "renderer_smoke__mcp_declared_table",
+      localName: "mcp_declared_table",
+      title: "MCP declared table",
+      description: "MCP result using an explicitly declared standard table renderer",
+      runtime: "mcp",
+      renderer: { type: "table", title: "车次", itemsPath: "rows" },
+    });
+    pluginTools.push({
+      name: "renderer_smoke__mcp_auto_table",
+      localName: "mcp_auto_table",
+      title: "MCP inferred table",
+      description: "MCP structured result using the standard shape fallback",
+      runtime: "mcp",
+    });
+    pluginTools.push({
+      name: "renderer_smoke__mcp_text_fallback",
+      localName: "mcp_text_fallback",
+      title: "MCP text fallback",
+      description: "MCP plain text fallback spacing",
+      runtime: "mcp",
+    });
+
+    setSkillToolUiCatalog({
+      plugins: [{
+        id: "renderer-smoke",
+        displayName: "Renderer Smoke",
+        category: { id: "test", label: "测试" },
+        tools: pluginTools,
+      }],
+    });
+
+    function assertSmoke(condition, name, details = {}) {
+      smoke.assertions += 1;
+      if (condition) return;
+      smoke.failures.push({ name, details });
+    }
+
+    function renderCase(name, result, args = {}, renderOptions = {}) {
+      const wrap = document.createElement("article");
+      wrap.className = "smoke-case";
+      wrap.dataset.case = name;
+      wrap.innerHTML = `<h2 class="smoke-case-title"></h2>`;
+      wrap.querySelector(".smoke-case-title").textContent = name;
+      const event = renderToolEvent({
+        name: `renderer_smoke__${name}`,
+        args,
+        result,
+      }, { expanded: true, standaloneFooter: false, ...renderOptions });
+      wrap.append(event);
+      casesEl.append(wrap);
+      return wrap;
+    }
+
+    function assertRenderedCase(name, item) {
+      const root = renderCase(name, item.result);
+      for (const selector of item.selectors) {
+        assertSmoke(Boolean(root.querySelector(selector)), `${name}: selector ${selector}`, {
+          html: root.innerHTML.slice(0, 1000),
+        });
+      }
+      for (const text of item.text || []) {
+        assertSmoke(root.textContent.includes(text), `${name}: text ${text}`, {
+          textContent: root.textContent.slice(0, 1000),
+        });
+      }
+      assertSmoke(!root.classList.contains("tool-details-run-script"), `${name}: not run_script details`);
+      assertSmoke(!root.textContent.includes("执行脚本"), `${name}: did not fall back to raw script renderer`);
+    }
+
+    function assertSkillUpdateDoesNotDuplicateResultAndArgsChanges() {
+      const patch = "- old validation note\n+ new validation note";
+      const root = renderCase("skill_update", {
+        action: "update",
+        updated: true,
+        name: "google-search",
+        scope: "site",
+        changes: [{ action: "edit", path: "content", patchPreview: patch }],
+      }, {
+        name: "google-search",
+        resourceEdits: [{ action: "set", path: "content", content: patch }],
+      });
+      const cards = root.querySelectorAll(".tool-diff-card");
+      assertSmoke(cards.length === 1, "skill update: result changes and resourceEdits are not duplicated", {
+        count: cards.length,
+        text: root.textContent.slice(0, 1200),
+      });
+      assertSmoke(root.textContent.includes("new validation note"), "skill update: keeps result diff preview");
+    }
+
+    function assertSkillEditResourceWithoutContentDoesNotClaimEmptyResource() {
+      const root = renderCase("skill_edit_resource", {
+        action: "update",
+        updated: true,
+        name: "douyin",
+        changes: [{ action: "upsert", path: "scripts/collect-related-videos.js" }],
+      }, {
+        name: "douyin",
+        path: "scripts/collect-related-videos.js",
+        action: "set",
+        type: "javascript",
+      });
+      assertSmoke(root.textContent.includes("scripts/collect-related-videos.js"), "skill edit resource: shows edited path");
+      assertSmoke(!root.textContent.includes("资源内容为空"), "skill edit resource: no empty resource content when edit result omits content", {
+        text: root.textContent.slice(0, 1200),
+      });
+      assertSmoke(
+        root.textContent.includes("变更") || root.textContent.includes("资源已更新"),
+        "skill edit resource: shows edit outcome instead of empty content",
+      );
+    }
+
+    function assertCodeLikeNoSoftWrap(root, selector, label, { openDetails = false, openRawPanel = false } = {}) {
+      if (openDetails) {
+        for (const details of root.querySelectorAll("details")) details.open = true;
+      }
+      if (openRawPanel) {
+        root.querySelector(".tool-event-raw-btn:not(.hidden)")?.click();
+      }
+      const pre = root.querySelector(selector);
+      assertSmoke(Boolean(pre), `${label}: code block exists`, { selector, html: root.innerHTML.slice(0, 1200) });
+      if (!pre) return;
+      const style = getComputedStyle(pre);
+      assertSmoke(style.whiteSpace === "pre", `${label}: preserves long lines`, { whiteSpace: style.whiteSpace });
+      assertSmoke(style.wordBreak === "normal", `${label}: does not break words`, { wordBreak: style.wordBreak });
+      assertSmoke(style.overflowWrap === "normal", `${label}: does not soft-wrap long tokens`, { overflowWrap: style.overflowWrap });
+      assertSmoke(pre.scrollWidth > pre.clientWidth + 20, `${label}: scrolls inside the code block`, {
+        scrollWidth: pre.scrollWidth,
+        clientWidth: pre.clientWidth,
+      });
+    }
+
+    function assertScriptAndCodeBlocksDoNotSoftWrap() {
+      const codeRoot = renderCase("code", rendererCases.code.result);
+      assertCodeLikeNoSoftWrap(codeRoot, ".tool-detail-section .code-block", "plugin code renderer");
+
+      const jsonRoot = renderCase("json_long", { value: longToken, nested: { code: longCode } });
+      assertCodeLikeNoSoftWrap(jsonRoot, ".tool-result-json-block", "plugin json renderer");
+
+      const scriptRoot = renderCase("script_raw", {
+        ok: true,
+        hasResult: true,
+        resultType: "object",
+        engine: "cdp",
+        execution_world: "page",
+        result: { url: longToken, code: longCode },
+      }, {
+        query: longToken,
+      }, {
+        standaloneFooter: true,
+      });
+      assertCodeLikeNoSoftWrap(scriptRoot, ".tool-result-json-block", "plugin script result");
+      assertCodeLikeNoSoftWrap(scriptRoot, ".tool-event-raw-panel pre", "plugin script raw panel", { openRawPanel: true });
+    }
+
+    function assertMcpUsesSharedRendererShapes() {
+      const declared = renderCase("mcp_declared_table", {
+        content: [{ type: "text", text: JSON.stringify({ rows: [{ train: "G3024", from: "福州南", to: "杭州西" }] }) }],
+      });
+      assertSmoke(Boolean(declared.querySelector(".tool-data-table")), "MCP declared renderer: standard table rendered");
+      assertSmoke(declared.textContent.includes("G3024"), "MCP declared renderer: parsed JSON text reaches table data");
+      assertSmoke(!declared.textContent.includes("MCP 文本"), "MCP declared renderer: does not fall back to text");
+
+      const inferred = renderCase("mcp_auto_table", {
+        structuredContent: {
+          trains: [
+            { train: "G3024", departure: "15:31", arrival: "20:03" },
+            { train: "G3026", departure: "15:50", arrival: "20:03" },
+          ],
+        },
+      });
+      assertSmoke(Boolean(inferred.querySelector(".tool-data-table")), "MCP inferred renderer: a single flat record array uses the shared table");
+      assertSmoke(inferred.textContent.includes("G3026"), "MCP inferred renderer: table contains structured MCP rows");
+
+      const encodedUrl = "https://www.baidu.com/s?wd=%E6%9B%B2%E9%99%A2%E9%A3%8E%E8%8D%B7&src=qingzhou";
+      const textFallback = renderCase("mcp_text_fallback", {
+        content: [{ type: "text", text: `2026-07-11 ${encodedUrl}` }],
+      });
+      const compact = textFallback.querySelector(".tool-compact-line");
+      const title = textFallback.querySelector(".tool-section-title");
+      const body = textFallback.querySelector(".tool-text-preview");
+      assertSmoke(Boolean(compact && title && body), "MCP text fallback: compact summary and text section exist");
+      const url = body?.querySelector("a");
+      assertSmoke(url?.textContent.includes("曲院风荷"), "tool URL: encoded display text is readable");
+      assertSmoke(url?.getAttribute("href") === encodedUrl, "tool URL: click target preserves the original address");
+      if (compact && title && body) {
+        const topGap = title.getBoundingClientRect().top - compact.getBoundingClientRect().bottom;
+        const bottomGap = body.getBoundingClientRect().top - title.getBoundingClientRect().bottom;
+        const spacing = {
+          topGap,
+          bottomGap,
+          sectionMarginTop: getComputedStyle(title.parentElement).marginTop,
+          compactMarginBottom: getComputedStyle(compact).marginBottom,
+          parentRowGap: getComputedStyle(compact.parentElement).rowGap,
+          titleMarginBottom: getComputedStyle(title).marginBottom,
+        };
+        assertSmoke(topGap >= 6, "MCP text fallback: title has deliberate top spacing", spacing);
+        assertSmoke(Math.abs(topGap - bottomGap) <= 2, "MCP text fallback: title spacing is vertically balanced", spacing);
+      }
+    }
+
+    function assertLayoutRenderer() {
+      const wrap = document.createElement("article");
+      wrap.className = "smoke-case";
+      wrap.innerHTML = `<h2 class="smoke-case-title">layout</h2>`;
+      const event = renderToolEvent({
+        name: "renderer_smoke__layout",
+        args: {},
+        result: {
+          summary: { title: "组合摘要", count: 2 },
+          videos: { rows: [{ title: "组合视频" }] },
+          covers: { images: [{ url: dataImage, title: "组合封面" }] },
+          notes: { markdown: "### 组合说明\n\n内容" },
+        },
+      }, { expanded: true, standaloneFooter: false });
+      wrap.append(event);
+      casesEl.append(wrap);
+      assertSmoke(Boolean(wrap.querySelector(".tool-compact-line")), "layout: summary block");
+      assertSmoke(Boolean(wrap.querySelector(".tool-data-table-section")), "layout: table block");
+      assertSmoke(Boolean(wrap.querySelector(".tool-image-grid-section")), "layout: image grid block");
+      assertSmoke(Boolean(wrap.querySelector(".tool-plugin-markdown")), "layout: markdown block");
+      assertSmoke(wrap.textContent.includes("组合视频"), "layout: sourcePath table data");
+    }
+
+    function assertCollectionStateSemantics() {
+      const root = renderCase("collection_states", {
+        summary: { status: "SUCCESS" },
+        empty: { rows: [] },
+        invalid: { rows: { id: "not-an-array" } },
+        ready: { rows: [{ id: "business-1", createdAt: "2026-07-17", value: 42 }], totalRows: 9, truncated: true },
+      });
+      const diagnostics = [...root.querySelectorAll("[data-renderer-diagnostic-code]")];
+      assertSmoke(root.textContent.includes("合法空结果"), "collection states: empty is a valid renderer state");
+      assertSmoke(diagnostics.length === 1, "collection states: only invalid data emits a diagnostic", {
+        diagnostics: diagnostics.map(node => ({ ...node.dataset })),
+      });
+      assertSmoke(diagnostics[0]?.dataset.rendererDiagnosticCode === "PLUGIN_RENDERER_COLLECTION_INVALID", "collection states: invalid data has a stable diagnostic code");
+      assertSmoke(!root.textContent.includes("返回结构不匹配"), "collection states: user-facing fallback is neutral");
+      const headers = [...root.querySelectorAll(".tool-data-table th")].map(node => node.textContent.trim());
+      assertSmoke(headers.includes("id") && headers.includes("createdAt"), "collection states: generic tables retain business id and timestamps", { headers });
+      assertSmoke(root.textContent.includes("1 / 9 行") && root.textContent.includes("已截断"), "collection states: table exposes total and truncation metadata");
+    }
+
+    function assertAllMissingLayoutFallsBack() {
+      const root = renderCase("all_missing_layout", { fallbackMarker: "GENERIC_FALLBACK_VISIBLE" });
+      assertSmoke(root.textContent.includes("GENERIC_FALLBACK_VISIBLE"), "all-missing layout: generic fallback keeps the tool result visible", {
+        text: root.textContent.slice(0, 1000),
+      });
+      assertSmoke(Boolean(root.querySelector(".tool-result-json-block")), "all-missing layout: result uses the standard script result renderer");
+      assertSmoke(!root.querySelector("[data-renderer-diagnostic-code]"), "all-missing layout: optional blocks leave no misleading diagnostic UI");
+    }
+
+    function assertDataStoreColumnPolicyIsExplicit() {
+      const wrap = document.createElement("article");
+      wrap.className = "smoke-case";
+      wrap.dataset.case = "data-store-column-policy";
+      wrap.innerHTML = '<h2 class="smoke-case-title">data store column policy</h2>';
+      wrap.append(renderToolEvent({
+        name: "data_store",
+        args: { action: "list", table: "renderer_policy" },
+        result: {
+          table: "renderer_policy",
+          rows: [{
+            rowId: "row-1",
+            createdAt: "2026-07-17T00:00:00.000Z",
+            data: { id: "business-1", createdAt: "2026-07-17", name: "visible business value" },
+          }],
+        },
+      }, { expanded: true, standaloneFooter: false }));
+      casesEl.append(wrap);
+      const headers = [...wrap.querySelectorAll(".tool-data-table th")].map(node => node.textContent.trim());
+      assertSmoke(headers.includes("id") && headers.includes("name"), "data store policy: business columns, including id, remain visible", { headers });
+      assertSmoke(!headers.includes("rowId"), "data store policy: the storage row handle stays outside business data", { headers });
+      assertSmoke(!headers.includes("createdAt"), "data store policy: configured timestamp columns remain hidden", { headers });
+    }
+
+    function assertSummaryValuesStayContained() {
+      const root = casesEl.querySelector('[data-case="summary"]');
+      const grid = root?.querySelector(".tool-stat-grid");
+      const values = [...(grid?.querySelectorAll(".tool-stat-item b") || [])];
+      assertSmoke(values.length === 3, "summary: renders all configured stats", { count: values.length });
+      for (const value of values) {
+        const itemRect = value.parentElement.getBoundingClientRect();
+        const valueRect = value.getBoundingClientRect();
+        const style = getComputedStyle(value);
+        assertSmoke(valueRect.right <= itemRect.right + 0.5, "summary: value box stays inside its stat cell", {
+          label: value.parentElement.querySelector("em")?.textContent || "",
+          itemRight: itemRect.right,
+          valueRight: valueRect.right,
+        });
+        assertSmoke(style.overflow === "hidden" && style.textOverflow === "ellipsis" && style.whiteSpace === "nowrap", "summary: long values use single-line ellipsis", {
+          overflow: style.overflow,
+          textOverflow: style.textOverflow,
+          whiteSpace: style.whiteSpace,
+        });
+      }
+      const instance = values.find(value => value.parentElement.querySelector("em")?.textContent === "Instance");
+      assertSmoke(instance?.title === rendererCases.summary.result.instanceId, "summary: clipped values retain the complete title", {
+        title: instance?.title || "",
+      });
+      assertSmoke((grid?.scrollWidth || 0) <= (grid?.clientWidth || 0) + 1, "summary: stat grid has no horizontal overflow", {
+        scrollWidth: grid?.scrollWidth || 0,
+        clientWidth: grid?.clientWidth || 0,
+      });
+    }
+
+    async function main() {
+      smoke.rendererTypes = listSkillRendererDefinitions().map(item => item.type);
+      const missing = smoke.rendererTypes.filter(type => !rendererCases[type]);
+      assertSmoke(missing.length === 0, "all advertised renderers have smoke cases", { missing });
+      for (const type of smoke.rendererTypes) {
+        assertRenderedCase(type, rendererCases[type]);
+      }
+      assertSummaryValuesStayContained();
+      assertLayoutRenderer();
+      assertCollectionStateSemantics();
+      assertAllMissingLayoutFallsBack();
+      assertDataStoreColumnPolicyIsExplicit();
+      assertSkillUpdateDoesNotDuplicateResultAndArgsChanges();
+      assertSkillEditResourceWithoutContentDoesNotClaimEmptyResource();
+      assertScriptAndCodeBlocksDoNotSoftWrap();
+      assertMcpUsesSharedRendererShapes();
+
+      const horizontalOverflow = document.documentElement.scrollWidth - document.documentElement.clientWidth;
+      assertSmoke(horizontalOverflow <= 1, "no horizontal overflow", {
+        scrollWidth: document.documentElement.scrollWidth,
+        clientWidth: document.documentElement.clientWidth,
+      });
+
+      const pass = smoke.failures.length === 0;
+      statusEl.textContent = `${pass ? "PASS" : "FAIL"} ${smoke.assertions} assertions`;
+      statusEl.classList.add(pass ? "pass" : "fail");
+      statusEl.dataset.result = pass ? "pass" : "fail";
+      window.__pluginRendererSmoke = smoke;
+    }
+
+    main().catch(error => {
+      smoke.failures.push({ name: "uncaught", details: { message: error?.message || String(error), stack: error?.stack || "" } });
+      statusEl.textContent = `FAIL ${smoke.assertions} assertions`;
+      statusEl.classList.add("fail");
+      statusEl.dataset.result = "fail";
+      window.__pluginRendererSmoke = smoke;
+      console.error(error);
+    });
+  </script>
+</body>
+</html>

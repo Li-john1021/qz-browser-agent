@@ -1,0 +1,5 @@
+{
+  "manifest.extensionName": "qz",
+  "manifest.extensionDescription": "qz — рабочее пространство с ИИ-агентами в вашем браузере.",
+  "manifest.switchModel": "Быстро переключать профили моделей"
+}

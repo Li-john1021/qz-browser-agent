@@ -1,0 +1,7088 @@
+{
+  "schema": "qingzhou.article-extraction-sites.v1",
+  "sampleTarget": 1000,
+  "design": {
+    "purpose": "Expand the frozen Chinese real-world corpus from 500 to 1500 pages without adding any host already declared by v1/v2.",
+    "newSiteTarget": 200,
+    "verticalTarget": 20,
+    "sitesPerVertical": 10,
+    "quotaRule": "Exactly 200 new sites x 5 accepted pages = 1,000 pages; no site may exceed 5.",
+    "selectionUnit": "registrable site/domain; one site contributes exactly 5 accepted pages or its missing same-cell quota is filled from the supplement",
+    "templateRule": "Canonical URL and DOM digest must be unique. Cap a normalized template signature at 2 pages per site and 8 pages corpus-wide; enforce after capture rather than replacing failed high-risk sites with news details.",
+    "pageTypeRule": "Every declared seed is a page-type target. Remaining per-site quota is reserved for discovered detail/entity pages. Replace failures only within the same vertical and page type.",
+    "existingAnchor": {
+      "siteId": "xiaohongshu",
+      "pagesAlreadyIn500": 4,
+      "typesAlreadyIn500": {
+        "detail": 3,
+        "feed": 1
+      },
+      "decision": "No new quota in this increment; the composed 1500-page corpus already contains Xiaohongshu and this avoids site leakage."
+    },
+    "evaluationSplit": {
+      "train": 300,
+      "validation": 300,
+      "test": 400,
+      "unit": "accepted pages",
+      "rule": "60/60/80 sites; every siteFamily belongs to exactly one split"
+    },
+    "challengeNegativePlan": {
+      "target": 100,
+      "distribution": "5 preflight-qualified negatives in each of 20 verticals",
+      "siteCap": 1,
+      "eligibleSitesPerVertical": 5,
+      "acquisition": "Use the visible first-party search/filter UI during live preflight, then freeze its canonical final URL; never invent a path.",
+      "acceptance": "HTTP 200, >=80 visible chars, stable complete DOM, explicit no-results/empty-filter/delisted state, no login wall, CAPTCHA, challenge, server error, or hydration failure.",
+      "label": "expectedDisposition=exclude; failures remain capture failures and are replaced by a same-vertical/same-split negative from the supplement.",
+      "note": "The representative config remains directly runnable. Negative URLs are added only after live UI preflight because search routes and tokens are unstable."
+    }
+  },
+  "riskLegend": {
+    "low": "Usually public server-rendered HTML; still preflight status, visible text, URL stability and screenshot.",
+    "medium": "Dynamic rendering, regional variants, paywall snippets or intermittent throttling are plausible.",
+    "high": "Login/challenge/CAPTCHA, aggressive anti-automation, iframe-only content or expiring URL tokens are expected."
+  },
+  "sites": [
+    {
+      "id": "tianyancha",
+      "name": "天眼查",
+      "vertical": "企业工商",
+      "quota": 5,
+      "hosts": [
+        "tianyancha.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "challenge",
+        "login",
+        "rate-limit"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.tianyancha.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://www.tianyancha.com/search?key=%E5%8D%8E%E4%B8%BA"
+        },
+        {
+          "type": "ranking",
+          "url": "https://www.tianyancha.com/brand"
+        }
+      ],
+      "detailPatterns": [
+        "/company/",
+        "/human/"
+      ],
+      "siteFamily": "tianyancha.com",
+      "evaluationSplit": "train",
+      "discoveredType": "company"
+    },
+    {
+      "id": "qichacha",
+      "name": "企查查",
+      "vertical": "企业工商",
+      "quota": 5,
+      "hosts": [
+        "qcc.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "geo-redirect",
+        "challenge",
+        "login"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.qcc.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://www.qcc.com/web/search?key=%E5%8D%8E%E4%B8%BA"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.qcc.com/web/risk"
+        }
+      ],
+      "detailPatterns": [
+        "/firm/",
+        "/plp/"
+      ],
+      "siteFamily": "qcc.com",
+      "evaluationSplit": "train",
+      "discoveredType": "company"
+    },
+    {
+      "id": "aiqicha",
+      "name": "爱企查",
+      "vertical": "企业工商",
+      "quota": 5,
+      "hosts": [
+        "aiqicha.baidu.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "challenge",
+        "spa",
+        "login"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://aiqicha.baidu.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://aiqicha.baidu.com/s?q=%E5%8D%8E%E4%B8%BA&t=0"
+        },
+        {
+          "type": "channel",
+          "url": "https://aiqicha.baidu.com/industry"
+        }
+      ],
+      "detailPatterns": [
+        "/company_detail_",
+        "/person/"
+      ],
+      "siteFamily": "baidu.com",
+      "evaluationSplit": "train",
+      "discoveredType": "company"
+    },
+    {
+      "id": "qixin",
+      "name": "启信宝",
+      "vertical": "企业工商",
+      "quota": 5,
+      "hosts": [
+        "qixin.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "login",
+        "spa",
+        "rate-limit"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.qixin.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://www.qixin.com/search?key=%E5%8D%8E%E4%B8%BA"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.qixin.com/industry"
+        }
+      ],
+      "detailPatterns": [
+        "/company/",
+        "/risk/"
+      ],
+      "siteFamily": "qixin.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "company"
+    },
+    {
+      "id": "shuidi",
+      "name": "水滴信用",
+      "vertical": "企业工商",
+      "quota": 5,
+      "hosts": [
+        "shuidi.cn"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "challenge",
+        "spa"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://shuidi.cn/"
+        },
+        {
+          "type": "search",
+          "url": "https://shuidi.cn/search?key=%E5%8D%8E%E4%B8%BA"
+        },
+        {
+          "type": "channel",
+          "url": "https://shuidi.cn/pc-company"
+        }
+      ],
+      "detailPatterns": [
+        "/company-",
+        "/legal-person-"
+      ],
+      "siteFamily": "shuidi.cn",
+      "evaluationSplit": "validation",
+      "discoveredType": "company"
+    },
+    {
+      "id": "qichamao",
+      "name": "企查猫",
+      "vertical": "企业工商",
+      "quota": 5,
+      "hosts": [
+        "qichamao.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "dynamic",
+        "rate-limit"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.qichamao.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://www.qichamao.com/orgcompany/search?key=%E5%8D%8E%E4%B8%BA"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.qichamao.com/orgcompany"
+        }
+      ],
+      "detailPatterns": [
+        "/orgcompany/searchitemdtl/",
+        "/orgcompany/"
+      ],
+      "siteFamily": "qichamao.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "company"
+    },
+    {
+      "id": "shunqi",
+      "name": "顺企网",
+      "vertical": "企业工商",
+      "quota": 5,
+      "hosts": [
+        "11467.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "template-density"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.11467.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://b2b.11467.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.11467.com/beijing/"
+        }
+      ],
+      "detailPatterns": [
+        "/qiye/",
+        ".htm"
+      ],
+      "siteFamily": "11467.com",
+      "evaluationSplit": "test",
+      "discoveredType": "company"
+    },
+    {
+      "id": "huangye88",
+      "name": "黄页88",
+      "vertical": "企业工商",
+      "quota": 5,
+      "hosts": [
+        "huangye88.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "template-density",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.huangye88.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.huangye88.com/gongsi/"
+        },
+        {
+          "type": "channel",
+          "url": "https://b2b.huangye88.com/"
+        }
+      ],
+      "detailPatterns": [
+        "/company/",
+        "/qiye/"
+      ],
+      "siteFamily": "huangye88.com",
+      "evaluationSplit": "test",
+      "discoveredType": "company"
+    },
+    {
+      "id": "creditchina",
+      "name": "信用中国",
+      "vertical": "企业工商",
+      "quota": 5,
+      "hosts": [
+        "creditchina.gov.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "dynamic",
+        "query-api"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.creditchina.gov.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.creditchina.gov.cn/xinyongfuwu/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.creditchina.gov.cn/xinyongdongtai/"
+        }
+      ],
+      "detailPatterns": [
+        "/xinyongdongtai/",
+        "/zhuanxiangzhili/"
+      ],
+      "siteFamily": "creditchina.gov.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "company"
+    },
+    {
+      "id": "gsxt",
+      "name": "国家企业信用信息公示系统",
+      "vertical": "企业工商",
+      "quota": 5,
+      "hosts": [
+        "gsxt.gov.cn"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "captcha",
+        "challenge",
+        "query-only"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.gsxt.gov.cn/index.html"
+        },
+        {
+          "type": "search",
+          "url": "https://www.gsxt.gov.cn/corp-query-homepage.html"
+        },
+        {
+          "type": "data",
+          "url": "https://bt.gsxt.gov.cn/"
+        }
+      ],
+      "detailPatterns": [
+        "/corp-query-entprise-info-",
+        "/affiche-query-info-"
+      ],
+      "siteFamily": "gsxt.gov.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "company"
+    },
+    {
+      "id": "dianping",
+      "name": "大众点评",
+      "vertical": "本地生活",
+      "quota": 5,
+      "hosts": [
+        "dianping.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "challenge",
+        "login",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.dianping.com/Beijing"
+        },
+        {
+          "type": "search",
+          "url": "https://www.dianping.com/search/keyword/2/0_%E7%81%AB%E9%94%85"
+        },
+        {
+          "type": "ranking",
+          "url": "https://m.dianping.com/an/ranklist/musteat2023/page/index?cityid=2&notitlebar=1&ranktype=3"
+        }
+      ],
+      "detailPatterns": [
+        "/shop/",
+        "/review/"
+      ],
+      "siteFamily": "meituan-dianping",
+      "evaluationSplit": "train",
+      "discoveredType": "place"
+    },
+    {
+      "id": "meituan",
+      "name": "美团",
+      "vertical": "本地生活",
+      "quota": 5,
+      "hosts": [
+        "meituan.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "dynamic",
+        "geo",
+        "login"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.meituan.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://guide.meituan.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://meishi.meituan.com/i/?ci=1"
+        }
+      ],
+      "detailPatterns": [
+        "/guide/",
+        "/i/poi/"
+      ],
+      "siteFamily": "meituan-dianping",
+      "evaluationSplit": "train",
+      "discoveredType": "place"
+    },
+    {
+      "id": "eleme",
+      "name": "饿了么",
+      "vertical": "本地生活",
+      "quota": 5,
+      "hosts": [
+        "ele.me"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "geo",
+        "login",
+        "spa"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.ele.me/"
+        },
+        {
+          "type": "feed",
+          "url": "https://h5.ele.me/"
+        },
+        {
+          "type": "search",
+          "url": "https://www.ele.me/home/"
+        }
+      ],
+      "detailPatterns": [
+        "/shop/",
+        "/restaurant/"
+      ],
+      "siteFamily": "ele.me",
+      "evaluationSplit": "train",
+      "discoveredType": "place"
+    },
+    {
+      "id": "amap",
+      "name": "高德地图",
+      "vertical": "本地生活",
+      "quota": 5,
+      "hosts": [
+        "amap.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "canvas",
+        "spa",
+        "geo"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.amap.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://www.amap.com/search?query=%E5%8D%9A%E7%89%A9%E9%A6%86"
+        },
+        {
+          "type": "channel",
+          "url": "https://ditu.amap.com/"
+        }
+      ],
+      "detailPatterns": [
+        "/place/",
+        "/detail/"
+      ],
+      "siteFamily": "amap.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "place"
+    },
+    {
+      "id": "ganji",
+      "name": "赶集网",
+      "vertical": "本地生活",
+      "quota": 5,
+      "hosts": [
+        "ganji.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "geo",
+        "ads",
+        "challenge"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.ganji.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://bj.ganji.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://bj.ganji.com/fang1/"
+        }
+      ],
+      "detailPatterns": [
+        "/detail/",
+        ".htm"
+      ],
+      "siteFamily": "ganji.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "place"
+    },
+    {
+      "id": "baixing",
+      "name": "百姓网",
+      "vertical": "本地生活",
+      "quota": 5,
+      "hosts": [
+        "baixing.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "geo",
+        "ads",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.baixing.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://beijing.baixing.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://beijing.baixing.com/fang/"
+        }
+      ],
+      "detailPatterns": [
+        "/oz/",
+        "/detail/"
+      ],
+      "siteFamily": "baixing.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "place"
+    },
+    {
+      "id": "bendibao",
+      "name": "本地宝",
+      "vertical": "本地生活",
+      "quota": 5,
+      "hosts": [
+        "bendibao.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "city-subdomain"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.bendibao.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://bj.bendibao.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://bj.bendibao.com/news/"
+        }
+      ],
+      "detailPatterns": [
+        "/news/",
+        "/tour/"
+      ],
+      "siteFamily": "bendibao.com",
+      "evaluationSplit": "test",
+      "discoveredType": "place"
+    },
+    {
+      "id": "8684",
+      "name": "8684公交",
+      "vertical": "本地生活",
+      "quota": 5,
+      "hosts": [
+        "8684.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "city-subdomain",
+        "template-density"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.8684.cn/"
+        },
+        {
+          "type": "search",
+          "url": "https://beijing.8684.cn/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://beijing.8684.cn/gongjiao"
+        }
+      ],
+      "detailPatterns": [
+        "/x_",
+        "/line"
+      ],
+      "siteFamily": "8684.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "place"
+    },
+    {
+      "id": "huodongxing",
+      "name": "活动行",
+      "vertical": "本地生活",
+      "quota": 5,
+      "hosts": [
+        "huodongxing.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "dynamic",
+        "login"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.huodongxing.com/"
+        },
+        {
+          "type": "feed",
+          "url": "https://www.huodongxing.com/events"
+        },
+        {
+          "type": "search",
+          "url": "https://www.huodongxing.com/search?keyword=AI"
+        }
+      ],
+      "detailPatterns": [
+        "/event/",
+        "/events/"
+      ],
+      "siteFamily": "huodongxing.com",
+      "evaluationSplit": "test",
+      "discoveredType": "place"
+    },
+    {
+      "id": "dahepiao",
+      "name": "大河票务",
+      "vertical": "本地生活",
+      "quota": 5,
+      "hosts": [
+        "dahepiao.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "city-variants"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.dahepiao.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.dahepiao.com/yanchupiaowu1/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.dahepiao.com/jingqulvyou1/"
+        }
+      ],
+      "detailPatterns": [
+        "/news/",
+        ".html"
+      ],
+      "siteFamily": "dahepiao.com",
+      "evaluationSplit": "test",
+      "discoveredType": "place"
+    },
+    {
+      "id": "taobao",
+      "name": "淘宝",
+      "vertical": "电商商品",
+      "quota": 5,
+      "hosts": [
+        "taobao.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "login",
+        "challenge",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.taobao.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://s.taobao.com/search?q=%E6%89%8B%E6%9C%BA"
+        },
+        {
+          "type": "catalog",
+          "url": "https://s.taobao.com/list?cat=50008090"
+        }
+      ],
+      "detailPatterns": [
+        "item.taobao.com/item.htm",
+        "/item/"
+      ],
+      "siteFamily": "alibaba-commerce",
+      "evaluationSplit": "train",
+      "discoveredType": "product"
+    },
+    {
+      "id": "tmall",
+      "name": "天猫",
+      "vertical": "电商商品",
+      "quota": 5,
+      "hosts": [
+        "tmall.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "login",
+        "challenge",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.tmall.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://list.tmall.com/search_product.htm?q=%E6%89%8B%E6%9C%BA"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.tmall.com/wow/market/act/category"
+        }
+      ],
+      "detailPatterns": [
+        "detail.tmall.com/item.htm",
+        "/item/"
+      ],
+      "siteFamily": "alibaba-commerce",
+      "evaluationSplit": "train",
+      "discoveredType": "product"
+    },
+    {
+      "id": "jd",
+      "name": "京东",
+      "vertical": "电商商品",
+      "quota": 5,
+      "hosts": [
+        "jd.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "challenge",
+        "login",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.jd.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://search.jd.com/Search?keyword=%E6%89%8B%E6%9C%BA"
+        },
+        {
+          "type": "channel",
+          "url": "https://channel.jd.com/electronic.html"
+        }
+      ],
+      "detailPatterns": [
+        "item.jd.com/",
+        "/product/"
+      ],
+      "siteFamily": "jd.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "product"
+    },
+    {
+      "id": "pinduoduo",
+      "name": "拼多多",
+      "vertical": "电商商品",
+      "quota": 5,
+      "hosts": [
+        "pinduoduo.com",
+        "yangkeduo.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "app-gate",
+        "login",
+        "spa"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.pinduoduo.com/home/index/"
+        },
+        {
+          "type": "feed",
+          "url": "https://mobile.yangkeduo.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://mobile.yangkeduo.com/search_result.html?search_key=%E6%89%8B%E6%9C%BA"
+        }
+      ],
+      "detailPatterns": [
+        "goods.html",
+        "goods_id="
+      ],
+      "siteFamily": "pinduoduo.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "product"
+    },
+    {
+      "id": "1688",
+      "name": "1688",
+      "vertical": "电商商品",
+      "quota": 5,
+      "hosts": [
+        "1688.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "login",
+        "challenge",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.1688.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://s.1688.com/selloffer/offer_search.htm?keywords=%E6%89%8B%E6%9C%BA"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.1688.com/market/"
+        }
+      ],
+      "detailPatterns": [
+        "detail.1688.com/offer/",
+        "/offer/"
+      ],
+      "siteFamily": "alibaba-commerce",
+      "evaluationSplit": "train",
+      "discoveredType": "product"
+    },
+    {
+      "id": "suning",
+      "name": "苏宁易购",
+      "vertical": "电商商品",
+      "quota": 5,
+      "hosts": [
+        "suning.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "dynamic",
+        "geo"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.suning.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://search.suning.com/%E6%89%8B%E6%9C%BA/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://list.suning.com/0-20006-0.html"
+        }
+      ],
+      "detailPatterns": [
+        "product.suning.com/",
+        "/product/"
+      ],
+      "siteFamily": "suning",
+      "evaluationSplit": "validation",
+      "discoveredType": "product"
+    },
+    {
+      "id": "vip",
+      "name": "唯品会",
+      "vertical": "电商商品",
+      "quota": 5,
+      "hosts": [
+        "vip.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "spa",
+        "login",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.vip.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://category.vip.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://category.vip.com/suggest.php?keyword=%E8%BF%90%E5%8A%A8%E9%9E%8B"
+        }
+      ],
+      "detailPatterns": [
+        "detail.vip.com/detail-",
+        "/product-"
+      ],
+      "siteFamily": "vip.com",
+      "evaluationSplit": "test",
+      "discoveredType": "product"
+    },
+    {
+      "id": "dangdang",
+      "name": "当当",
+      "vertical": "电商商品",
+      "quota": 5,
+      "hosts": [
+        "dangdang.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "legacy-http",
+        "ads"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "http://www.dangdang.com/"
+        },
+        {
+          "type": "search",
+          "url": "http://search.dangdang.com/?key=%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD"
+        },
+        {
+          "type": "catalog",
+          "url": "http://category.dangdang.com/"
+        }
+      ],
+      "detailPatterns": [
+        "product.dangdang.com/",
+        "/product/"
+      ],
+      "siteFamily": "dangdang.com",
+      "evaluationSplit": "test",
+      "discoveredType": "product"
+    },
+    {
+      "id": "dewu",
+      "name": "得物",
+      "vertical": "电商商品",
+      "quota": 5,
+      "hosts": [
+        "dewu.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "app-gate",
+        "spa",
+        "login"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.dewu.com/"
+        },
+        {
+          "type": "feed",
+          "url": "https://www.dewu.com/community"
+        },
+        {
+          "type": "ranking",
+          "url": "https://www.dewu.com/ranking"
+        }
+      ],
+      "detailPatterns": [
+        "/product/",
+        "/community/detail/"
+      ],
+      "siteFamily": "dewu.com",
+      "evaluationSplit": "test",
+      "discoveredType": "product"
+    },
+    {
+      "id": "gome",
+      "name": "国美",
+      "vertical": "电商商品",
+      "quota": 5,
+      "hosts": [
+        "gome.com.cn"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "availability",
+        "dynamic",
+        "redirect"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.gome.com.cn/"
+        },
+        {
+          "type": "search",
+          "url": "https://search.gome.com.cn/search?question=%E6%89%8B%E6%9C%BA"
+        },
+        {
+          "type": "catalog",
+          "url": "https://list.gome.com.cn/cat10000055.html"
+        }
+      ],
+      "detailPatterns": [
+        "item.gome.com.cn/",
+        "/product/"
+      ],
+      "siteFamily": "gome.com.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "product"
+    },
+    {
+      "id": "jianshu",
+      "name": "简书",
+      "vertical": "内容社区",
+      "quota": 5,
+      "hosts": [
+        "jianshu.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "login",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.jianshu.com/"
+        },
+        {
+          "type": "feed",
+          "url": "https://www.jianshu.com/recommendations/collections"
+        },
+        {
+          "type": "search",
+          "url": "https://www.jianshu.com/search?q=%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD&page=1&type=note"
+        }
+      ],
+      "detailPatterns": [
+        "/p/",
+        "/u/"
+      ],
+      "siteFamily": "jianshu.com",
+      "evaluationSplit": "train",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "nga",
+      "name": "NGA玩家社区",
+      "vertical": "内容社区",
+      "quota": 5,
+      "hosts": [
+        "nga.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "legacy-encoding",
+        "login"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://bbs.nga.cn/"
+        },
+        {
+          "type": "feed",
+          "url": "https://bbs.nga.cn/thread.php?fid=-7"
+        },
+        {
+          "type": "ranking",
+          "url": "https://bbs.nga.cn/thread.php?fid=-152678"
+        }
+      ],
+      "detailPatterns": [
+        "read.php?tid=",
+        "topic.php?tid="
+      ],
+      "siteFamily": "nga.cn",
+      "evaluationSplit": "train",
+      "discoveredType": "thread"
+    },
+    {
+      "id": "coolapk",
+      "name": "酷安",
+      "vertical": "内容社区",
+      "quota": 5,
+      "hosts": [
+        "coolapk.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "app-gate",
+        "login",
+        "spa"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.coolapk.com/"
+        },
+        {
+          "type": "feed",
+          "url": "https://www.coolapk.com/feed"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.coolapk.com/apk"
+        }
+      ],
+      "detailPatterns": [
+        "/feed/",
+        "/apk/"
+      ],
+      "siteFamily": "coolapk.com",
+      "evaluationSplit": "train",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "chiphell",
+      "name": "Chiphell",
+      "vertical": "内容社区",
+      "quota": 5,
+      "hosts": [
+        "chiphell.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "challenge",
+        "forum-template"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.chiphell.com/"
+        },
+        {
+          "type": "feed",
+          "url": "https://www.chiphell.com/portal.php"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.chiphell.com/forum.php"
+        }
+      ],
+      "detailPatterns": [
+        "thread-",
+        "article-"
+      ],
+      "siteFamily": "chiphell.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "thread"
+    },
+    {
+      "id": "taptap",
+      "name": "TapTap",
+      "vertical": "内容社区",
+      "quota": 5,
+      "hosts": [
+        "taptap.cn"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "spa",
+        "login",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.taptap.cn/"
+        },
+        {
+          "type": "ranking",
+          "url": "https://www.taptap.cn/top/download"
+        },
+        {
+          "type": "search",
+          "url": "https://www.taptap.cn/search/%E5%8E%9F%E7%A5%9E"
+        }
+      ],
+      "detailPatterns": [
+        "/app/",
+        "/topic/"
+      ],
+      "siteFamily": "taptap.cn",
+      "evaluationSplit": "validation",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "zcool",
+      "name": "站酷",
+      "vertical": "内容社区",
+      "quota": 5,
+      "hosts": [
+        "zcool.com.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "dynamic",
+        "login"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.zcool.com.cn/"
+        },
+        {
+          "type": "feed",
+          "url": "https://www.zcool.com.cn/discover"
+        },
+        {
+          "type": "search",
+          "url": "https://www.zcool.com.cn/search/content?word=AI"
+        }
+      ],
+      "detailPatterns": [
+        "/work/",
+        "/article/"
+      ],
+      "siteFamily": "zcool.com.cn",
+      "evaluationSplit": "validation",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "xitek",
+      "name": "色影无忌",
+      "vertical": "内容社区",
+      "quota": 5,
+      "hosts": [
+        "xitek.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "forum-template",
+        "ads"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.xitek.com/"
+        },
+        {
+          "type": "feed",
+          "url": "https://forum.xitek.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.xitek.com/collection"
+        }
+      ],
+      "detailPatterns": [
+        "/thread-",
+        "/article/"
+      ],
+      "siteFamily": "xitek.com",
+      "evaluationSplit": "test",
+      "discoveredType": "thread"
+    },
+    {
+      "id": "lofter",
+      "name": "LOFTER",
+      "vertical": "内容社区",
+      "quota": 5,
+      "hosts": [
+        "lofter.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "login",
+        "spa",
+        "app-gate"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.lofter.com/"
+        },
+        {
+          "type": "topic",
+          "url": "https://www.lofter.com/tag/%E6%91%84%E5%BD%B1"
+        },
+        {
+          "type": "search",
+          "url": "https://www.lofter.com/search?q=%E6%91%84%E5%BD%B1"
+        }
+      ],
+      "detailPatterns": [
+        "/post/",
+        ".lofter.com/post/"
+      ],
+      "siteFamily": "lofter.com",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "xiachufang",
+      "name": "下厨房",
+      "vertical": "内容社区",
+      "quota": 5,
+      "hosts": [
+        "xiachufang.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "login",
+        "ads"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.xiachufang.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.xiachufang.com/category/"
+        },
+        {
+          "type": "search",
+          "url": "https://www.xiachufang.com/search/?keyword=%E7%BA%A2%E7%83%A7%E8%82%89"
+        }
+      ],
+      "detailPatterns": [
+        "/recipe/",
+        "/cook/"
+      ],
+      "siteFamily": "xiachufang.com",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "douguo",
+      "name": "豆果美食",
+      "vertical": "内容社区",
+      "quota": 5,
+      "hosts": [
+        "douguo.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.douguo.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.douguo.com/caipu"
+        },
+        {
+          "type": "search",
+          "url": "https://www.douguo.com/caipu/%E7%BA%A2%E7%83%A7%E8%82%89"
+        }
+      ],
+      "detailPatterns": [
+        "/cookbook/",
+        "/article/"
+      ],
+      "siteFamily": "douguo.com",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "ixigua",
+      "name": "西瓜视频",
+      "vertical": "视频直播",
+      "quota": 5,
+      "hosts": [
+        "ixigua.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "spa",
+        "login",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.ixigua.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://www.ixigua.com/search/%E7%A7%91%E6%8A%80/"
+        },
+        {
+          "type": "feed",
+          "url": "https://www.ixigua.com/home/"
+        }
+      ],
+      "detailPatterns": [
+        "/video/",
+        "/i"
+      ],
+      "siteFamily": "bytedance",
+      "evaluationSplit": "train",
+      "discoveredType": "video"
+    },
+    {
+      "id": "acfun",
+      "name": "AcFun",
+      "vertical": "视频直播",
+      "quota": 5,
+      "hosts": [
+        "acfun.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "dynamic",
+        "login"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.acfun.cn/"
+        },
+        {
+          "type": "ranking",
+          "url": "https://www.acfun.cn/rank/list/"
+        },
+        {
+          "type": "search",
+          "url": "https://www.acfun.cn/search?keyword=%E7%A7%91%E6%8A%80"
+        }
+      ],
+      "detailPatterns": [
+        "/v/ac",
+        "/a/ac"
+      ],
+      "siteFamily": "acfun.cn",
+      "evaluationSplit": "train",
+      "discoveredType": "video"
+    },
+    {
+      "id": "pptv",
+      "name": "PP视频",
+      "vertical": "视频直播",
+      "quota": 5,
+      "hosts": [
+        "pptv.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "availability",
+        "spa",
+        "geo"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.pptv.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://v.pptv.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://search.pptv.com/s_video?kw=%E7%BA%AA%E5%BD%95%E7%89%87"
+        }
+      ],
+      "detailPatterns": [
+        "/show/",
+        "/page/"
+      ],
+      "siteFamily": "suning",
+      "evaluationSplit": "validation",
+      "discoveredType": "video"
+    },
+    {
+      "id": "miguvideo",
+      "name": "咪咕视频",
+      "vertical": "视频直播",
+      "quota": 5,
+      "hosts": [
+        "miguvideo.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "spa",
+        "login",
+        "geo"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.miguvideo.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.miguvideo.com/mgs/website/prd/index.html"
+        },
+        {
+          "type": "search",
+          "url": "https://www.miguvideo.com/mgs/website/prd/search.html?keyword=%E7%BA%AA%E5%BD%95%E7%89%87"
+        }
+      ],
+      "detailPatterns": [
+        "/detail/",
+        "cid="
+      ],
+      "siteFamily": "miguvideo.com",
+      "evaluationSplit": "train",
+      "discoveredType": "video"
+    },
+    {
+      "id": "yangshipin",
+      "name": "央视频",
+      "vertical": "视频直播",
+      "quota": 5,
+      "hosts": [
+        "yangshipin.cn"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "spa",
+        "iframe",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.yangshipin.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.yangshipin.cn/tv/home"
+        },
+        {
+          "type": "feed",
+          "url": "https://www.yangshipin.cn/video"
+        }
+      ],
+      "detailPatterns": [
+        "/video/home?vid=",
+        "/video/"
+      ],
+      "siteFamily": "yangshipin.cn",
+      "evaluationSplit": "validation",
+      "discoveredType": "video"
+    },
+    {
+      "id": "pearvideo",
+      "name": "梨视频",
+      "vertical": "视频直播",
+      "quota": 5,
+      "hosts": [
+        "pearvideo.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "dynamic",
+        "ads"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.pearvideo.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.pearvideo.com/category_loading.jsp"
+        },
+        {
+          "type": "ranking",
+          "url": "https://www.pearvideo.com/popular"
+        }
+      ],
+      "detailPatterns": [
+        "video_",
+        "/category_"
+      ],
+      "siteFamily": "pearvideo.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "video"
+    },
+    {
+      "id": "xinpianchang",
+      "name": "新片场",
+      "vertical": "视频直播",
+      "quota": 5,
+      "hosts": [
+        "xinpianchang.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "dynamic",
+        "login"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.xinpianchang.com/"
+        },
+        {
+          "type": "feed",
+          "url": "https://www.xinpianchang.com/channel/index"
+        },
+        {
+          "type": "search",
+          "url": "https://www.xinpianchang.com/search?kw=%E7%BA%AA%E5%BD%95%E7%89%87"
+        }
+      ],
+      "detailPatterns": [
+        "/a",
+        "/article/"
+      ],
+      "siteFamily": "xinpianchang.com",
+      "evaluationSplit": "test",
+      "discoveredType": "video"
+    },
+    {
+      "id": "huya",
+      "name": "虎牙直播",
+      "vertical": "视频直播",
+      "quota": 5,
+      "hosts": [
+        "huya.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "spa",
+        "live",
+        "login"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.huya.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.huya.com/g"
+        },
+        {
+          "type": "ranking",
+          "url": "https://www.huya.com/rank/"
+        }
+      ],
+      "detailPatterns": [
+        "/\\d+$",
+        "/video/play/"
+      ],
+      "siteFamily": "huya.com",
+      "evaluationSplit": "test",
+      "discoveredType": "video"
+    },
+    {
+      "id": "douyu",
+      "name": "斗鱼直播",
+      "vertical": "视频直播",
+      "quota": 5,
+      "hosts": [
+        "douyu.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "spa",
+        "live",
+        "login"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.douyu.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.douyu.com/directory/all"
+        },
+        {
+          "type": "ranking",
+          "url": "https://www.douyu.com/directory"
+        }
+      ],
+      "detailPatterns": [
+        "/\\d+$",
+        "/topic/"
+      ],
+      "siteFamily": "douyu.com",
+      "evaluationSplit": "test",
+      "discoveredType": "video"
+    },
+    {
+      "id": "yy-live",
+      "name": "YY直播",
+      "vertical": "视频直播",
+      "quota": 5,
+      "hosts": [
+        "yy.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "spa",
+        "live",
+        "login"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.yy.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.yy.com/catalog"
+        },
+        {
+          "type": "ranking",
+          "url": "https://www.yy.com/rank"
+        }
+      ],
+      "detailPatterns": [
+        "/\\d+$",
+        "/x/"
+      ],
+      "siteFamily": "yy.com",
+      "evaluationSplit": "test",
+      "discoveredType": "video"
+    },
+    {
+      "id": "hexun",
+      "name": "和讯网",
+      "vertical": "财经金融",
+      "quota": 5,
+      "hosts": [
+        "hexun.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "subdomains"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.hexun.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://stock.hexun.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://funds.hexun.com/"
+        }
+      ],
+      "detailPatterns": [
+        "/202",
+        ".html"
+      ],
+      "siteFamily": "hexun.com",
+      "evaluationSplit": "train",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "jrj",
+      "name": "金融界",
+      "vertical": "财经金融",
+      "quota": 5,
+      "hosts": [
+        "jrj.com.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.jrj.com.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://stock.jrj.com.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://fund.jrj.com.cn/"
+        }
+      ],
+      "detailPatterns": [
+        "/202",
+        ".shtml"
+      ],
+      "siteFamily": "jrj.com.cn",
+      "evaluationSplit": "train",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "10jqka",
+      "name": "同花顺财经",
+      "vertical": "财经金融",
+      "quota": 5,
+      "hosts": [
+        "10jqka.com.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "dynamic",
+        "market-data"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.10jqka.com.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://stock.10jqka.com.cn/"
+        },
+        {
+          "type": "data",
+          "url": "https://q.10jqka.com.cn/"
+        }
+      ],
+      "detailPatterns": [
+        "/field/",
+        "/202"
+      ],
+      "siteFamily": "10jqka.com.cn",
+      "evaluationSplit": "train",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "china-securities",
+      "name": "中国证券报",
+      "vertical": "财经金融",
+      "quota": 5,
+      "hosts": [
+        "cs.com.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "subdomains"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.cs.com.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.cs.com.cn/ssgs/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.cs.com.cn/hyzx/"
+        }
+      ],
+      "detailPatterns": [
+        "/202",
+        ".html"
+      ],
+      "siteFamily": "cs.com.cn",
+      "evaluationSplit": "validation",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "cnfund",
+      "name": "中国基金报",
+      "vertical": "财经金融",
+      "quota": 5,
+      "hosts": [
+        "chnfund.com",
+        "cnfund.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "redirect",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.chnfund.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.chnfund.com/article/"
+        },
+        {
+          "type": "ranking",
+          "url": "https://www.chnfund.com/hot/"
+        }
+      ],
+      "detailPatterns": [
+        "/article/",
+        "/detail/"
+      ],
+      "siteFamily": "chnfund.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "zqrb",
+      "name": "证券日报",
+      "vertical": "财经金融",
+      "quota": 5,
+      "hosts": [
+        "zqrb.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "ads"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "http://www.zqrb.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "http://www.zqrb.cn/finance/"
+        },
+        {
+          "type": "channel",
+          "url": "http://www.zqrb.cn/stock/"
+        }
+      ],
+      "detailPatterns": [
+        "/202",
+        ".html"
+      ],
+      "siteFamily": "zqrb.cn",
+      "evaluationSplit": "validation",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "bbtnews",
+      "name": "北京商报",
+      "vertical": "财经金融",
+      "quota": 5,
+      "hosts": [
+        "bbtnews.com.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "ads"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.bbtnews.com.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.bbtnews.com.cn/finance/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.bbtnews.com.cn/company/"
+        }
+      ],
+      "detailPatterns": [
+        "/202",
+        ".html"
+      ],
+      "siteFamily": "bbtnews.com.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "cb-com-cn",
+      "name": "中国经营报",
+      "vertical": "财经金融",
+      "quota": 5,
+      "hosts": [
+        "cb.com.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "dynamic",
+        "ads"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "http://www.cb.com.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "http://www.cb.com.cn/economy/"
+        },
+        {
+          "type": "channel",
+          "url": "http://www.cb.com.cn/finance/"
+        }
+      ],
+      "detailPatterns": [
+        "/index/show/",
+        "/article/"
+      ],
+      "siteFamily": "cb.com.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "chinatimes",
+      "name": "华夏时报",
+      "vertical": "财经金融",
+      "quota": 5,
+      "hosts": [
+        "chinatimes.net.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "dynamic",
+        "ads"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.chinatimes.net.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.chinatimes.net.cn/finance/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.chinatimes.net.cn/stock/"
+        }
+      ],
+      "detailPatterns": [
+        "/article/",
+        "/content/"
+      ],
+      "siteFamily": "chinatimes.net.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "gelonghui",
+      "name": "格隆汇",
+      "vertical": "财经金融",
+      "quota": 5,
+      "hosts": [
+        "gelonghui.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "login",
+        "spa",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.gelonghui.com/"
+        },
+        {
+          "type": "feed",
+          "url": "https://www.gelonghui.com/live"
+        },
+        {
+          "type": "search",
+          "url": "https://www.gelonghui.com/search?keyword=AI"
+        }
+      ],
+      "detailPatterns": [
+        "/news/",
+        "/article/"
+      ],
+      "siteFamily": "gelonghui.com",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "cnbeta",
+      "name": "cnBeta",
+      "vertical": "科技数码",
+      "quota": 5,
+      "hosts": [
+        "cnbeta.com.tw"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "availability",
+        "ads"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.cnbeta.com.tw/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.cnbeta.com.tw/topics.htm"
+        },
+        {
+          "type": "ranking",
+          "url": "https://www.cnbeta.com.tw/top10.htm"
+        }
+      ],
+      "detailPatterns": [
+        "/articles/tech/",
+        "/articles/"
+      ],
+      "siteFamily": "cnbeta.com.tw",
+      "evaluationSplit": "train",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "zol",
+      "name": "中关村在线",
+      "vertical": "科技数码",
+      "quota": 5,
+      "hosts": [
+        "zol.com.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "template-density"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.zol.com.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://news.zol.com.cn/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://detail.zol.com.cn/"
+        }
+      ],
+      "detailPatterns": [
+        "/article/",
+        "/index"
+      ],
+      "siteFamily": "zol.com.cn",
+      "evaluationSplit": "train",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "pconline",
+      "name": "太平洋科技",
+      "vertical": "科技数码",
+      "quota": 5,
+      "hosts": [
+        "pconline.com.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "template-density"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.pconline.com.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://news.pconline.com.cn/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://product.pconline.com.cn/"
+        }
+      ],
+      "detailPatterns": [
+        "/article/",
+        "/review/"
+      ],
+      "siteFamily": "pacific-online",
+      "evaluationSplit": "train",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "chinabyte",
+      "name": "比特网",
+      "vertical": "科技数码",
+      "quota": 5,
+      "hosts": [
+        "chinabyte.com"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "ads"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.chinabyte.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.chinabyte.com/ai/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.chinabyte.com/cloud/"
+        }
+      ],
+      "detailPatterns": [
+        "/article/",
+        ".html"
+      ],
+      "siteFamily": "chinabyte.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "donews",
+      "name": "DoNews",
+      "vertical": "科技数码",
+      "quota": 5,
+      "hosts": [
+        "donews.com"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "ads"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.donews.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.donews.com/news"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.donews.com/technology"
+        }
+      ],
+      "detailPatterns": [
+        "/article/detail/",
+        "/news/detail/"
+      ],
+      "siteFamily": "donews.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "techweb",
+      "name": "TechWeb",
+      "vertical": "科技数码",
+      "quota": 5,
+      "hosts": [
+        "techweb.com.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "ads"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.techweb.com.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.techweb.com.cn/internet/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.techweb.com.cn/it/"
+        }
+      ],
+      "detailPatterns": [
+        "/202",
+        ".shtml"
+      ],
+      "siteFamily": "techweb.com.cn",
+      "evaluationSplit": "validation",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "enet",
+      "name": "硅谷动力",
+      "vertical": "科技数码",
+      "quota": 5,
+      "hosts": [
+        "enet.com.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "availability",
+        "ads"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "http://www.enet.com.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "http://www.enet.com.cn/ai/"
+        },
+        {
+          "type": "channel",
+          "url": "http://www.enet.com.cn/cloud/"
+        }
+      ],
+      "detailPatterns": [
+        "/article/",
+        ".shtml"
+      ],
+      "siteFamily": "enet.com.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "mydrivers",
+      "name": "快科技",
+      "vertical": "科技数码",
+      "quota": 5,
+      "hosts": [
+        "mydrivers.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.mydrivers.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://news.mydrivers.com/"
+        },
+        {
+          "type": "ranking",
+          "url": "https://news.mydrivers.com/top/"
+        }
+      ],
+      "detailPatterns": [
+        "/1/",
+        ".htm"
+      ],
+      "siteFamily": "mydrivers.com",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "cnmo",
+      "name": "手机中国",
+      "vertical": "科技数码",
+      "quota": 5,
+      "hosts": [
+        "cnmo.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "template-density"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.cnmo.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://news.cnmo.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://product.cnmo.com/"
+        }
+      ],
+      "detailPatterns": [
+        "/news/",
+        "/review/"
+      ],
+      "siteFamily": "cnmo.com",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "chinaz",
+      "name": "站长之家",
+      "vertical": "科技数码",
+      "quota": 5,
+      "hosts": [
+        "chinaz.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.chinaz.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.chinaz.com/ai/"
+        },
+        {
+          "type": "ranking",
+          "url": "https://top.chinaz.com/"
+        }
+      ],
+      "detailPatterns": [
+        "/202",
+        ".shtml"
+      ],
+      "siteFamily": "chinaz.com",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "moe",
+      "name": "教育部",
+      "vertical": "政务公共服务",
+      "quota": 5,
+      "hosts": [
+        "moe.gov.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "legacy-paths"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "http://www.moe.gov.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "http://www.moe.gov.cn/jyb_xwfb/"
+        },
+        {
+          "type": "policy",
+          "url": "http://www.moe.gov.cn/srcsite/"
+        }
+      ],
+      "detailPatterns": [
+        "/jyb_xwfb/",
+        "/srcsite/"
+      ],
+      "siteFamily": "moe.gov.cn",
+      "evaluationSplit": "train",
+      "discoveredType": "policy"
+    },
+    {
+      "id": "mofcom",
+      "name": "商务部",
+      "vertical": "政务公共服务",
+      "quota": 5,
+      "hosts": [
+        "mofcom.gov.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "legacy-paths",
+        "subdomains"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "http://www.mofcom.gov.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "http://www.mofcom.gov.cn/article/ae/"
+        },
+        {
+          "type": "policy",
+          "url": "http://www.mofcom.gov.cn/zcfb/"
+        }
+      ],
+      "detailPatterns": [
+        "/article/",
+        ".shtml"
+      ],
+      "siteFamily": "mofcom.gov.cn",
+      "evaluationSplit": "train",
+      "discoveredType": "policy"
+    },
+    {
+      "id": "mohrss",
+      "name": "人力资源和社会保障部",
+      "vertical": "政务公共服务",
+      "quota": 5,
+      "hosts": [
+        "mohrss.gov.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "legacy-paths"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.mohrss.gov.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.mohrss.gov.cn/SYrlzyhshbzb/zwgk/"
+        },
+        {
+          "type": "policy",
+          "url": "https://www.mohrss.gov.cn/xxgk2020/"
+        }
+      ],
+      "detailPatterns": [
+        "/SYrlzyhshbzb/",
+        "/xxgk2020/"
+      ],
+      "siteFamily": "mohrss.gov.cn",
+      "evaluationSplit": "train",
+      "discoveredType": "policy"
+    },
+    {
+      "id": "mee",
+      "name": "生态环境部",
+      "vertical": "政务公共服务",
+      "quota": 5,
+      "hosts": [
+        "mee.gov.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "legacy-paths"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.mee.gov.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.mee.gov.cn/ywdt/"
+        },
+        {
+          "type": "policy",
+          "url": "https://www.mee.gov.cn/zcwj/"
+        }
+      ],
+      "detailPatterns": [
+        "/ywdt/",
+        "/zcwj/"
+      ],
+      "siteFamily": "mee.gov.cn",
+      "evaluationSplit": "validation",
+      "discoveredType": "policy"
+    },
+    {
+      "id": "mot",
+      "name": "交通运输部",
+      "vertical": "政务公共服务",
+      "quota": 5,
+      "hosts": [
+        "mot.gov.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "legacy-paths"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.mot.gov.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.mot.gov.cn/jiaotongyaowen/"
+        },
+        {
+          "type": "policy",
+          "url": "https://www.mot.gov.cn/zhengcejiedu/"
+        }
+      ],
+      "detailPatterns": [
+        "/jiaotongyaowen/",
+        "/zhengcejiedu/"
+      ],
+      "siteFamily": "mot.gov.cn",
+      "evaluationSplit": "validation",
+      "discoveredType": "policy"
+    },
+    {
+      "id": "moa",
+      "name": "农业农村部",
+      "vertical": "政务公共服务",
+      "quota": 5,
+      "hosts": [
+        "moa.gov.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "legacy-http"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "http://www.moa.gov.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "http://www.moa.gov.cn/xw/"
+        },
+        {
+          "type": "policy",
+          "url": "http://www.moa.gov.cn/govpublic/"
+        }
+      ],
+      "detailPatterns": [
+        "/xw/",
+        "/govpublic/"
+      ],
+      "siteFamily": "moa.gov.cn",
+      "evaluationSplit": "validation",
+      "discoveredType": "policy"
+    },
+    {
+      "id": "mct",
+      "name": "文化和旅游部",
+      "vertical": "政务公共服务",
+      "quota": 5,
+      "hosts": [
+        "mct.gov.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "legacy-paths"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.mct.gov.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.mct.gov.cn/whzx/"
+        },
+        {
+          "type": "policy",
+          "url": "https://www.mct.gov.cn/zwgk/"
+        }
+      ],
+      "detailPatterns": [
+        "/whzx/",
+        "/zwgk/"
+      ],
+      "siteFamily": "mct.gov.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "policy"
+    },
+    {
+      "id": "chinatax",
+      "name": "国家税务总局",
+      "vertical": "政务公共服务",
+      "quota": 5,
+      "hosts": [
+        "chinatax.gov.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "legacy-paths"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.chinatax.gov.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.chinatax.gov.cn/chinatax/n810214/index.html"
+        },
+        {
+          "type": "policy",
+          "url": "https://www.chinatax.gov.cn/chinatax/n810341/index.html"
+        }
+      ],
+      "detailPatterns": [
+        "/n810214/",
+        "/n810341/"
+      ],
+      "siteFamily": "chinatax.gov.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "policy"
+    },
+    {
+      "id": "customs",
+      "name": "海关总署",
+      "vertical": "政务公共服务",
+      "quota": 5,
+      "hosts": [
+        "customs.gov.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "dynamic",
+        "legacy-paths"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "http://www.customs.gov.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "http://www.customs.gov.cn/customs/302249/"
+        },
+        {
+          "type": "data",
+          "url": "http://www.customs.gov.cn/customs/302249/302274/302277/index.html"
+        }
+      ],
+      "detailPatterns": [
+        "/302249/",
+        "/302274/"
+      ],
+      "siteFamily": "customs.gov.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "policy"
+    },
+    {
+      "id": "safe",
+      "name": "国家外汇管理局",
+      "vertical": "政务公共服务",
+      "quota": 5,
+      "hosts": [
+        "safe.gov.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "branch-sites"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.safe.gov.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.safe.gov.cn/safe/whxw/"
+        },
+        {
+          "type": "data",
+          "url": "https://www.safe.gov.cn/safe/tjsj1/"
+        }
+      ],
+      "detailPatterns": [
+        "/safe/whxw/",
+        "/safe/tjsj1/"
+      ],
+      "siteFamily": "safe.gov.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "policy"
+    },
+    {
+      "id": "dxy",
+      "name": "丁香园",
+      "vertical": "医疗健康",
+      "quota": 5,
+      "hosts": [
+        "dxy.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "login",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.dxy.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.dxy.cn/bbs/newweb/pc/home"
+        },
+        {
+          "type": "search",
+          "url": "https://www.dxy.cn/search?keyword=%E9%AB%98%E8%A1%80%E5%8E%8B"
+        }
+      ],
+      "detailPatterns": [
+        "/bbs/topic/",
+        "/article/"
+      ],
+      "siteFamily": "dxy.cn",
+      "evaluationSplit": "train",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "haodf",
+      "name": "好大夫在线",
+      "vertical": "医疗健康",
+      "quota": 5,
+      "hosts": [
+        "haodf.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "challenge",
+        "login",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.haodf.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.haodf.com/jibing/list.htm"
+        },
+        {
+          "type": "search",
+          "url": "https://so.haodf.com/index/search?kw=%E9%AB%98%E8%A1%80%E5%8E%8B"
+        }
+      ],
+      "detailPatterns": [
+        "/jibing/",
+        "/article/"
+      ],
+      "siteFamily": "haodf.com",
+      "evaluationSplit": "train",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "chunyuyisheng",
+      "name": "春雨医生",
+      "vertical": "医疗健康",
+      "quota": 5,
+      "hosts": [
+        "chunyuyisheng.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "app-gate",
+        "login",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.chunyuyisheng.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.chunyuyisheng.com/pc/diseases"
+        },
+        {
+          "type": "search",
+          "url": "https://www.chunyuyisheng.com/pc/search?q=%E9%AB%98%E8%A1%80%E5%8E%8B"
+        }
+      ],
+      "detailPatterns": [
+        "/pc/article/",
+        "/pc/disease/"
+      ],
+      "siteFamily": "chunyuyisheng.com",
+      "evaluationSplit": "train",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "39health",
+      "name": "39健康网",
+      "vertical": "医疗健康",
+      "quota": 5,
+      "hosts": [
+        "39.net"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "template-density"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.39.net/"
+        },
+        {
+          "type": "channel",
+          "url": "https://news.39.net/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://jbk.39.net/"
+        }
+      ],
+      "detailPatterns": [
+        "/a/",
+        "/jbk/"
+      ],
+      "siteFamily": "39.net",
+      "evaluationSplit": "validation",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "xywy",
+      "name": "寻医问药",
+      "vertical": "医疗健康",
+      "quota": 5,
+      "hosts": [
+        "xywy.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "template-density"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.xywy.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://jib.xywy.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://news.xywy.com/"
+        }
+      ],
+      "detailPatterns": [
+        "/jib/",
+        "/news/"
+      ],
+      "siteFamily": "xywy.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "120ask",
+      "name": "快速问医生",
+      "vertical": "医疗健康",
+      "quota": 5,
+      "hosts": [
+        "120ask.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.120ask.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://tag.120ask.com/jibing/"
+        },
+        {
+          "type": "search",
+          "url": "https://so.120ask.com/?kw=%E9%AB%98%E8%A1%80%E5%8E%8B"
+        }
+      ],
+      "detailPatterns": [
+        "/question/",
+        "/jibing/"
+      ],
+      "siteFamily": "120ask.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "familydoctor",
+      "name": "家庭医生在线",
+      "vertical": "医疗健康",
+      "quota": 5,
+      "hosts": [
+        "familydoctor.com.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "template-density"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.familydoctor.com.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://health.familydoctor.com.cn/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://jbk.familydoctor.com.cn/"
+        }
+      ],
+      "detailPatterns": [
+        "/a/",
+        "/jbk/"
+      ],
+      "siteFamily": "familydoctor.com.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "youlai",
+      "name": "有来医生",
+      "vertical": "医疗健康",
+      "quota": 5,
+      "hosts": [
+        "youlai.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.youlai.cn/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.youlai.cn/dise/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.youlai.cn/yyk/"
+        }
+      ],
+      "detailPatterns": [
+        "/yyk/article/",
+        "/ask/"
+      ],
+      "siteFamily": "youlai.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "cn-healthcare",
+      "name": "健康界",
+      "vertical": "医疗健康",
+      "quota": 5,
+      "hosts": [
+        "cn-healthcare.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "login",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.cn-healthcare.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.cn-healthcare.com/articlewm/"
+        },
+        {
+          "type": "topic",
+          "url": "https://www.cn-healthcare.com/search?keyword=%E5%8C%BB%E7%96%97AI"
+        }
+      ],
+      "detailPatterns": [
+        "/articlewm/",
+        "/article/"
+      ],
+      "siteFamily": "cn-healthcare.com",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "nhc",
+      "name": "国家卫生健康委员会",
+      "vertical": "医疗健康",
+      "quota": 5,
+      "hosts": [
+        "nhc.gov.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "legacy-paths"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "http://www.nhc.gov.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "http://www.nhc.gov.cn/xcs/yqtb/list_gzbd.shtml"
+        },
+        {
+          "type": "policy",
+          "url": "http://www.nhc.gov.cn/wjw/zcjd/list.shtml"
+        }
+      ],
+      "detailPatterns": [
+        "/xcs/",
+        "/wjw/"
+      ],
+      "siteFamily": "nhc.gov.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "eol",
+      "name": "中国教育在线",
+      "vertical": "教育考试",
+      "quota": 5,
+      "hosts": [
+        "eol.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "subdomains",
+        "ads"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.eol.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://gaokao.eol.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://kaoyan.eol.cn/"
+        }
+      ],
+      "detailPatterns": [
+        "/e_html/",
+        "/news/"
+      ],
+      "siteFamily": "eol.cn",
+      "evaluationSplit": "train",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "chsi",
+      "name": "学信网",
+      "vertical": "教育考试",
+      "quota": 5,
+      "hosts": [
+        "chsi.com.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "login",
+        "service-pages"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.chsi.com.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://gaokao.chsi.com.cn/"
+        },
+        {
+          "type": "policy",
+          "url": "https://www.chsi.com.cn/jyzx/"
+        }
+      ],
+      "detailPatterns": [
+        "/jyzx/",
+        "/gaokao/"
+      ],
+      "siteFamily": "chsi.com.cn",
+      "evaluationSplit": "train",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "neea",
+      "name": "中国教育考试网",
+      "vertical": "教育考试",
+      "quota": 5,
+      "hosts": [
+        "neea.edu.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "legacy-paths"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.neea.edu.cn/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.neea.edu.cn/html1/category/1507/113-1.htm"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.neea.edu.cn/html1/folder/16093/15-1.htm"
+        }
+      ],
+      "detailPatterns": [
+        "/html1/report/",
+        "/html1/folder/"
+      ],
+      "siteFamily": "neea.edu.cn",
+      "evaluationSplit": "train",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "gaokao-com",
+      "name": "高考网",
+      "vertical": "教育考试",
+      "quota": 5,
+      "hosts": [
+        "gaokao.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "template-density"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.gaokao.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.gaokao.com/baokao/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.gaokao.com/e/colleges/"
+        }
+      ],
+      "detailPatterns": [
+        "/e/20",
+        "/baokao/"
+      ],
+      "siteFamily": "gaokao.com",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "koolearn",
+      "name": "新东方在线",
+      "vertical": "教育考试",
+      "quota": 5,
+      "hosts": [
+        "koolearn.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.koolearn.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://kaoyan.koolearn.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://cet4.koolearn.com/"
+        }
+      ],
+      "detailPatterns": [
+        "/20",
+        ".html"
+      ],
+      "siteFamily": "new-oriental",
+      "evaluationSplit": "validation",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "hujiang",
+      "name": "沪江网",
+      "vertical": "教育考试",
+      "quota": 5,
+      "hosts": [
+        "hujiang.com",
+        "hjenglish.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "login",
+        "subdomains"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.hujiang.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.hjenglish.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://jp.hjenglish.com/"
+        }
+      ],
+      "detailPatterns": [
+        "/new/",
+        "/article/"
+      ],
+      "siteFamily": "hujiang.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "xdf",
+      "name": "新东方",
+      "vertical": "教育考试",
+      "quota": 5,
+      "hosts": [
+        "xdf.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "geo",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.xdf.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.xdf.cn/gaokao/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.xdf.cn/kaoyan/"
+        }
+      ],
+      "detailPatterns": [
+        "/20",
+        ".html"
+      ],
+      "siteFamily": "new-oriental",
+      "evaluationSplit": "validation",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "zxxk",
+      "name": "学科网",
+      "vertical": "教育考试",
+      "quota": 5,
+      "hosts": [
+        "zxxk.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "login",
+        "paywall",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.zxxk.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.zxxk.com/soft/"
+        },
+        {
+          "type": "search",
+          "url": "https://search.zxxk.com/"
+        }
+      ],
+      "detailPatterns": [
+        "/soft/",
+        "/article/"
+      ],
+      "siteFamily": "zxxk.com",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "jyeoo",
+      "name": "菁优网",
+      "vertical": "教育考试",
+      "quota": 5,
+      "hosts": [
+        "jyeoo.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "login",
+        "challenge",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.jyeoo.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.jyeoo.com/math/"
+        },
+        {
+          "type": "search",
+          "url": "https://www.jyeoo.com/search"
+        }
+      ],
+      "detailPatterns": [
+        "/math/ques/detail/",
+        "/physics/ques/detail/"
+      ],
+      "siteFamily": "jyeoo.com",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "xueersi",
+      "name": "学而思",
+      "vertical": "教育考试",
+      "quota": 5,
+      "hosts": [
+        "xueersi.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "login",
+        "spa",
+        "geo"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.xueersi.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.xueersi.com/kc"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.xueersi.com/zixun"
+        }
+      ],
+      "detailPatterns": [
+        "/course/",
+        "/article/"
+      ],
+      "siteFamily": "xueersi.com",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "court",
+      "name": "最高人民法院",
+      "vertical": "法律司法",
+      "quota": 5,
+      "hosts": [
+        "court.gov.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "legacy-paths"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.court.gov.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.court.gov.cn/zixun/"
+        },
+        {
+          "type": "policy",
+          "url": "https://www.court.gov.cn/fabu-gengduo.html"
+        }
+      ],
+      "detailPatterns": [
+        "/fabu-xiangqing-",
+        "/zixun-xiangqing-"
+      ],
+      "siteFamily": "court.gov.cn",
+      "evaluationSplit": "train",
+      "discoveredType": "policy"
+    },
+    {
+      "id": "spp",
+      "name": "最高人民检察院",
+      "vertical": "法律司法",
+      "quota": 5,
+      "hosts": [
+        "spp.gov.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "legacy-paths"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.spp.gov.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.spp.gov.cn/spp/tt/"
+        },
+        {
+          "type": "policy",
+          "url": "https://www.spp.gov.cn/spp/xwfbh/wsfbt/"
+        }
+      ],
+      "detailPatterns": [
+        "/spp/tt/",
+        "/spp/xwfbh/"
+      ],
+      "siteFamily": "spp.gov.cn",
+      "evaluationSplit": "train",
+      "discoveredType": "policy"
+    },
+    {
+      "id": "npc",
+      "name": "中国人大网",
+      "vertical": "法律司法",
+      "quota": 5,
+      "hosts": [
+        "npc.gov.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "legacy-paths"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "http://www.npc.gov.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "http://www.npc.gov.cn/npc/c2/c30834/"
+        },
+        {
+          "type": "policy",
+          "url": "http://www.npc.gov.cn/npc/c2/c30834/202001/t20200122_304193.html"
+        }
+      ],
+      "detailPatterns": [
+        "/npc/c2/",
+        "/npc/c30834/"
+      ],
+      "siteFamily": "npc.gov.cn",
+      "evaluationSplit": "train",
+      "discoveredType": "policy"
+    },
+    {
+      "id": "chinacourt",
+      "name": "中国法院网",
+      "vertical": "法律司法",
+      "quota": 5,
+      "hosts": [
+        "chinacourt.org"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "ads"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.chinacourt.org/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.chinacourt.org/article/index/id/MzAwNDAoNIABAA.shtml"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.chinacourt.org/law.shtml"
+        }
+      ],
+      "detailPatterns": [
+        "/article/detail/",
+        "/law/detail/"
+      ],
+      "siteFamily": "chinacourt.org",
+      "evaluationSplit": "validation",
+      "discoveredType": "policy"
+    },
+    {
+      "id": "pkulaw",
+      "name": "北大法宝",
+      "vertical": "法律司法",
+      "quota": 5,
+      "hosts": [
+        "pkulaw.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "login",
+        "paywall",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.pkulaw.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://www.pkulaw.com/lawfirm"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.pkulaw.com/law"
+        }
+      ],
+      "detailPatterns": [
+        "/chl/",
+        "/case/"
+      ],
+      "siteFamily": "pkulaw.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "policy"
+    },
+    {
+      "id": "12348",
+      "name": "中国法律服务网",
+      "vertical": "法律司法",
+      "quota": 5,
+      "hosts": [
+        "12348.gov.cn"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "spa",
+        "service-pages"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.12348.gov.cn/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.12348.gov.cn/oldweb/publicies.html"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.12348.gov.cn/oldweb/news.html"
+        }
+      ],
+      "detailPatterns": [
+        "/publicies/",
+        "/legal/"
+      ],
+      "siteFamily": "12348.gov.cn",
+      "evaluationSplit": "validation",
+      "discoveredType": "policy"
+    },
+    {
+      "id": "66law",
+      "name": "华律网",
+      "vertical": "法律司法",
+      "quota": 5,
+      "hosts": [
+        "66law.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "template-density"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.66law.cn/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.66law.cn/topic/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.66law.cn/laws/"
+        }
+      ],
+      "detailPatterns": [
+        "/laws/",
+        "/topic/"
+      ],
+      "siteFamily": "66law.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "policy"
+    },
+    {
+      "id": "findlaw",
+      "name": "找法网",
+      "vertical": "法律司法",
+      "quota": 5,
+      "hosts": [
+        "findlaw.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "template-density"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.findlaw.cn/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://china.findlaw.cn/ask/"
+        },
+        {
+          "type": "channel",
+          "url": "https://china.findlaw.cn/zhishi/"
+        }
+      ],
+      "detailPatterns": [
+        "/zhishi/",
+        "/ask/question_"
+      ],
+      "siteFamily": "findlaw.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "policy"
+    },
+    {
+      "id": "lawtime",
+      "name": "法律快车",
+      "vertical": "法律司法",
+      "quota": 5,
+      "hosts": [
+        "lawtime.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "template-density"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.lawtime.cn/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.lawtime.cn/info/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.lawtime.cn/ask/"
+        }
+      ],
+      "detailPatterns": [
+        "/info/",
+        "/ask/question_"
+      ],
+      "siteFamily": "lawtime.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "policy"
+    },
+    {
+      "id": "fabao365",
+      "name": "法邦网",
+      "vertical": "法律司法",
+      "quota": 5,
+      "hosts": [
+        "fabao365.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "availability"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.fabao365.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.fabao365.com/zhishi/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.fabao365.com/news/"
+        }
+      ],
+      "detailPatterns": [
+        "/zhishi/",
+        "/news/"
+      ],
+      "siteFamily": "fabao365.com",
+      "evaluationSplit": "test",
+      "discoveredType": "policy"
+    },
+    {
+      "id": "zhipin",
+      "name": "BOSS直聘",
+      "vertical": "招聘职场",
+      "quota": 5,
+      "hosts": [
+        "zhipin.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "challenge",
+        "login",
+        "geo"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.zhipin.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://www.zhipin.com/web/geek/job?query=AI&city=101010100"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.zhipin.com/job_detail/"
+        }
+      ],
+      "detailPatterns": [
+        "/job_detail/",
+        "/gongsi/"
+      ],
+      "siteFamily": "zhipin.com",
+      "evaluationSplit": "train",
+      "discoveredType": "job"
+    },
+    {
+      "id": "liepin",
+      "name": "猎聘",
+      "vertical": "招聘职场",
+      "quota": 5,
+      "hosts": [
+        "liepin.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "challenge",
+        "login",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.liepin.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://www.liepin.com/zhaopin/?key=AI"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.liepin.com/citylist/"
+        }
+      ],
+      "detailPatterns": [
+        "/job/",
+        "/company/"
+      ],
+      "siteFamily": "liepin.com",
+      "evaluationSplit": "train",
+      "discoveredType": "job"
+    },
+    {
+      "id": "zhaopin",
+      "name": "智联招聘",
+      "vertical": "招聘职场",
+      "quota": 5,
+      "hosts": [
+        "zhaopin.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "challenge",
+        "login",
+        "spa"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.zhaopin.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://sou.zhaopin.com/?kw=AI"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.zhaopin.com/citymap"
+        }
+      ],
+      "detailPatterns": [
+        "/jobdetail/",
+        "/companydetail/"
+      ],
+      "siteFamily": "zhaopin.com",
+      "evaluationSplit": "train",
+      "discoveredType": "job"
+    },
+    {
+      "id": "51job",
+      "name": "前程无忧",
+      "vertical": "招聘职场",
+      "quota": 5,
+      "hosts": [
+        "51job.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "challenge",
+        "login",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.51job.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://we.51job.com/pc/search?keyword=AI"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.51job.com/default-area.php"
+        }
+      ],
+      "detailPatterns": [
+        "/job/",
+        "/company/"
+      ],
+      "siteFamily": "51job.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "job"
+    },
+    {
+      "id": "lagou",
+      "name": "拉勾",
+      "vertical": "招聘职场",
+      "quota": 5,
+      "hosts": [
+        "lagou.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "challenge",
+        "login",
+        "spa"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.lagou.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://www.lagou.com/wn/jobs?kd=AI"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.lagou.com/wn/zhaopin"
+        }
+      ],
+      "detailPatterns": [
+        "/jobs/",
+        "/gongsi/"
+      ],
+      "siteFamily": "lagou.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "job"
+    },
+    {
+      "id": "jobui",
+      "name": "职友集",
+      "vertical": "招聘职场",
+      "quota": 5,
+      "hosts": [
+        "jobui.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "challenge"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.jobui.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://www.jobui.com/jobs?jobKw=AI"
+        },
+        {
+          "type": "ranking",
+          "url": "https://www.jobui.com/rank/company/"
+        }
+      ],
+      "detailPatterns": [
+        "/company/",
+        "/jobs/"
+      ],
+      "siteFamily": "jobui.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "job"
+    },
+    {
+      "id": "kanzhun",
+      "name": "看准网",
+      "vertical": "招聘职场",
+      "quota": 5,
+      "hosts": [
+        "kanzhun.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "login",
+        "challenge",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.kanzhun.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://www.kanzhun.com/search/?q=%E5%8D%8E%E4%B8%BA"
+        },
+        {
+          "type": "ranking",
+          "url": "https://www.kanzhun.com/industry/"
+        }
+      ],
+      "detailPatterns": [
+        "/firm/",
+        "/job/"
+      ],
+      "siteFamily": "kanzhun.com",
+      "evaluationSplit": "test",
+      "discoveredType": "job"
+    },
+    {
+      "id": "yjbys",
+      "name": "应届毕业生网",
+      "vertical": "招聘职场",
+      "quota": 5,
+      "hosts": [
+        "yjbys.com"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "ads"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.yjbys.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.yjbys.com/qiuzhizhinan/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.yjbys.com/career/"
+        }
+      ],
+      "detailPatterns": [
+        "/qiuzhizhinan/",
+        "/career/"
+      ],
+      "siteFamily": "yjbys.com",
+      "evaluationSplit": "test",
+      "discoveredType": "job"
+    },
+    {
+      "id": "yingjiesheng",
+      "name": "应届生求职网",
+      "vertical": "招聘职场",
+      "quota": 5,
+      "hosts": [
+        "yingjiesheng.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "login",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.yingjiesheng.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://www.yingjiesheng.com/search.php?word=AI"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.yingjiesheng.com/job/"
+        }
+      ],
+      "detailPatterns": [
+        "/job-",
+        "/company-"
+      ],
+      "siteFamily": "yingjiesheng.com",
+      "evaluationSplit": "test",
+      "discoveredType": "job"
+    },
+    {
+      "id": "chinahr",
+      "name": "中华英才网",
+      "vertical": "招聘职场",
+      "quota": 5,
+      "hosts": [
+        "chinahr.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "availability",
+        "redirect",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.chinahr.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://www.chinahr.com/search/job?key=AI"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.chinahr.com/company"
+        }
+      ],
+      "detailPatterns": [
+        "/job/",
+        "/company/"
+      ],
+      "siteFamily": "chinahr.com",
+      "evaluationSplit": "test",
+      "discoveredType": "job"
+    },
+    {
+      "id": "lianjia",
+      "name": "链家",
+      "vertical": "房产家居",
+      "quota": 5,
+      "hosts": [
+        "lianjia.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "challenge",
+        "geo",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.lianjia.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://bj.lianjia.com/ershoufang/"
+        },
+        {
+          "type": "search",
+          "url": "https://bj.lianjia.com/ershoufang/rs%E6%B5%B7%E6%B7%80/"
+        }
+      ],
+      "detailPatterns": [
+        "/ershoufang/\\d+",
+        "/xiaoqu/"
+      ],
+      "siteFamily": "beike",
+      "evaluationSplit": "train",
+      "discoveredType": "entity"
+    },
+    {
+      "id": "ke",
+      "name": "贝壳找房",
+      "vertical": "房产家居",
+      "quota": 5,
+      "hosts": [
+        "ke.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "challenge",
+        "geo",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.ke.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://bj.ke.com/ershoufang/"
+        },
+        {
+          "type": "search",
+          "url": "https://bj.ke.com/ershoufang/rs%E6%B5%B7%E6%B7%80/"
+        }
+      ],
+      "detailPatterns": [
+        "/ershoufang/\\d+",
+        "/xiaoqu/"
+      ],
+      "siteFamily": "beike",
+      "evaluationSplit": "train",
+      "discoveredType": "entity"
+    },
+    {
+      "id": "fang",
+      "name": "房天下",
+      "vertical": "房产家居",
+      "quota": 5,
+      "hosts": [
+        "fang.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "geo",
+        "ads"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.fang.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://esf.fang.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://newhouse.fang.com/house/s/"
+        }
+      ],
+      "detailPatterns": [
+        "/chushou/",
+        "/house/"
+      ],
+      "siteFamily": "fang.com",
+      "evaluationSplit": "train",
+      "discoveredType": "entity"
+    },
+    {
+      "id": "anjuke",
+      "name": "安居客",
+      "vertical": "房产家居",
+      "quota": 5,
+      "hosts": [
+        "anjuke.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "challenge",
+        "geo",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.anjuke.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://beijing.anjuke.com/sale/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://beijing.anjuke.com/community/"
+        }
+      ],
+      "detailPatterns": [
+        "/prop/view/",
+        "/community/view/"
+      ],
+      "siteFamily": "anjuke.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "entity"
+    },
+    {
+      "id": "leju",
+      "name": "乐居",
+      "vertical": "房产家居",
+      "quota": 5,
+      "hosts": [
+        "leju.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "geo",
+        "ads"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.leju.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://house.leju.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://esf.leju.com/"
+        }
+      ],
+      "detailPatterns": [
+        "/news/",
+        "/house/"
+      ],
+      "siteFamily": "leju.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "entity"
+    },
+    {
+      "id": "focus-house",
+      "name": "搜狐焦点",
+      "vertical": "房产家居",
+      "quota": 5,
+      "hosts": [
+        "focus.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "geo",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.focus.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://house.focus.cn/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://house.focus.cn/loupan/"
+        }
+      ],
+      "detailPatterns": [
+        "/zixun/",
+        "/loupan/"
+      ],
+      "siteFamily": "focus.cn",
+      "evaluationSplit": "validation",
+      "discoveredType": "entity"
+    },
+    {
+      "id": "house365",
+      "name": "365淘房",
+      "vertical": "房产家居",
+      "quota": 5,
+      "hosts": [
+        "house365.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "geo",
+        "ads"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.house365.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://nj.newhouse.house365.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://news.house365.com/"
+        }
+      ],
+      "detailPatterns": [
+        "/newhouse/",
+        "/news/"
+      ],
+      "siteFamily": "house365.com",
+      "evaluationSplit": "test",
+      "discoveredType": "entity"
+    },
+    {
+      "id": "fangdd",
+      "name": "房多多",
+      "vertical": "房产家居",
+      "quota": 5,
+      "hosts": [
+        "fangdd.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "app-gate",
+        "geo",
+        "spa"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.fangdd.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.fangdd.com/shanghai/xinfang"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.fangdd.com/shanghai/esf"
+        }
+      ],
+      "detailPatterns": [
+        "/loupan/",
+        "/esf/"
+      ],
+      "siteFamily": "fangdd.com",
+      "evaluationSplit": "test",
+      "discoveredType": "entity"
+    },
+    {
+      "id": "creprice",
+      "name": "中国房价行情",
+      "vertical": "房产家居",
+      "quota": 5,
+      "hosts": [
+        "creprice.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "data",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.creprice.cn/"
+        },
+        {
+          "type": "data",
+          "url": "https://www.creprice.cn/rank/index.html"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.creprice.cn/city/bj.html"
+        }
+      ],
+      "detailPatterns": [
+        "/city/",
+        "/market/"
+      ],
+      "siteFamily": "creprice.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "entity"
+    },
+    {
+      "id": "chinaindex",
+      "name": "中指云",
+      "vertical": "房产家居",
+      "quota": 5,
+      "hosts": [
+        "chinaindex.com.cn"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "login",
+        "paywall",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.chinaindex.com.cn/"
+        },
+        {
+          "type": "data",
+          "url": "https://www.chinaindex.com.cn/industry/index"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.chinaindex.com.cn/news"
+        }
+      ],
+      "detailPatterns": [
+        "/news/",
+        "/report/"
+      ],
+      "siteFamily": "chinaindex.com.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "entity"
+    },
+    {
+      "id": "autohome",
+      "name": "汽车之家",
+      "vertical": "汽车出行",
+      "quota": 5,
+      "hosts": [
+        "autohome.com.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.autohome.com.cn/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://car.autohome.com.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.autohome.com.cn/news/"
+        }
+      ],
+      "detailPatterns": [
+        "/news/20",
+        "/spec/"
+      ],
+      "siteFamily": "autohome",
+      "evaluationSplit": "validation",
+      "discoveredType": "product"
+    },
+    {
+      "id": "xcar",
+      "name": "爱卡汽车",
+      "vertical": "汽车出行",
+      "quota": 5,
+      "hosts": [
+        "xcar.com.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.xcar.com.cn/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://newcar.xcar.com.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://info.xcar.com.cn/"
+        }
+      ],
+      "detailPatterns": [
+        "/20",
+        "/series/"
+      ],
+      "siteFamily": "xcar.com.cn",
+      "evaluationSplit": "train",
+      "discoveredType": "product"
+    },
+    {
+      "id": "dongchedi",
+      "name": "懂车帝",
+      "vertical": "汽车出行",
+      "quota": 5,
+      "hosts": [
+        "dongchedi.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "spa",
+        "challenge",
+        "login"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.dongchedi.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.dongchedi.com/auto/library/x-x-x-x-x-x-x-x-x-x-x"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.dongchedi.com/news"
+        }
+      ],
+      "detailPatterns": [
+        "/article/",
+        "/auto/series/"
+      ],
+      "siteFamily": "bytedance",
+      "evaluationSplit": "train",
+      "discoveredType": "product"
+    },
+    {
+      "id": "pcauto",
+      "name": "太平洋汽车",
+      "vertical": "汽车出行",
+      "quota": 5,
+      "hosts": [
+        "pcauto.com.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "template-density"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.pcauto.com.cn/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://price.pcauto.com.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.pcauto.com.cn/nation/"
+        }
+      ],
+      "detailPatterns": [
+        "/pocket/",
+        "/article/"
+      ],
+      "siteFamily": "pacific-online",
+      "evaluationSplit": "train",
+      "discoveredType": "product"
+    },
+    {
+      "id": "yiche",
+      "name": "易车",
+      "vertical": "汽车出行",
+      "quota": 5,
+      "hosts": [
+        "yiche.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "dynamic",
+        "challenge"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.yiche.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://car.yiche.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://news.yiche.com/"
+        }
+      ],
+      "detailPatterns": [
+        "/baike/",
+        "/hao/wenzhang/"
+      ],
+      "siteFamily": "yiche.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "product"
+    },
+    {
+      "id": "che168",
+      "name": "二手车之家",
+      "vertical": "汽车出行",
+      "quota": 5,
+      "hosts": [
+        "che168.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "geo",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.che168.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.che168.com/beijing/list/"
+        },
+        {
+          "type": "search",
+          "url": "https://www.che168.com/beijing/a0_0msdgscncgpi1ltocsp1exx0/"
+        }
+      ],
+      "detailPatterns": [
+        "/dealer/",
+        "/personal/"
+      ],
+      "siteFamily": "autohome",
+      "evaluationSplit": "validation",
+      "discoveredType": "product"
+    },
+    {
+      "id": "cheshi",
+      "name": "网上车市",
+      "vertical": "汽车出行",
+      "quota": 5,
+      "hosts": [
+        "cheshi.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.cheshi.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://product.cheshi.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://news.cheshi.com/"
+        }
+      ],
+      "detailPatterns": [
+        "/news/",
+        "/bseries/"
+      ],
+      "siteFamily": "cheshi.com",
+      "evaluationSplit": "test",
+      "discoveredType": "product"
+    },
+    {
+      "id": "cheping",
+      "name": "车评网",
+      "vertical": "汽车出行",
+      "quota": 5,
+      "hosts": [
+        "cheping.com.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "availability",
+        "ads"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.cheping.com.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.cheping.com.cn/news/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.cheping.com.cn/review/"
+        }
+      ],
+      "detailPatterns": [
+        "/news/",
+        "/review/"
+      ],
+      "siteFamily": "cheping.com.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "product"
+    },
+    {
+      "id": "gasgoo",
+      "name": "盖世汽车",
+      "vertical": "汽车出行",
+      "quota": 5,
+      "hosts": [
+        "gasgoo.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.gasgoo.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://auto.gasgoo.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.gasgoo.com/news/"
+        }
+      ],
+      "detailPatterns": [
+        "/news/",
+        "/article/"
+      ],
+      "siteFamily": "gasgoo.com",
+      "evaluationSplit": "test",
+      "discoveredType": "product"
+    },
+    {
+      "id": "12365auto",
+      "name": "车质网",
+      "vertical": "汽车出行",
+      "quota": 5,
+      "hosts": [
+        "12365auto.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "forms",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.12365auto.com/"
+        },
+        {
+          "type": "data",
+          "url": "https://www.12365auto.com/ranking/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.12365auto.com/series/"
+        }
+      ],
+      "detailPatterns": [
+        "/zlts/",
+        "/series/"
+      ],
+      "siteFamily": "12365auto.com",
+      "evaluationSplit": "test",
+      "discoveredType": "product"
+    },
+    {
+      "id": "ctrip",
+      "name": "携程旅行",
+      "vertical": "旅游出行",
+      "quota": 5,
+      "hosts": [
+        "ctrip.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "geo",
+        "login",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.ctrip.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://you.ctrip.com/place/beijing1.html"
+        },
+        {
+          "type": "search",
+          "url": "https://hotels.ctrip.com/hotels/list?city=1"
+        }
+      ],
+      "detailPatterns": [
+        "/sight/",
+        "/travel-guide/"
+      ],
+      "siteFamily": "ctrip.com",
+      "evaluationSplit": "train",
+      "discoveredType": "place"
+    },
+    {
+      "id": "qunar",
+      "name": "去哪儿旅行",
+      "vertical": "旅游出行",
+      "quota": 5,
+      "hosts": [
+        "qunar.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "geo",
+        "login",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.qunar.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://travel.qunar.com/p-cs299878-beijing"
+        },
+        {
+          "type": "search",
+          "url": "https://hotel.qunar.com/cn/beijing_city/"
+        }
+      ],
+      "detailPatterns": [
+        "/p-oi",
+        "/youji/"
+      ],
+      "siteFamily": "qunar.com",
+      "evaluationSplit": "train",
+      "discoveredType": "place"
+    },
+    {
+      "id": "mafengwo",
+      "name": "马蜂窝",
+      "vertical": "旅游出行",
+      "quota": 5,
+      "hosts": [
+        "mafengwo.cn"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "login",
+        "dynamic",
+        "challenge"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.mafengwo.cn/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.mafengwo.cn/travel-scenic-spot/mafengwo/10065.html"
+        },
+        {
+          "type": "search",
+          "url": "https://www.mafengwo.cn/search/q.php?q=%E5%8C%97%E4%BA%AC"
+        }
+      ],
+      "detailPatterns": [
+        "/i/",
+        "/poi/"
+      ],
+      "siteFamily": "mafengwo.cn",
+      "evaluationSplit": "train",
+      "discoveredType": "place"
+    },
+    {
+      "id": "ly",
+      "name": "同程旅行",
+      "vertical": "旅游出行",
+      "quota": 5,
+      "hosts": [
+        "ly.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "geo",
+        "spa",
+        "login"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.ly.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.ly.com/scenery/"
+        },
+        {
+          "type": "search",
+          "url": "https://www.ly.com/hotel/list?cityId=53"
+        }
+      ],
+      "detailPatterns": [
+        "/scenery/BookSceneryTicket_",
+        "/travelguide/"
+      ],
+      "siteFamily": "ly.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "place"
+    },
+    {
+      "id": "tuniu",
+      "name": "途牛旅游",
+      "vertical": "旅游出行",
+      "quota": 5,
+      "hosts": [
+        "tuniu.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.tuniu.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.tuniu.com/tours/"
+        },
+        {
+          "type": "search",
+          "url": "https://s.tuniu.com/search_complex/whole-beijing/"
+        }
+      ],
+      "detailPatterns": [
+        "/tour/",
+        "/guide/"
+      ],
+      "siteFamily": "tuniu.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "place"
+    },
+    {
+      "id": "qyer",
+      "name": "穷游网",
+      "vertical": "旅游出行",
+      "quota": 5,
+      "hosts": [
+        "qyer.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "login",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.qyer.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://place.qyer.com/beijing/"
+        },
+        {
+          "type": "feed",
+          "url": "https://bbs.qyer.com/"
+        }
+      ],
+      "detailPatterns": [
+        "/travelogue/",
+        "/thread-"
+      ],
+      "siteFamily": "qyer.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "place"
+    },
+    {
+      "id": "daodao",
+      "name": "到到网",
+      "vertical": "旅游出行",
+      "quota": 5,
+      "hosts": [
+        "daodao.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "redirect",
+        "geo",
+        "availability"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.daodao.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.daodao.com/Tourism-g294212-Beijing-Vacations.html"
+        },
+        {
+          "type": "ranking",
+          "url": "https://www.daodao.com/Attractions-g294212-Activities-Beijing.html"
+        }
+      ],
+      "detailPatterns": [
+        "/Attraction_Review-",
+        "/Hotel_Review-"
+      ],
+      "siteFamily": "daodao.com",
+      "evaluationSplit": "test",
+      "discoveredType": "place"
+    },
+    {
+      "id": "cncn",
+      "name": "欣欣旅游网",
+      "vertical": "旅游出行",
+      "quota": 5,
+      "hosts": [
+        "cncn.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "template-density"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.cncn.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://beijing.cncn.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.cncn.com/news/"
+        }
+      ],
+      "detailPatterns": [
+        "/jingdian/",
+        "/news/"
+      ],
+      "siteFamily": "cncn.com",
+      "evaluationSplit": "test",
+      "discoveredType": "place"
+    },
+    {
+      "id": "lotour",
+      "name": "乐途旅游",
+      "vertical": "旅游出行",
+      "quota": 5,
+      "hosts": [
+        "lotour.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "availability",
+        "ads"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "http://www.lotour.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "http://www.lotour.com/beijing/"
+        },
+        {
+          "type": "channel",
+          "url": "http://www.lotour.com/zhengwen/"
+        }
+      ],
+      "detailPatterns": [
+        "/zhengwen/",
+        "/destination/"
+      ],
+      "siteFamily": "lotour.com",
+      "evaluationSplit": "test",
+      "discoveredType": "place"
+    },
+    {
+      "id": "visitbeijing",
+      "name": "北京旅游网",
+      "vertical": "旅游出行",
+      "quota": 5,
+      "hosts": [
+        "visitbeijing.com.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "government-style"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.visitbeijing.com.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.visitbeijing.com.cn/article/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.visitbeijing.com.cn/line/"
+        }
+      ],
+      "detailPatterns": [
+        "/article/",
+        "/line/"
+      ],
+      "siteFamily": "visitbeijing.com.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "place"
+    },
+    {
+      "id": "cnki",
+      "name": "中国知网",
+      "vertical": "学术科研",
+      "quota": 5,
+      "hosts": [
+        "cnki.net"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "login",
+        "paywall",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.cnki.net/"
+        },
+        {
+          "type": "search",
+          "url": "https://kns.cnki.net/kns8s/defaultresult/index?kw=%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD"
+        },
+        {
+          "type": "catalog",
+          "url": "https://navi.cnki.net/knavi/"
+        }
+      ],
+      "detailPatterns": [
+        "/kcms2/article/abstract",
+        "/knavi/journals/"
+      ],
+      "siteFamily": "cnki.net",
+      "evaluationSplit": "train",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "wanfangdata",
+      "name": "万方数据",
+      "vertical": "学术科研",
+      "quota": 5,
+      "hosts": [
+        "wanfangdata.com.cn"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "login",
+        "paywall",
+        "spa"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.wanfangdata.com.cn/"
+        },
+        {
+          "type": "search",
+          "url": "https://s.wanfangdata.com.cn/paper?q=%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD"
+        },
+        {
+          "type": "catalog",
+          "url": "https://c.wanfangdata.com.cn/periodical"
+        }
+      ],
+      "detailPatterns": [
+        "/periodical/",
+        "/thesis/"
+      ],
+      "siteFamily": "wanfangdata.com.cn",
+      "evaluationSplit": "train",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "cqvip",
+      "name": "维普资讯",
+      "vertical": "学术科研",
+      "quota": 5,
+      "hosts": [
+        "cqvip.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "login",
+        "paywall",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.cqvip.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://qikan.cqvip.com/Qikan/Search/Index?key=K%3D%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD"
+        },
+        {
+          "type": "catalog",
+          "url": "https://qikan.cqvip.com/Qikan/Journal/JournalGuid?from=index"
+        }
+      ],
+      "detailPatterns": [
+        "/Qikan/Article/Detail",
+        "/Qikan/Journal/Summary"
+      ],
+      "siteFamily": "cqvip.com",
+      "evaluationSplit": "train",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "airiti",
+      "name": "华艺线上图书馆",
+      "vertical": "学术科研",
+      "quota": 5,
+      "hosts": [
+        "airitilibrary.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "login",
+        "paywall",
+        "traditional-chinese"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.airitilibrary.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://www.airitilibrary.com/Search/alSearch.aspx?Keyword=%E4%BA%BA%E5%B7%A5%E6%99%BA%E6%85%A7"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.airitilibrary.com/Publication/Index"
+        }
+      ],
+      "detailPatterns": [
+        "/Article/Detail/",
+        "/Publication/alDetailedMesh"
+      ],
+      "siteFamily": "airitilibrary.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "ncpssd",
+      "name": "国家哲学社会科学文献中心",
+      "vertical": "学术科研",
+      "quota": 5,
+      "hosts": [
+        "ncpssd.org"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "login",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.ncpssd.org/"
+        },
+        {
+          "type": "search",
+          "url": "https://www.ncpssd.org/Literature/articlelist?key=%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.ncpssd.org/journal"
+        }
+      ],
+      "detailPatterns": [
+        "/Literature/articleinfo",
+        "/journal/details"
+      ],
+      "siteFamily": "ncpssd.org",
+      "evaluationSplit": "validation",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "sciencechina",
+      "name": "科学智库",
+      "vertical": "学术科研",
+      "quota": 5,
+      "hosts": [
+        "sciencechina.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "dynamic",
+        "institutional"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.sciencechina.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.sciencechina.cn/zx/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.sciencechina.cn/kxj/"
+        }
+      ],
+      "detailPatterns": [
+        "/zx/",
+        "/kxj/"
+      ],
+      "siteFamily": "sciencechina.cn",
+      "evaluationSplit": "validation",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "sciencenet",
+      "name": "科学网",
+      "vertical": "学术科研",
+      "quota": 5,
+      "hosts": [
+        "sciencenet.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "subdomains",
+        "legacy-paths"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.sciencenet.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://news.sciencenet.cn/"
+        },
+        {
+          "type": "feed",
+          "url": "https://blog.sciencenet.cn/"
+        }
+      ],
+      "detailPatterns": [
+        "/htmlnews/",
+        "/blog-"
+      ],
+      "siteFamily": "sciencenet.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "cas",
+      "name": "中国科学院",
+      "vertical": "学术科研",
+      "quota": 5,
+      "hosts": [
+        "cas.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "institutional"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.cas.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.cas.cn/syky/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.cas.cn/kj/"
+        }
+      ],
+      "detailPatterns": [
+        "/syky/",
+        "/kj/"
+      ],
+      "siteFamily": "cas.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "nstl",
+      "name": "国家科技图书文献中心",
+      "vertical": "学术科研",
+      "quota": 5,
+      "hosts": [
+        "nstl.gov.cn"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "login",
+        "dynamic",
+        "service-pages"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.nstl.gov.cn/"
+        },
+        {
+          "type": "search",
+          "url": "https://www.nstl.gov.cn/search.html?query=%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.nstl.gov.cn/resources.html"
+        }
+      ],
+      "detailPatterns": [
+        "/detail/",
+        "/resource/"
+      ],
+      "siteFamily": "nstl.gov.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "chinaxiv",
+      "name": "中国科学院科技论文预发布平台",
+      "vertical": "学术科研",
+      "quota": 5,
+      "hosts": [
+        "chinaxiv.org"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "dynamic",
+        "pdf-links"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://chinaxiv.org/"
+        },
+        {
+          "type": "search",
+          "url": "https://chinaxiv.org/search.htm?field=title&value=%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD"
+        },
+        {
+          "type": "catalog",
+          "url": "https://chinaxiv.org/subject.htm"
+        }
+      ],
+      "detailPatterns": [
+        "/abs/",
+        "/user/view.htm"
+      ],
+      "siteFamily": "chinaxiv.org",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "sport-org-cn",
+      "name": "华奥星空",
+      "vertical": "体育赛事",
+      "quota": 5,
+      "hosts": [
+        "sports.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "ads"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.sports.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://news.sports.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.sports.cn/marathon/"
+        }
+      ],
+      "detailPatterns": [
+        "/news/",
+        "/20"
+      ],
+      "siteFamily": "sports.cn",
+      "evaluationSplit": "train",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "titan24",
+      "name": "体坛网",
+      "vertical": "体育赛事",
+      "quota": 5,
+      "hosts": [
+        "titan24.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.titan24.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.titan24.com/football/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.titan24.com/basketball/"
+        }
+      ],
+      "detailPatterns": [
+        "/p/",
+        "/article/"
+      ],
+      "siteFamily": "titan24.com",
+      "evaluationSplit": "train",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "dongqiudi",
+      "name": "懂球帝",
+      "vertical": "体育赛事",
+      "quota": 5,
+      "hosts": [
+        "dongqiudi.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "spa",
+        "login",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.dongqiudi.com/"
+        },
+        {
+          "type": "feed",
+          "url": "https://www.dongqiudi.com/news"
+        },
+        {
+          "type": "data",
+          "url": "https://www.dongqiudi.com/data"
+        }
+      ],
+      "detailPatterns": [
+        "/articles/",
+        "/team/"
+      ],
+      "siteFamily": "dongqiudi.com",
+      "evaluationSplit": "train",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "zhibo8",
+      "name": "直播吧",
+      "vertical": "体育赛事",
+      "quota": 5,
+      "hosts": [
+        "zhibo8.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.zhibo8.com/"
+        },
+        {
+          "type": "feed",
+          "url": "https://news.zhibo8.com/"
+        },
+        {
+          "type": "data",
+          "url": "https://data.zhibo8.com/"
+        }
+      ],
+      "detailPatterns": [
+        "/zuqiu/20",
+        "/nba/20"
+      ],
+      "siteFamily": "zhibo8.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "7m",
+      "name": "7M体育",
+      "vertical": "体育赛事",
+      "quota": 5,
+      "hosts": [
+        "7m.com.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "legacy-http",
+        "data-tables"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "http://www.7m.com.cn/"
+        },
+        {
+          "type": "data",
+          "url": "http://data.7m.com.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "http://news.7m.com.cn/"
+        }
+      ],
+      "detailPatterns": [
+        "/news/",
+        "/data/"
+      ],
+      "siteFamily": "7m.com.cn",
+      "evaluationSplit": "validation",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "sport-gov",
+      "name": "国家体育总局",
+      "vertical": "体育赛事",
+      "quota": 5,
+      "hosts": [
+        "sport.gov.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "legacy-paths"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.sport.gov.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.sport.gov.cn/n20001280/index.html"
+        },
+        {
+          "type": "policy",
+          "url": "https://www.sport.gov.cn/n315/n20001395/index.html"
+        }
+      ],
+      "detailPatterns": [
+        "/n20001280/",
+        "/n20001395/"
+      ],
+      "siteFamily": "sport.gov.cn",
+      "evaluationSplit": "validation",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "olympic-cn",
+      "name": "中国奥委会",
+      "vertical": "体育赛事",
+      "quota": 5,
+      "hosts": [
+        "olympic.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "legacy-paths"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "http://www.olympic.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "http://www.olympic.cn/news/"
+        },
+        {
+          "type": "catalog",
+          "url": "http://www.olympic.cn/games/"
+        }
+      ],
+      "detailPatterns": [
+        "/news/",
+        "/games/"
+      ],
+      "siteFamily": "olympic.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "cba",
+      "name": "CBA官网",
+      "vertical": "体育赛事",
+      "quota": 5,
+      "hosts": [
+        "cba.net.cn"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "spa",
+        "dynamic",
+        "availability"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.cba.net.cn/"
+        },
+        {
+          "type": "data",
+          "url": "https://www.cba.net.cn/score.html"
+        },
+        {
+          "type": "ranking",
+          "url": "https://www.cba.net.cn/standings.html"
+        }
+      ],
+      "detailPatterns": [
+        "/article/",
+        "/team/"
+      ],
+      "siteFamily": "cba.net.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "thecfa",
+      "name": "中国足协",
+      "vertical": "体育赛事",
+      "quota": 5,
+      "hosts": [
+        "thecfa.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "dynamic",
+        "institutional"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.thecfa.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.thecfa.cn/xhxw/index.html"
+        },
+        {
+          "type": "policy",
+          "url": "https://www.thecfa.cn/gzzd/index.html"
+        }
+      ],
+      "detailPatterns": [
+        "/xhxw/",
+        "/gzzd/"
+      ],
+      "siteFamily": "thecfa.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "csva",
+      "name": "中国排球协会",
+      "vertical": "体育赛事",
+      "quota": 5,
+      "hosts": [
+        "volleyballchina.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "institutional",
+        "availability"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.volleyballchina.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.volleyballchina.com/news"
+        },
+        {
+          "type": "data",
+          "url": "https://www.volleyballchina.com/competition"
+        }
+      ],
+      "detailPatterns": [
+        "/news/",
+        "/competition/"
+      ],
+      "siteFamily": "volleyballchina.com",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "qidian",
+      "name": "起点中文网",
+      "vertical": "文化阅读",
+      "quota": 5,
+      "hosts": [
+        "qidian.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "login",
+        "paywall",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.qidian.com/"
+        },
+        {
+          "type": "ranking",
+          "url": "https://www.qidian.com/rank/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.qidian.com/all/"
+        }
+      ],
+      "detailPatterns": [
+        "/book/",
+        "/chapter/"
+      ],
+      "siteFamily": "yuewen",
+      "evaluationSplit": "train",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "jjwxc",
+      "name": "晋江文学城",
+      "vertical": "文化阅读",
+      "quota": 5,
+      "hosts": [
+        "jjwxc.net"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "login",
+        "legacy-encoding"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.jjwxc.net/"
+        },
+        {
+          "type": "ranking",
+          "url": "https://www.jjwxc.net/topten.php"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.jjwxc.net/bookbase.php"
+        }
+      ],
+      "detailPatterns": [
+        "onebook.php?novelid=",
+        "/chapter/"
+      ],
+      "siteFamily": "jjwxc.net",
+      "evaluationSplit": "validation",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "zongheng",
+      "name": "纵横中文网",
+      "vertical": "文化阅读",
+      "quota": 5,
+      "hosts": [
+        "zongheng.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "login",
+        "ads"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.zongheng.com/"
+        },
+        {
+          "type": "ranking",
+          "url": "https://www.zongheng.com/rank"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.zongheng.com/category"
+        }
+      ],
+      "detailPatterns": [
+        "/detail/",
+        "/chapter/"
+      ],
+      "siteFamily": "zongheng.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "17k",
+      "name": "17K小说网",
+      "vertical": "文化阅读",
+      "quota": 5,
+      "hosts": [
+        "17k.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "login",
+        "ads"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.17k.com/"
+        },
+        {
+          "type": "ranking",
+          "url": "https://www.17k.com/top/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.17k.com/all/"
+        }
+      ],
+      "detailPatterns": [
+        "/book/",
+        "/chapter/"
+      ],
+      "siteFamily": "17k.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "hongxiu",
+      "name": "红袖读书",
+      "vertical": "文化阅读",
+      "quota": 5,
+      "hosts": [
+        "hongxiu.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "login",
+        "spa",
+        "paywall"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.hongxiu.com/"
+        },
+        {
+          "type": "ranking",
+          "url": "https://www.hongxiu.com/rank"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.hongxiu.com/all"
+        }
+      ],
+      "detailPatterns": [
+        "/book/",
+        "/chapter/"
+      ],
+      "siteFamily": "yuewen",
+      "evaluationSplit": "train",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "readnovel",
+      "name": "小说阅读网",
+      "vertical": "文化阅读",
+      "quota": 5,
+      "hosts": [
+        "readnovel.com"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "login",
+        "spa",
+        "paywall"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.readnovel.com/"
+        },
+        {
+          "type": "ranking",
+          "url": "https://www.readnovel.com/rank"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.readnovel.com/all"
+        }
+      ],
+      "detailPatterns": [
+        "/book/",
+        "/chapter/"
+      ],
+      "siteFamily": "yuewen",
+      "evaluationSplit": "train",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "dpm",
+      "name": "故宫博物院",
+      "vertical": "文化阅读",
+      "quota": 5,
+      "hosts": [
+        "dpm.org.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "dynamic",
+        "image-heavy"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.dpm.org.cn/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.dpm.org.cn/collection.html"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.dpm.org.cn/explore.html"
+        }
+      ],
+      "detailPatterns": [
+        "/collection/",
+        "/article/"
+      ],
+      "siteFamily": "dpm.org.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "npm-tw",
+      "name": "台北故宫博物院",
+      "vertical": "文化阅读",
+      "quota": 5,
+      "hosts": [
+        "npm.gov.tw",
+        "theme.npm.edu.tw"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "traditional-chinese",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.npm.gov.tw/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://theme.npm.edu.tw/selection/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.npm.gov.tw/Articles.aspx"
+        }
+      ],
+      "detailPatterns": [
+        "/Article.aspx",
+        "/selection/Detail.aspx"
+      ],
+      "siteFamily": "npm.gov.tw",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "guoxue",
+      "name": "国学网",
+      "vertical": "文化阅读",
+      "quota": 5,
+      "hosts": [
+        "guoxue.com"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "legacy-html"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "http://www.guoxue.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "http://www.guoxue.com/?page_id=286"
+        },
+        {
+          "type": "channel",
+          "url": "http://www.guoxue.com/?cat=5"
+        }
+      ],
+      "detailPatterns": [
+        "/?p=",
+        "/article/"
+      ],
+      "siteFamily": "guoxue.com",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "chinawriter",
+      "name": "中国作家网",
+      "vertical": "文化阅读",
+      "quota": 5,
+      "hosts": [
+        "chinawriter.com.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "legacy-paths"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "http://www.chinawriter.com.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "http://www.chinawriter.com.cn/n1/2024/"
+        },
+        {
+          "type": "channel",
+          "url": "http://www.chinawriter.com.cn/404057/404063/"
+        }
+      ],
+      "detailPatterns": [
+        "/n1/",
+        "/404057/"
+      ],
+      "siteFamily": "chinawriter.com.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "moegirl",
+      "name": "萌娘百科",
+      "vertical": "百科工具",
+      "quota": 5,
+      "hosts": [
+        "moegirl.org.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "community-wiki",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://zh.moegirl.org.cn/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://zh.moegirl.org.cn/Category:%E6%96%87%E5%8C%96"
+        },
+        {
+          "type": "search",
+          "url": "https://zh.moegirl.org.cn/index.php?search=%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD"
+        }
+      ],
+      "detailPatterns": [
+        "/[^/:]+$",
+        "/index.php?title="
+      ],
+      "siteFamily": "moegirl.org.cn",
+      "evaluationSplit": "train",
+      "discoveredType": "data"
+    },
+    {
+      "id": "baike-com",
+      "name": "快懂百科",
+      "vertical": "百科工具",
+      "quota": 5,
+      "hosts": [
+        "baike.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "dynamic",
+        "redirect"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.baike.com/"
+        },
+        {
+          "type": "ranking",
+          "url": "https://www.baike.com/rank"
+        },
+        {
+          "type": "search",
+          "url": "https://www.baike.com/search?keyword=%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD"
+        }
+      ],
+      "detailPatterns": [
+        "/wikiid/",
+        "/item/"
+      ],
+      "siteFamily": "baike.com",
+      "evaluationSplit": "train",
+      "discoveredType": "data"
+    },
+    {
+      "id": "iciba",
+      "name": "金山词霸",
+      "vertical": "百科工具",
+      "quota": 5,
+      "hosts": [
+        "iciba.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "dynamic",
+        "ads"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.iciba.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://www.iciba.com/word?w=artificial%20intelligence"
+        },
+        {
+          "type": "channel",
+          "url": "https://news.iciba.com/"
+        }
+      ],
+      "detailPatterns": [
+        "/word?w=",
+        "/article/"
+      ],
+      "siteFamily": "iciba.com",
+      "evaluationSplit": "train",
+      "discoveredType": "data"
+    },
+    {
+      "id": "zdic",
+      "name": "汉典",
+      "vertical": "百科工具",
+      "quota": 5,
+      "hosts": [
+        "zdic.net"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "traditional-layout"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.zdic.net/"
+        },
+        {
+          "type": "search",
+          "url": "https://www.zdic.net/hans/%E5%AD%A6"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.zdic.net/zd/zb/"
+        }
+      ],
+      "detailPatterns": [
+        "/hans/",
+        "/zd/zb/"
+      ],
+      "siteFamily": "zdic.net",
+      "evaluationSplit": "validation",
+      "discoveredType": "data"
+    },
+    {
+      "id": "weather-china",
+      "name": "中国天气网",
+      "vertical": "百科工具",
+      "quota": 5,
+      "hosts": [
+        "weather.com.cn"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "ads",
+        "geo",
+        "data"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.weather.com.cn/"
+        },
+        {
+          "type": "data",
+          "url": "https://www.weather.com.cn/weather/101010100.shtml"
+        },
+        {
+          "type": "channel",
+          "url": "https://news.weather.com.cn/"
+        }
+      ],
+      "detailPatterns": [
+        "/weather/",
+        "/news/"
+      ],
+      "siteFamily": "weather.com.cn",
+      "evaluationSplit": "validation",
+      "discoveredType": "data"
+    },
+    {
+      "id": "cma",
+      "name": "中国气象局",
+      "vertical": "百科工具",
+      "quota": 5,
+      "hosts": [
+        "cma.gov.cn",
+        "weather.cma.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "government-style",
+        "data"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.cma.gov.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.cma.gov.cn/2011xwzx/2011xqxxw/"
+        },
+        {
+          "type": "data",
+          "url": "https://weather.cma.cn/"
+        }
+      ],
+      "detailPatterns": [
+        "/2011xwzx/",
+        "/weather/"
+      ],
+      "siteFamily": "cma.gov.cn",
+      "evaluationSplit": "validation",
+      "discoveredType": "data"
+    },
+    {
+      "id": "kuaidi100",
+      "name": "快递100",
+      "vertical": "百科工具",
+      "quota": 5,
+      "hosts": [
+        "kuaidi100.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "forms",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.kuaidi100.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.kuaidi100.com/all/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.kuaidi100.com/news/"
+        }
+      ],
+      "detailPatterns": [
+        "/article/",
+        "/company/"
+      ],
+      "siteFamily": "kuaidi100.com",
+      "evaluationSplit": "test",
+      "discoveredType": "data"
+    },
+    {
+      "id": "ip138",
+      "name": "IP138查询网",
+      "vertical": "百科工具",
+      "quota": 5,
+      "hosts": [
+        "ip138.com"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "forms",
+        "legacy-html"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.ip138.com/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.ip138.com/post/"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.ip138.com/mobile.asp"
+        }
+      ],
+      "detailPatterns": [
+        "/post/",
+        "/mobile.asp"
+      ],
+      "siteFamily": "ip138.com",
+      "evaluationSplit": "test",
+      "discoveredType": "data"
+    },
+    {
+      "id": "12306",
+      "name": "中国铁路12306",
+      "vertical": "百科工具",
+      "quota": 5,
+      "hosts": [
+        "12306.cn"
+      ],
+      "captureRisk": "high",
+      "riskTags": [
+        "service-pages",
+        "dynamic",
+        "captcha"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.12306.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.12306.cn/index/view/infos/railway_info.html"
+        },
+        {
+          "type": "catalog",
+          "url": "https://www.12306.cn/index/view/ticket/zt_card.html"
+        }
+      ],
+      "detailPatterns": [
+        "/index/view/infos/",
+        "/index/view/ticket/"
+      ],
+      "siteFamily": "12306.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "data"
+    },
+    {
+      "id": "mapbar",
+      "name": "图吧地图",
+      "vertical": "百科工具",
+      "quota": 5,
+      "hosts": [
+        "mapbar.com"
+      ],
+      "captureRisk": "medium",
+      "riskTags": [
+        "geo",
+        "ads",
+        "dynamic"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.mapbar.com/"
+        },
+        {
+          "type": "search",
+          "url": "https://map.mapbar.com/beijing"
+        },
+        {
+          "type": "catalog",
+          "url": "https://poi.mapbar.com/beijing/"
+        }
+      ],
+      "detailPatterns": [
+        "/poi/",
+        "/map/"
+      ],
+      "siteFamily": "mapbar.com",
+      "evaluationSplit": "test",
+      "discoveredType": "data"
+    },
+    {
+      "id": "eastday",
+      "name": "东方网",
+      "vertical": "区域资讯",
+      "quota": 5,
+      "hosts": [
+        "eastday.com"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "ads",
+        "subdomains"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.eastday.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://news.eastday.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://sh.eastday.com/"
+        }
+      ],
+      "detailPatterns": [
+        "/u1a",
+        "/20"
+      ],
+      "siteFamily": "eastday.com",
+      "evaluationSplit": "train",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "newssc",
+      "name": "四川新闻网",
+      "vertical": "区域资讯",
+      "quota": 5,
+      "hosts": [
+        "newssc.org"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "regional"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.newssc.org/"
+        },
+        {
+          "type": "channel",
+          "url": "https://local.newssc.org/"
+        },
+        {
+          "type": "channel",
+          "url": "https://finance.newssc.org/"
+        }
+      ],
+      "detailPatterns": [
+        "/system/20",
+        "/news/"
+      ],
+      "siteFamily": "newssc.org",
+      "evaluationSplit": "train",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "cqnews",
+      "name": "华龙网",
+      "vertical": "区域资讯",
+      "quota": 5,
+      "hosts": [
+        "cqnews.net"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "regional",
+        "subdomains"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.cqnews.net/"
+        },
+        {
+          "type": "channel",
+          "url": "https://cq.cqnews.net/"
+        },
+        {
+          "type": "channel",
+          "url": "https://news.cqnews.net/"
+        }
+      ],
+      "detailPatterns": [
+        "/1/detail/",
+        "/content/"
+      ],
+      "siteFamily": "cqnews.net",
+      "evaluationSplit": "train",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "cjn",
+      "name": "长江网",
+      "vertical": "区域资讯",
+      "quota": 5,
+      "hosts": [
+        "cjn.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "regional"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.cjn.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://news.cjn.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://cjrb.cjn.cn/"
+        }
+      ],
+      "detailPatterns": [
+        "/wh/",
+        "/news/"
+      ],
+      "siteFamily": "cjn.cn",
+      "evaluationSplit": "validation",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "dayoo",
+      "name": "大洋网",
+      "vertical": "区域资讯",
+      "quota": 5,
+      "hosts": [
+        "dayoo.com"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "regional",
+        "ads"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.dayoo.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://news.dayoo.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://life.dayoo.com/"
+        }
+      ],
+      "detailPatterns": [
+        "/guangzhou/20",
+        "/news/"
+      ],
+      "siteFamily": "dayoo.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "sznews",
+      "name": "深圳新闻网",
+      "vertical": "区域资讯",
+      "quota": 5,
+      "hosts": [
+        "sznews.com"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "regional"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.sznews.com/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.sznews.com/news/"
+        },
+        {
+          "type": "channel",
+          "url": "https://www.sznews.com/content/"
+        }
+      ],
+      "detailPatterns": [
+        "/content/20",
+        "/news/"
+      ],
+      "siteFamily": "sznews.com",
+      "evaluationSplit": "validation",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "hangzhou",
+      "name": "杭州网",
+      "vertical": "区域资讯",
+      "quota": 5,
+      "hosts": [
+        "hangzhou.com.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "regional",
+        "subdomains"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.hangzhou.com.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://news.hangzhou.com.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://hznews.hangzhou.com.cn/"
+        }
+      ],
+      "detailPatterns": [
+        "/content/20",
+        "/chengshi/"
+      ],
+      "siteFamily": "hangzhou.com.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "cnnb",
+      "name": "中国宁波网",
+      "vertical": "区域资讯",
+      "quota": 5,
+      "hosts": [
+        "cnnb.com.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "regional"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "http://www.cnnb.com.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "http://news.cnnb.com.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "http://daily.cnnb.com.cn/"
+        }
+      ],
+      "detailPatterns": [
+        "/system/20",
+        "/html/20"
+      ],
+      "siteFamily": "cnnb.com.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "jschina",
+      "name": "中国江苏网",
+      "vertical": "区域资讯",
+      "quota": 5,
+      "hosts": [
+        "jschina.com.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "regional",
+        "subdomains"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.jschina.com.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://jsnews.jschina.com.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://economy.jschina.com.cn/"
+        }
+      ],
+      "detailPatterns": [
+        "/20",
+        ".shtml"
+      ],
+      "siteFamily": "jschina.com.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    },
+    {
+      "id": "rednet",
+      "name": "红网",
+      "vertical": "区域资讯",
+      "quota": 5,
+      "hosts": [
+        "rednet.cn"
+      ],
+      "captureRisk": "low",
+      "riskTags": [
+        "regional",
+        "subdomains"
+      ],
+      "seeds": [
+        {
+          "type": "home",
+          "url": "https://www.rednet.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://hn.rednet.cn/"
+        },
+        {
+          "type": "channel",
+          "url": "https://finance.rednet.cn/"
+        }
+      ],
+      "detailPatterns": [
+        "/content/",
+        "/article/"
+      ],
+      "siteFamily": "rednet.cn",
+      "evaluationSplit": "test",
+      "discoveredType": "detail"
+    }
+  ],
+  "strictSiteQuotas": true
+}

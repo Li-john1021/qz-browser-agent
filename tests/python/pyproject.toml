@@ -1,0 +1,10 @@
+[project]
+name = "qingzhou-tests"
+version = "0.0.0"
+requires-python = ">=3.11"
+dependencies = [
+  "playwright==1.61.0",
+]
+
+[tool.uv]
+package = false

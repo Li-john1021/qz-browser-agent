@@ -1,0 +1,36 @@
+import { defineMessages } from "#sdk/shared/i18n-definition";
+
+/** Package-owned interface text. Identifiers and user content remain untranslated. */
+export default defineMessages("mcp", {
+  "probeMcp": { "zh-CN": "探测 MCP", en: "Inspect MCP server" },
+  "probeMcpShort": { "zh-CN": "探测 MCP", en: "Inspect MCP" },
+  "viewMcp": { "zh-CN": "查看 MCP", en: "View MCP tools" },
+  "viewMcpShort": { "zh-CN": "查看 MCP", en: "MCP tools" },
+  "searchMcp": { "zh-CN": "搜索 MCP", en: "Search MCP tools" },
+  "searchMcpShort": { "zh-CN": "搜索 MCP", en: "Search MCP" },
+  "callMcp": { "zh-CN": "直调 MCP", en: "Call MCP tool" },
+  "callMcpShort": { "zh-CN": "直调 MCP", en: "Call MCP" },
+  "mcpSearch": { "zh-CN": "MCP 搜索{query}", en: "MCP search {query}" },
+  "mcpTools": { "zh-CN": "MCP 工具", en: "MCP tools" },
+  "tools": { "zh-CN": "{count} 个工具", en: "Tools: {count}" },
+  "mcpServers": { "zh-CN": "{count} 个 MCP", en: "MCP servers: {count}" },
+  "cached": { "zh-CN": "缓存 {count}", en: "Cached: {count}" },
+  "resources": { "zh-CN": "资源", en: "Resources" },
+  "resourceTemplates": { "zh-CN": "资源模板", en: "Resource templates" },
+  "mcpCall": { "zh-CN": "MCP 直调", en: "MCP call" },
+  "incomplete": { "zh-CN": "未完成", en: "Incomplete" },
+  "completed": { "zh-CN": "已完成", en: "Completed" },
+  "contentBlocks": { "zh-CN": "{count} 段内容", en: "Content blocks: {count}" },
+  "mcpText": { "zh-CN": "MCP 文本", en: "MCP text" },
+  "structuredContent": { "zh-CN": "结构化内容", en: "Structured content" },
+  "disabled": { "zh-CN": "已禁用", en: "Disabled" },
+  "inactive": { "zh-CN": "未激活", en: "Inactive" },
+  "boundTools": { "zh-CN": "{count} 个绑定工具", en: "Bound tools: {count}" },
+  "toolsLabel": { "zh-CN": "工具", en: "Tools" },
+  "parameters": { "zh-CN": "{count} 个参数", en: "Parameters: {count}" },
+  "mcpContent": { "zh-CN": "MCP 内容", en: "MCP content" },
+  "error": { "zh-CN": "错误", en: "Error" },
+  "mcpToolNotFoundOnServer": { "zh-CN": "MCP 服务上找不到工具：{name}", en: "MCP tool not found on server: {name}" },
+}, { historicalLabels: [
+  "probeMcp", "viewMcp", "searchMcp", "callMcp",
+] });

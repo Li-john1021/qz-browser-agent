@@ -1,0 +1,17 @@
+{
+  "name": "raw-panel-switch-reset",
+  "scenario": "long",
+  "widths": [360, 420],
+  "steps": [
+    { "action": "expandGroup", "group": 0, "label": "展开长流程" },
+    { "action": "click", "selector": ".tool-family-row[data-tool-family-id=\"collect\"]", "label": "进入采集信息" },
+    { "action": "clickText", "selector": ".tool-family-batch[data-tool-family-id=\"collect\"]", "text": "采集正文", "label": "打开采集正文详情" },
+    { "action": "click", "selector": ".tool-timeline-raw-btn:not(.hidden)", "label": "展开原始数据" },
+    { "action": "assert", "expect": "selectorCount", "selector": ".tool-timeline-raw-panel:not(.hidden)", "equals": 1 },
+    { "action": "assert", "expect": "rawPanelScrollable", "selector": ".tool-timeline-raw-panel .copyable-code-block pre" },
+    { "action": "click", "selector": ".tool-family-row[data-tool-family-id=\"operate\"]", "label": "切换到操作族" },
+    { "action": "assert", "expect": "selectorCount", "selector": ".tool-timeline-raw-panel:not(.hidden)", "equals": 0 },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "notIncludes": "\"args\"" },
+    { "action": "assert", "expect": "noHorizontalOverflow" }
+  ]
+}

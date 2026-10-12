@@ -1,0 +1,86 @@
+{
+  "name": "single-tool-long-raw",
+  "widths": [360, 420],
+  "conversation": {
+    "title": "单工具长原始数据",
+    "entries": [
+      {
+        "type": "user",
+        "_uiKey": "stlr-u1",
+        "text": "读取当前页面结构。"
+      },
+      {
+        "type": "tool",
+        "_uiKey": "stlr-t1",
+        "toolCallId": "stlr-t1",
+        "name": "read_dom",
+        "args": {
+          "selector": "body",
+          "depth": 8,
+          "limit": 260,
+          "actionsLimit": 100
+        },
+        "result": {
+          "title": "小红书创作服务平台",
+          "url": "https://creator.xiaohongshu.com/publish/publish?source=official&published=true",
+          "nodeCount": 1267,
+          "semanticNodeCount": 31,
+          "snapshotId": "stlr_snapshot_001",
+          "snapshot": "target=uid:stlr_0 RootWebArea \"小红书创作服务平台\" url=\"https://creator.xiaohongshu.com/publish/publish?source=official&published=true\"\ntarget=uid:stlr_1 StaticText \"遇到问题\" #1079\ntarget=uid:stlr_2 main #1186\ntarget=uid:stlr_3 textbox \"标题\" editable=true\ntarget=uid:stlr_4 textbox \"正文\" editable=true\ntarget=uid:stlr_5 button \"上传图文\"\ntarget=uid:stlr_6 button \"生成图片\"\ntarget=uid:stlr_7 button \"下一步\"\ntarget=uid:stlr_8 button \"发布\"\ntarget=uid:stlr_9 paragraph \"第一段：这是用于原始数据滚动测试的页面快照。\"\ntarget=uid:stlr_10 paragraph \"第二段：字段很多，但展开态不能撑爆对话流。\"\ntarget=uid:stlr_11 paragraph \"第三段：raw panel 应该内部滚动。\"\ntarget=uid:stlr_12 paragraph \"第四段：footer 操作高度一致。\"\ntarget=uid:stlr_13 paragraph \"第五段：保持工具卡片宽度。\"\ntarget=uid:stlr_14 paragraph \"第六段：避免水平溢出。\"\ntarget=uid:stlr_15 paragraph \"第七段：复制按钮仍在右上角。\"\ntarget=uid:stlr_16 paragraph \"第八段：长 URL https://creator.xiaohongshu.com/publish/publish?source=official&published=true&trace=very-long-debug-value-for-layout-testing-001\"\ntarget=uid:stlr_17 paragraph \"第九段：重复内容 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"\ntarget=uid:stlr_18 paragraph \"第十段：重复内容 BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB\"\ntarget=uid:stlr_19 paragraph \"第十一段：重复内容 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC\"\ntarget=uid:stlr_20 paragraph \"第十二段：重复内容 DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD\"\ntarget=uid:stlr_21 paragraph \"第十三段：重复内容 EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE\"\ntarget=uid:stlr_22 paragraph \"第十四段：重复内容 FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF\"\ntarget=uid:stlr_23 paragraph \"第十五段：重复内容 GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG\"\ntarget=uid:stlr_24 paragraph \"第十六段：重复内容 HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH\"\ntarget=uid:stlr_25 paragraph \"第十七段：重复内容 IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII\"\ntarget=uid:stlr_26 paragraph \"第十八段：重复内容 JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ\"\ntarget=uid:stlr_27 paragraph \"第十九段：重复内容 KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK\"\ntarget=uid:stlr_28 paragraph \"第二十段：重复内容 LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL\"",
+          "actions": [
+            { "target": "uid:stlr_3", "role": "textbox", "name": "标题", "editable": true, "inViewport": true },
+            { "target": "uid:stlr_4", "role": "textbox", "name": "正文", "editable": true, "inViewport": true },
+            { "target": "uid:stlr_5", "role": "button", "name": "上传图文", "disabled": false, "inViewport": true },
+            { "target": "uid:stlr_6", "role": "button", "name": "生成图片", "disabled": false, "inViewport": true },
+            { "target": "uid:stlr_7", "role": "button", "name": "下一步", "disabled": false, "inViewport": true },
+            { "target": "uid:stlr_8", "role": "button", "name": "发布", "disabled": false, "inViewport": true },
+            { "target": "uid:stlr_9", "role": "paragraph", "name": "第一段", "text": "这是用于原始数据滚动测试的页面快照。", "inViewport": true },
+            { "target": "uid:stlr_10", "role": "paragraph", "name": "第二段", "text": "字段很多，但展开态不能撑爆对话流。", "inViewport": true },
+            { "target": "uid:stlr_11", "role": "paragraph", "name": "第三段", "text": "raw panel 应该内部滚动。", "inViewport": false },
+            { "target": "uid:stlr_12", "role": "paragraph", "name": "第四段", "text": "footer 操作高度一致。", "inViewport": false }
+          ],
+          "_display": {
+            "tree": [
+              {
+                "role": "main",
+                "name": "发布编辑页",
+                "uid": "main",
+                "children": [
+                  {
+                    "role": "textbox",
+                    "name": "正文",
+                    "uid": "editor-body",
+                    "selector": ".ProseMirror",
+                    "children": [
+                      { "role": "paragraph", "name": "第一段：结论", "uid": "p1" },
+                      { "role": "paragraph", "name": "第二段：证据", "uid": "p2" }
+                    ]
+                  },
+                  { "role": "button", "name": "发布", "uid": "btn-publish", "selector": "button.publish" }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      {
+        "type": "assistant",
+        "_uiKey": "stlr-a1",
+        "content": "页面结构已读取。"
+      }
+    ]
+  },
+  "steps": [
+    { "action": "assert", "expect": "selectorCount", "selector": ".msg-tool", "equals": 1 },
+    { "action": "assert", "expect": "selectorCount", "selector": ".msg-tool-timeline", "equals": 0 },
+    { "action": "assert", "expect": "noHorizontalOverflow" },
+    { "action": "click", "selector": ".msg-tool > .tool-summary", "label": "展开单工具" },
+    { "action": "assert", "expect": "selectorCount", "selector": ".msg-tool.tool-expanded", "equals": 1 },
+    { "action": "assert", "expect": "footerEqualHeights", "selector": ".tool-event-footer-row" },
+    { "action": "click", "selector": ".tool-event-raw-btn:not(.hidden)", "label": "展开原始数据" },
+    { "action": "assert", "expect": "rawPanelScrollable", "selector": ".tool-event-raw-panel .copyable-code-block pre" },
+    { "action": "assert", "expect": "noHorizontalOverflow" },
+    { "action": "click", "selector": ".tool-event-collapse-btn", "label": "收起单工具" },
+    { "action": "assert", "expect": "selectorCount", "selector": ".msg-tool.tool-expanded", "equals": 0 }
+  ]
+}

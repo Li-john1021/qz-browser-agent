@@ -1,0 +1,11 @@
+{
+  "transport.tooLarge": "A mensagem é grande demais para ser transferida. Reduza os anexos ou leia o resultado em partes menores.",
+  "transport.invalid": "Não foi possível codificar a mensagem. Verifique os dados enviados e tente novamente.",
+  "transport.disconnected": "A conexão foi encerrada antes do fim da transferência. Reabra a tarefa e verifique seu estado antes de tentar novamente.",
+  "transport.upgrade": "Reabra o painel lateral para transferir esta mensagem grande com a extensão atualizada.",
+  "transport.busy": "Outra transferência grande está usando o buffer disponível. Aguarde sua conclusão e tente novamente.",
+  "transport.timeout": "A transferência da mensagem excedeu o tempo limite. Verifique o estado da tarefa antes de tentar novamente.",
+  "transport.cancelled": "A transferência da mensagem foi cancelada.",
+  "transport.protocol": "A transferência da mensagem está incompleta ou é inválida. Reabra a tarefa e tente novamente.",
+  "transport.failed": "Não foi possível enviar a mensagem. Verifique a conexão e o estado da tarefa antes de tentar novamente."
+}

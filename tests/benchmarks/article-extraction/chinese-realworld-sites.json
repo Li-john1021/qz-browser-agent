@@ -1,0 +1,307 @@
+{
+  "schema": "qingzhou.article-extraction-sites.v1",
+  "sampleTarget": 300,
+  "samplesPerSite": 12,
+  "sites": [
+    {
+      "id": "xinhuanet",
+      "name": "新华网",
+      "vertical": "综合资讯",
+      "hosts": ["xinhuanet.com", "www.news.cn"],
+      "seeds": [
+        { "type": "home", "url": "https://www.news.cn/" },
+        { "type": "channel", "url": "https://www.news.cn/politics/" },
+        { "type": "channel", "url": "https://www.news.cn/fortune/" }
+      ],
+      "detailPatterns": ["/\\d{8}/[a-z0-9_-]+/c\\.html", "/\\d{4}-\\d{2}/\\d{2}/c_"]
+    },
+    {
+      "id": "people",
+      "name": "人民网",
+      "vertical": "综合资讯",
+      "hosts": ["people.com.cn"],
+      "seeds": [
+        { "type": "home", "url": "http://www.people.com.cn/" },
+        { "type": "channel", "url": "http://politics.people.com.cn/" },
+        { "type": "channel", "url": "http://finance.people.com.cn/" }
+      ],
+      "detailPatterns": ["/n1/\\d{4}/\\d{4}/c\\d+-\\d+\\.html"]
+    },
+    {
+      "id": "chinanews",
+      "name": "中国新闻网",
+      "vertical": "综合资讯",
+      "hosts": ["chinanews.com.cn"],
+      "seeds": [
+        { "type": "home", "url": "https://www.chinanews.com.cn/" },
+        { "type": "channel", "url": "https://www.chinanews.com.cn/china.shtml" },
+        { "type": "channel", "url": "https://www.chinanews.com.cn/finance/" }
+      ],
+      "detailPatterns": ["/(?:gn|gj|cj|sh|cul|ty|jk|txy)/\\d{4}/\\d{2}-\\d{2}/\\d+\\.shtml", "/tp/hd2011/\\d{4}/\\d{2}-\\d{2}/\\d+\\.shtml"]
+    },
+    {
+      "id": "cctv-news",
+      "name": "央视网新闻",
+      "vertical": "综合资讯",
+      "hosts": ["cctv.com"],
+      "seeds": [
+        { "type": "home", "url": "https://news.cctv.com/" },
+        { "type": "channel", "url": "https://news.cctv.com/china/" },
+        { "type": "channel", "url": "https://news.cctv.com/world/" }
+      ],
+      "detailPatterns": ["/\\d{4}/\\d{2}/\\d{2}/ARTI"]
+    },
+    {
+      "id": "thepaper",
+      "name": "澎湃新闻",
+      "vertical": "综合资讯",
+      "hosts": ["thepaper.cn"],
+      "seeds": [
+        { "type": "home", "url": "https://www.thepaper.cn/" },
+        { "type": "channel", "url": "https://www.thepaper.cn/channel_25950" },
+        { "type": "channel", "url": "https://www.thepaper.cn/list_25635" }
+      ],
+      "detailPatterns": ["/newsDetail_forward_\\d+"]
+    },
+    {
+      "id": "jiemian",
+      "name": "界面新闻",
+      "vertical": "商业资讯",
+      "hosts": ["jiemian.com"],
+      "seeds": [
+        { "type": "home", "url": "https://www.jiemian.com/" },
+        { "type": "channel", "url": "https://www.jiemian.com/lists/4.html" },
+        { "type": "channel", "url": "https://www.jiemian.com/lists/32.html" }
+      ],
+      "detailPatterns": ["/article/\\d+\\.html"]
+    },
+    {
+      "id": "yicai",
+      "name": "第一财经",
+      "vertical": "财经资讯",
+      "hosts": ["yicai.com"],
+      "seeds": [
+        { "type": "home", "url": "https://www.yicai.com/" },
+        { "type": "channel", "url": "https://www.yicai.com/news/" },
+        { "type": "feed", "url": "https://www.yicai.com/brief/" }
+      ],
+      "detailPatterns": ["/news/\\d+\\.html"]
+    },
+    {
+      "id": "nbd",
+      "name": "每日经济新闻",
+      "vertical": "财经资讯",
+      "hosts": ["nbd.com.cn"],
+      "seeds": [
+        { "type": "home", "url": "https://www.nbd.com.cn/" },
+        { "type": "channel", "url": "https://www.nbd.com.cn/columns/275" },
+        { "type": "channel", "url": "https://www.nbd.com.cn/columns/318" }
+      ],
+      "detailPatterns": ["/articles/\\d{4}-\\d{2}-\\d{2}/\\d+\\.html"]
+    },
+    {
+      "id": "36kr",
+      "name": "36氪",
+      "vertical": "科技商业",
+      "hosts": ["36kr.com"],
+      "seeds": [
+        { "type": "home", "url": "https://36kr.com/" },
+        { "type": "channel", "url": "https://36kr.com/information/web_news/" },
+        { "type": "ranking", "url": "https://36kr.com/hot-list/catalog" }
+      ],
+      "detailPatterns": ["/p/\\d+"]
+    },
+    {
+      "id": "sspai",
+      "name": "少数派",
+      "vertical": "科技商业",
+      "hosts": ["sspai.com"],
+      "seeds": [
+        { "type": "home", "url": "https://sspai.com/" },
+        { "type": "channel", "url": "https://sspai.com/series" },
+        { "type": "feed", "url": "https://sspai.com/matrix" }
+      ],
+      "detailPatterns": ["/post/\\d+"]
+    },
+    {
+      "id": "ithome",
+      "name": "IT之家",
+      "vertical": "科技资讯",
+      "hosts": ["ithome.com"],
+      "seeds": [
+        { "type": "home", "url": "https://www.ithome.com/" },
+        { "type": "channel", "url": "https://www.ithome.com/list/" },
+        { "type": "channel", "url": "https://www.ithome.com/ios/" }
+      ],
+      "detailPatterns": ["/0/\\d+/\\d+\\.htm"]
+    },
+    {
+      "id": "leiphone",
+      "name": "雷峰网",
+      "vertical": "科技资讯",
+      "hosts": ["leiphone.com"],
+      "seeds": [
+        { "type": "home", "url": "https://www.leiphone.com/" },
+        { "type": "channel", "url": "https://www.leiphone.com/category/ai" },
+        { "type": "channel", "url": "https://www.leiphone.com/category/industrynews" }
+      ],
+      "detailPatterns": ["/category/[^/]+/[^/]+\\.html", "/news/[^/]+\\.html"]
+    },
+    {
+      "id": "gov-cn",
+      "name": "中国政府网",
+      "vertical": "政务政策",
+      "hosts": ["gov.cn"],
+      "seeds": [
+        { "type": "home", "url": "https://www.gov.cn/" },
+        { "type": "channel", "url": "https://www.gov.cn/zhengce/" },
+        { "type": "channel", "url": "https://www.gov.cn/xinwen/" }
+      ],
+      "detailPatterns": ["/zhengce/(?:content|jiedu)/\\d{4}-\\d{2}/\\d{2}/content_\\d+\\.htm", "/yaowen/liebiao/\\d{4}\\d{2}/content_\\d+\\.htm"]
+    },
+    {
+      "id": "cls",
+      "name": "财联社",
+      "vertical": "财经资讯",
+      "hosts": ["cls.cn"],
+      "seeds": [
+        { "type": "home", "url": "https://www.cls.cn/" },
+        { "type": "feed", "url": "https://www.cls.cn/telegraph" },
+        { "type": "channel", "url": "https://www.cls.cn/depth" }
+      ],
+      "detailPatterns": ["/detail/\\d+"]
+    },
+    {
+      "id": "stcn",
+      "name": "证券时报",
+      "vertical": "财经资讯",
+      "hosts": ["stcn.com"],
+      "seeds": [
+        { "type": "home", "url": "https://www.stcn.com/" },
+        { "type": "channel", "url": "https://www.stcn.com/article/list/kx.html" },
+        { "type": "channel", "url": "https://www.stcn.com/article/list/yw.html" }
+      ],
+      "detailPatterns": ["/article/detail/\\d+\\.html"]
+    },
+    {
+      "id": "cnstock",
+      "name": "上海证券报",
+      "vertical": "财经资讯",
+      "hosts": ["cnstock.com"],
+      "seeds": [
+        { "type": "home", "url": "https://www.cnstock.com/" },
+        { "type": "channel", "url": "https://www.cnstock.com/commonDetail/186?name=ggjd" },
+        { "type": "channel", "url": "https://www.cnstock.com/commonDetail/187?name=gsxw" }
+      ],
+      "detailPatterns": ["/commonDetail/\\d+"]
+    },
+    {
+      "id": "sina-news",
+      "name": "新浪新闻",
+      "vertical": "门户资讯",
+      "hosts": ["sina.com.cn"],
+      "seeds": [
+        { "type": "home", "url": "https://news.sina.com.cn/" },
+        { "type": "channel", "url": "https://finance.sina.com.cn/" },
+        { "type": "channel", "url": "https://ent.sina.com.cn/" }
+      ],
+      "detailPatterns": ["/doc-[a-z0-9]+\\.shtml"]
+    },
+    {
+      "id": "qq-news",
+      "name": "腾讯新闻",
+      "vertical": "门户资讯",
+      "hosts": ["qq.com"],
+      "seeds": [
+        { "type": "home", "url": "https://news.qq.com/" },
+        { "type": "channel", "url": "https://new.qq.com/ch/finance/" },
+        { "type": "channel", "url": "https://new.qq.com/ch/ent/" }
+      ],
+      "detailPatterns": ["/rain/a/\\d+"]
+    },
+    {
+      "id": "netease-news",
+      "name": "网易新闻",
+      "vertical": "门户资讯",
+      "hosts": ["163.com"],
+      "seeds": [
+        { "type": "home", "url": "https://news.163.com/" },
+        { "type": "channel", "url": "https://money.163.com/" },
+        { "type": "channel", "url": "https://ent.163.com/" }
+      ],
+      "detailPatterns": ["/article/[A-Z0-9]+\\.html"]
+    },
+    {
+      "id": "sohu-news",
+      "name": "搜狐",
+      "vertical": "门户资讯",
+      "hosts": ["sohu.com"],
+      "seeds": [
+        { "type": "home", "url": "https://www.sohu.com/" },
+        { "type": "channel", "url": "https://news.sohu.com/" },
+        { "type": "channel", "url": "https://business.sohu.com/" }
+      ],
+      "detailPatterns": ["/a/\\d+_\\d+"]
+    },
+    {
+      "id": "ifeng-news",
+      "name": "凤凰网",
+      "vertical": "门户资讯",
+      "hosts": ["ifeng.com"],
+      "seeds": [
+        { "type": "home", "url": "https://www.ifeng.com/" },
+        { "type": "channel", "url": "https://news.ifeng.com/" },
+        { "type": "channel", "url": "https://ent.ifeng.com/" }
+      ],
+      "detailPatterns": ["/c/[A-Za-z0-9_-]+"]
+    },
+    {
+      "id": "guancha",
+      "name": "观察者网",
+      "vertical": "综合资讯",
+      "hosts": ["guancha.cn"],
+      "seeds": [
+        { "type": "home", "url": "https://www.guancha.cn/" },
+        { "type": "channel", "url": "https://www.guancha.cn/internation" },
+        { "type": "channel", "url": "https://www.guancha.cn/economy" }
+      ],
+      "detailPatterns": ["/[A-Za-z_-]+/\\d{4}_\\d{2}_\\d{2}_\\d+\\.shtml"]
+    },
+    {
+      "id": "m1905",
+      "name": "1905电影网",
+      "vertical": "影视娱乐",
+      "hosts": ["1905.com"],
+      "seeds": [
+        { "type": "home", "url": "https://www.1905.com/" },
+        { "type": "channel", "url": "https://www.1905.com/news/" },
+        { "type": "catalog", "url": "https://www.1905.com/mdb/film/" }
+      ],
+      "detailPatterns": ["/news/\\d{4}/\\d{2}/\\d{2}/\\d+\\.shtml", "/mdb/film/\\d+"]
+    },
+    {
+      "id": "mtime",
+      "name": "时光网",
+      "vertical": "影视娱乐",
+      "hosts": ["mtime.com"],
+      "seeds": [
+        { "type": "home", "url": "http://www.mtime.com/" },
+        { "type": "channel", "url": "http://news.mtime.com/" },
+        { "type": "catalog", "url": "http://movie.mtime.com/" }
+      ],
+      "detailPatterns": ["/article/\\d+", "/review/\\d+", "/video/\\d+"]
+    },
+    {
+      "id": "douban-movie",
+      "name": "豆瓣电影",
+      "vertical": "影视娱乐",
+      "hosts": ["douban.com"],
+      "seeds": [
+        { "type": "home", "url": "https://movie.douban.com/" },
+        { "type": "ranking", "url": "https://movie.douban.com/chart" },
+        { "type": "catalog", "url": "https://movie.douban.com/tag/热门" }
+      ],
+      "detailPatterns": ["/subject/\\d+/"]
+    }
+  ]
+}

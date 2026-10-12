@@ -1,0 +1,12 @@
+{
+  "provider-codex.signInWithYourChatgptAccountToUseCodex": "使用 ChatGPT 帳號登入，即可使用 Codex 模型。",
+  "provider-codex.openaiCodexModelsApiReturnedAnEmptyModelList": "OpenAI Codex 模型 API 傳回空白模型清單",
+  "provider-codex.theLoginSessionExpiredStartCodexLoginAgain": "登入階段已到期，請重新登入 Codex。",
+  "provider-codex.theCodexLoginCodeExpiredStartLoginAgain": "Codex 登入碼已到期，請重新開始。",
+  "provider-codex.signInToOpenaiCodexInSettingsFirst": "請先在設定中登入 OpenAI Codex。",
+  "provider-codex.openaiCodexLoginIsMissingAnAccessTokenSign": "未收到 OpenAI Codex 的存取權杖，請重新登入。",
+  "provider-codex.openaiCodexLoginExpiredOrLacksPermissionSignIn": "OpenAI Codex 登入階段已到期或缺少必要權限（{status}）。請重新登入。{detail}",
+  "provider-codex.couldNotReadTheChatgptAccountIdFromThe": "無法從 OpenAI Codex 權杖讀取 ChatGPT 帳號 ID",
+  "provider-codex.loginCanceledStartAgain": "已取消登入，請重新開始。",
+  "provider-codex.allProviders": "所有服務商"
+}

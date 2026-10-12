@@ -1,0 +1,946 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Act on screen structural edge cases</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #eef1f5;
+      color: #17191c;
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+    }
+
+    body { padding: 18px; }
+
+    main {
+      width: min(940px, calc(100vw - 36px));
+      margin: 0 auto;
+    }
+
+    section {
+      margin: 0 0 22px;
+      padding: 18px;
+      border: 1px solid #d8dde5;
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 4px 18px rgb(20 24 31 / 6%);
+    }
+
+    h1,
+    h2 {
+      margin: 0 0 14px;
+    }
+
+    h1 { font-size: 20px; }
+    h2 { font-size: 16px; }
+
+    button,
+    input,
+    textarea,
+    [contenteditable],
+    .visual-target {
+      min-height: 44px;
+      border: 1px solid #cbd1db;
+      border-radius: 9px;
+      background: #f8f9fb;
+      color: inherit;
+      font: inherit;
+    }
+
+    button { padding: 0 16px; }
+
+    input,
+    textarea,
+    [contenteditable] {
+      width: 100%;
+      padding: 10px 12px;
+    }
+
+    .geometry-grid,
+    .editor-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .cell {
+      min-width: 0;
+      min-height: 140px;
+      padding: 14px;
+      overflow: hidden;
+      border: 1px dashed #d5dae2;
+      border-radius: 11px;
+      background: #fbfcfd;
+    }
+
+    .cell > strong {
+      display: block;
+      margin-bottom: 12px;
+      color: #676f7a;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    #transform-stage {
+      position: relative;
+      height: 82px;
+    }
+
+    #transformed-target {
+      position: absolute;
+      left: 44px;
+      top: 14px;
+      width: 180px;
+      transform: translate(38px, 7px) rotate(-4deg) scale(1.08);
+      transform-origin: center;
+      background: #e8eef8;
+    }
+
+    #svg-target { cursor: pointer; }
+
+    #canvas-target {
+      display: block;
+      width: 320px;
+      max-width: 100%;
+      height: 128px;
+      border: 1px solid #cbd1db;
+      border-radius: 9px;
+      background: #f7fafc;
+    }
+
+    #overlay-stage {
+      position: relative;
+      width: 100%;
+      height: 82px;
+    }
+
+    #underlay-target,
+    #overlay-target {
+      position: absolute;
+      inset: 12px 24px;
+      display: grid;
+      place-items: center;
+    }
+
+    #overlay-target {
+      z-index: 2;
+      border: 1px solid rgb(182 120 40 / 55%);
+      border-radius: 9px;
+      background: rgb(255 242 214 / 88%);
+      cursor: pointer;
+    }
+
+    #mouse-target {
+      display: grid;
+      min-height: 82px;
+      place-items: center;
+      user-select: none;
+    }
+
+    #context-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    screen-action-probe,
+    closed-screen-probe,
+    #opaque-frame {
+      display: block;
+      width: 100%;
+      min-height: 150px;
+      border: 1px solid #cbd1db;
+      border-radius: 10px;
+      background: #fbfcfd;
+    }
+
+    #opaque-frame { height: 180px; }
+
+    #nested-scroll {
+      position: relative;
+      height: 190px;
+      overflow: auto;
+      overscroll-behavior: contain;
+      border: 1px solid #cbd1db;
+      border-radius: 10px;
+      background: #fafbfc;
+    }
+
+    #nested-sticky {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      display: grid;
+      min-height: 46px;
+      place-items: center;
+      border-bottom: 1px solid #d8dde5;
+      background: rgb(255 255 255 / 94%);
+    }
+
+    #nested-spacer {
+      height: 360px;
+      background: linear-gradient(#f7f8fa, #eef2f6);
+    }
+
+    #nested-target {
+      display: block;
+      width: calc(100% - 28px);
+      margin: 14px;
+    }
+
+    #range-target { width: 100%; }
+
+    #pointer-stage {
+      position: relative;
+      height: 82px;
+      border-radius: 9px;
+      background: linear-gradient(90deg, #eef3f8, #fafbfc);
+    }
+
+    #pointer-capture-target,
+    #pointer-capture-end {
+      position: absolute;
+      top: 16px;
+      display: grid;
+      width: 74px;
+      height: 50px;
+      place-items: center;
+      border-radius: 9px;
+      user-select: none;
+    }
+
+    #pointer-capture-target {
+      left: 14px;
+      background: #dce8f5;
+      touch-action: none;
+    }
+
+    #pointer-capture-end {
+      right: 14px;
+      border: 1px dashed #aeb8c7;
+      color: #6c7480;
+    }
+
+    .editor-grid label {
+      display: grid;
+      gap: 6px;
+      color: #676f7a;
+      font-size: 12px;
+    }
+
+    .editor-grid label > :last-child {
+      color: #17191c;
+      font-size: 15px;
+    }
+
+    select {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid #cbd1db;
+      border-radius: 9px;
+      padding: 0 10px;
+      background: #f8f9fb;
+      font: inherit;
+    }
+
+    #tab-flow {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    #layout-stage {
+      position: relative;
+      height: 100px;
+      overflow: hidden;
+      border: 1px dashed #d5dae2;
+      border-radius: 10px;
+      background: #fafbfc;
+    }
+
+    #animated-stage {
+      position: relative;
+      height: 86px;
+      margin-top: 14px;
+      overflow: hidden;
+      border: 1px dashed #d5dae2;
+      border-radius: 10px;
+      background: #fafbfc;
+    }
+
+    #animated-target {
+      position: absolute;
+      left: 28px;
+      top: 20px;
+      width: 150px;
+      transition: left 220ms ease-out;
+    }
+
+    #animated-target[data-moved="true"] { left: calc(100% - 178px); }
+
+    #dialog-target {
+      width: min(440px, calc(100vw - 40px));
+      border: 1px solid #cbd1db;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 18px 60px rgb(20 24 31 / 22%);
+    }
+
+    #dialog-target::backdrop { background: rgb(20 24 31 / 35%); }
+
+    #dialog-target form {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    #form-target {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+    }
+
+    #form-result {
+      grid-column: 1 / -1;
+      min-height: 40px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: #f3f5f8;
+      color: #646c78;
+    }
+
+    #common-controls {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    #common-controls > * {
+      min-width: 0;
+    }
+
+    .check-row,
+    .radio-row {
+      display: flex;
+      min-height: 44px;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border: 1px solid #d8dde5;
+      border-radius: 9px;
+      background: #fafbfc;
+    }
+
+    .check-row input,
+    .radio-row input {
+      width: 18px;
+      min-height: 18px;
+      margin: 0;
+    }
+
+    #details-target {
+      padding: 10px 12px;
+      border: 1px solid #d8dde5;
+      border-radius: 9px;
+      background: #fafbfc;
+    }
+
+    #details-target summary { cursor: pointer; }
+
+    #clipboard-source,
+    #clipboard-target {
+      min-height: 54px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      line-height: 30px;
+      white-space: pre;
+    }
+
+    #copy-fragment {
+      padding: 2px 0;
+      background: #e5edf8;
+    }
+
+    #clipboard-target { grid-column: 1 / -1; }
+
+    #moving-target {
+      position: absolute;
+      left: 38px;
+      top: 24px;
+      width: 150px;
+      transition: none;
+    }
+
+    #moving-target[data-moved="true"] { left: calc(100% - 188px); }
+
+    #layout-sentinel {
+      position: absolute;
+      left: 38px;
+      top: 24px;
+      width: 150px;
+      height: 44px;
+      pointer-events: none;
+      border: 1px dashed #b6bcc7;
+      border-radius: 9px;
+      color: transparent;
+    }
+
+    #edge-target {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      z-index: 20;
+      width: 22px;
+      height: 22px;
+      min-height: 0;
+      padding: 0;
+      border-radius: 0;
+      opacity: .75;
+    }
+
+    #state-output {
+      position: fixed;
+      right: 10px;
+      top: 10px;
+      z-index: 30;
+      max-width: 280px;
+      max-height: 80px;
+      margin: 0;
+      overflow: hidden;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: rgb(20 24 31 / 82%);
+      color: #fff;
+      font: 11px/1.35 ui-monospace, SFMono-Regular, Menlo, monospace;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section id="geometry-section">
+      <h1>Geometry and hit testing</h1>
+      <div class="geometry-grid">
+        <div class="cell">
+          <strong>Nested CSS transform</strong>
+          <div id="transform-stage">
+            <button id="transformed-target" type="button">Transformed target</button>
+          </div>
+        </div>
+        <div class="cell">
+          <strong>SVG graphics</strong>
+          <svg id="svg-stage" viewBox="0 0 320 96" width="100%" height="96" aria-label="SVG target">
+            <g transform="translate(34 8) rotate(5 126 38)">
+              <rect x="0" y="0" width="252" height="76" rx="14" fill="#edf2f8" stroke="#aeb8c7"></rect>
+              <circle id="svg-target" cx="126" cy="38" r="26" fill="#8ca8cc"></circle>
+            </g>
+          </svg>
+        </div>
+        <div class="cell">
+          <strong>Canvas with CSS/backing-store scaling</strong>
+          <canvas id="canvas-target" width="640" height="256"></canvas>
+        </div>
+        <div class="cell">
+          <strong>Overlapping hit targets</strong>
+          <div id="overlay-stage">
+            <button id="underlay-target" type="button">Covered button</button>
+            <div id="overlay-target" tabindex="0">Visible overlay</div>
+          </div>
+        </div>
+        <div class="cell">
+          <strong>Mouse buttons</strong>
+          <div id="mouse-target" class="visual-target" tabindex="0">Right / middle / left</div>
+        </div>
+        <div class="cell">
+          <strong>Native range drag</strong>
+          <input id="range-target" type="range" min="0" max="100" value="10">
+        </div>
+        <div class="cell">
+          <strong>Pointer capture drag</strong>
+          <div id="pointer-stage">
+            <div id="pointer-capture-target">Capture</div>
+            <div id="pointer-capture-end">End</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="context-section">
+      <h2>Browsing contexts</h2>
+      <div id="context-grid">
+        <screen-action-probe id="shadow-host"></screen-action-probe>
+        <closed-screen-probe id="closed-shadow-host"></closed-screen-probe>
+        <iframe id="opaque-frame" title="Sandboxed input frame" sandbox="allow-scripts"></iframe>
+      </div>
+    </section>
+
+    <section id="scroll-section">
+      <h2>Nested scrolling</h2>
+      <div id="nested-scroll">
+        <div id="nested-sticky">Sticky nested header</div>
+        <div id="nested-spacer"></div>
+        <button id="nested-target" type="button">Target after nested scroll</button>
+      </div>
+    </section>
+
+    <section id="editors-section">
+      <h2>Editing surfaces</h2>
+      <div class="editor-grid">
+        <label>Textarea<textarea id="textarea-target">旧行一\n旧行二</textarea></label>
+        <label>Contenteditable<div id="editable-target" contenteditable="true"><b>旧富文本</b> 内容</div></label>
+        <label>Controlled input<input id="controlled-target" value="seed"></label>
+        <label>Readonly input<input id="readonly-target" value="不可改" readonly></label>
+        <label>Disabled input<input id="disabled-target" value="已禁用" disabled></label>
+        <label>Native select<select id="select-target"><option value="alpha">Alpha</option><option value="beta">Beta</option><option value="gamma">Gamma</option></select></label>
+      </div>
+      <div id="tab-flow">
+        <input id="tab-first" aria-label="First tab stop" value="first">
+        <input id="tab-second" aria-label="Second tab stop" value="second">
+        <button id="tab-third" type="button">Third tab stop</button>
+      </div>
+    </section>
+
+    <section id="layout-section">
+      <h2>Content movement without viewport movement</h2>
+      <div id="layout-stage">
+        <div id="layout-sentinel">Original position</div>
+        <button id="moving-target" type="button" data-moved="false">Move after click</button>
+      </div>
+      <div id="animated-stage">
+        <button id="animated-target" type="button" data-moved="false">Animate after click</button>
+      </div>
+    </section>
+
+    <section id="form-section">
+      <h2>Native validation and asynchronous form result</h2>
+      <form id="form-target">
+        <input id="form-input" name="query" aria-label="Required form value" required>
+        <button id="form-submit-target" type="submit">Submit</button>
+        <div id="form-result">Waiting</div>
+      </form>
+    </section>
+
+    <section id="controls-section">
+      <h2>Common controls and clipboard flow</h2>
+      <div id="common-controls">
+        <label id="checkbox-label" class="check-row"><input id="checkbox-target" type="checkbox"> Checkbox</label>
+        <div class="radio-row" role="group" aria-label="Radio choices">
+          <label><input id="radio-a" type="radio" name="choice" value="a" checked> A</label>
+          <label><input id="radio-b" type="radio" name="choice" value="b"> B</label>
+        </div>
+        <details id="details-target"><summary id="details-summary">Details</summary><p>Expanded content</p></details>
+        <input id="number-target" type="number" value="10" min="0" max="20" step="1" aria-label="Number stepper">
+        <div id="clipboard-source" contenteditable="true">alpha <span id="copy-fragment">复制片段</span> omega</div>
+        <textarea id="clipboard-target" aria-label="Clipboard paste target"></textarea>
+      </div>
+    </section>
+
+    <section id="modal-section">
+      <h2>Top-layer dialog flow</h2>
+      <button id="open-dialog-target" type="button">Open dialog</button>
+      <dialog id="dialog-target">
+        <form method="dialog">
+          <strong>Native modal dialog</strong>
+          <button id="confirm-dialog-target" value="confirmed">Confirm</button>
+        </form>
+      </dialog>
+    </section>
+  </main>
+
+  <button id="edge-target" type="button" aria-label="Bottom-right edge"></button>
+  <pre id="state-output">ready</pre>
+
+  <script>
+    (() => {
+      const state = {
+        transformedClicks: 0,
+        svgClicks: 0,
+        canvasClicks: 0,
+        canvasLastPoint: null,
+        overlayClicks: 0,
+        underlayClicks: 0,
+        mouseEvents: [],
+        contextMenus: 0,
+        auxClicks: 0,
+        rangeInputs: 0,
+        pointerDown: 0,
+        pointerMoves: 0,
+        pointerUp: 0,
+        pointerCaptured: false,
+        shadowClicks: 0,
+        shadowInputs: 0,
+        closedShadowClicks: 0,
+        frameReady: false,
+        frameMessages: [],
+        nestedWheelEvents: 0,
+        nestedClicks: 0,
+        textareaInputs: 0,
+        editableInputs: 0,
+        controlledInputs: 0,
+        selectChanges: 0,
+        tabThirdClicks: 0,
+        movingClicks: 0,
+        layoutMisses: 0,
+        animatedClicks: 0,
+        animatedTransitions: 0,
+        dialogOpens: 0,
+        dialogConfirms: 0,
+        dialogCancels: 0,
+        formInvalid: 0,
+        formSubmits: 0,
+        formResultReady: false,
+        checkboxChanges: 0,
+        radioChanges: 0,
+        detailsToggles: 0,
+        numberInputs: 0,
+        copyEvents: 0,
+        pasteEvents: 0,
+        copiedText: "",
+        pastedText: "",
+        edgeClicks: 0,
+      };
+
+      const output = document.querySelector("#state-output");
+      const render = () => {
+        output.textContent = JSON.stringify({
+          transformed: state.transformedClicks,
+          canvas: state.canvasLastPoint,
+          shadow: state.shadowClicks,
+          frame: state.frameMessages.at(-1),
+          nested: document.querySelector("#nested-scroll").scrollTop,
+          moving: state.movingClicks,
+        });
+      };
+
+      document.querySelector("#transformed-target").addEventListener("click", () => {
+        state.transformedClicks += 1;
+        render();
+      });
+      document.querySelector("#svg-target").addEventListener("click", () => {
+        state.svgClicks += 1;
+        render();
+      });
+
+      const canvas = document.querySelector("#canvas-target");
+      const canvasContext = canvas.getContext("2d");
+      canvasContext.fillStyle = "#f7fafc";
+      canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+      canvasContext.fillStyle = "#7b9fc9";
+      canvasContext.beginPath();
+      canvasContext.arc(canvas.width * .72, canvas.height * .42, 42, 0, Math.PI * 2);
+      canvasContext.fill();
+      canvas.addEventListener("click", event => {
+        const rect = canvas.getBoundingClientRect();
+        state.canvasClicks += 1;
+        state.canvasLastPoint = {
+          ratioX: Number(((event.clientX - rect.left) / rect.width).toFixed(3)),
+          ratioY: Number(((event.clientY - rect.top) / rect.height).toFixed(3)),
+          backingX: Math.round((event.clientX - rect.left) / rect.width * canvas.width),
+          backingY: Math.round((event.clientY - rect.top) / rect.height * canvas.height),
+        };
+        render();
+      });
+
+      document.querySelector("#underlay-target").addEventListener("click", () => {
+        state.underlayClicks += 1;
+        render();
+      });
+      document.querySelector("#overlay-target").addEventListener("click", () => {
+        state.overlayClicks += 1;
+        render();
+      });
+
+      const mouseTarget = document.querySelector("#mouse-target");
+      for (const type of ["mousedown", "mouseup", "click", "contextmenu", "auxclick"]) {
+        mouseTarget.addEventListener(type, event => {
+          event.preventDefault();
+          state.mouseEvents.push({ type, button: event.button, buttons: event.buttons });
+          if (type === "contextmenu") state.contextMenus += 1;
+          if (type === "auxclick") state.auxClicks += 1;
+          render();
+        });
+      }
+
+      const range = document.querySelector("#range-target");
+      range.addEventListener("input", () => {
+        state.rangeInputs += 1;
+        render();
+      });
+
+      const pointerTarget = document.querySelector("#pointer-capture-target");
+      pointerTarget.addEventListener("pointerdown", event => {
+        pointerTarget.setPointerCapture(event.pointerId);
+        state.pointerDown += 1;
+        state.pointerCaptured = pointerTarget.hasPointerCapture(event.pointerId);
+        render();
+      });
+      pointerTarget.addEventListener("pointermove", event => {
+        if (!pointerTarget.hasPointerCapture(event.pointerId)) return;
+        state.pointerMoves += 1;
+        render();
+      });
+      pointerTarget.addEventListener("pointerup", event => {
+        state.pointerUp += 1;
+        state.pointerCaptured = pointerTarget.hasPointerCapture(event.pointerId);
+        render();
+      });
+      pointerTarget.addEventListener("lostpointercapture", () => {
+        state.pointerCaptured = false;
+        render();
+      });
+
+      class ScreenActionProbe extends HTMLElement {
+        connectedCallback() {
+          if (this.shadowRoot) return;
+          const root = this.attachShadow({ mode: "open" });
+          root.innerHTML = `
+            <style>
+              :host { padding: 14px; }
+              .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+              button, input { min-width: 0; min-height: 46px; border: 1px solid #cbd1db; border-radius: 8px; font: inherit; }
+              input { padding: 0 10px; }
+            </style>
+            <div class="row">
+              <button id="shadow-button" type="button">Shadow button</button>
+              <input id="shadow-input" value="shadow old">
+            </div>`;
+          root.querySelector("#shadow-button").addEventListener("click", () => {
+            state.shadowClicks += 1;
+            render();
+          });
+          root.querySelector("#shadow-input").addEventListener("input", () => {
+            state.shadowInputs += 1;
+            render();
+          });
+        }
+      }
+      customElements.define("screen-action-probe", ScreenActionProbe);
+
+      class ClosedScreenProbe extends HTMLElement {
+        connectedCallback() {
+          const root = this.attachShadow({ mode: "closed" });
+          root.innerHTML = `
+            <style>
+              :host { padding: 14px; }
+              button { width: 100%; min-height: 52px; border: 1px solid #cbd1db; border-radius: 8px; font: inherit; }
+            </style>
+            <button type="button">Closed shadow button</button>`;
+          root.querySelector("button").addEventListener("click", () => {
+            state.closedShadowClicks += 1;
+            render();
+          });
+        }
+      }
+      customElements.define("closed-screen-probe", ClosedScreenProbe);
+
+      const frame = document.querySelector("#opaque-frame");
+      frame.srcdoc = `<!doctype html>
+        <html><head><meta charset="utf-8"><style>
+          html,body{margin:0;font:15px sans-serif;background:#fbfcfd}
+          main{padding:18px;display:grid;gap:12px}
+          button,input{min-height:44px;border:1px solid #cbd1db;border-radius:8px;font:inherit}
+          input{padding:0 10px}
+        </style></head><body><main>
+          <button id="frame-button" type="button">Frame button</button>
+          <input id="frame-input" value="frame old">
+        </main><script>
+          const send = (type, detail = {}) => parent.postMessage({ source: "screen-action-frame", type, ...detail }, "*");
+          const button = document.querySelector("#frame-button");
+          button.addEventListener("click", () => {
+            button.dataset.clicked = "true";
+            button.textContent = "Frame clicked";
+            send("click");
+          });
+          const input = document.querySelector("#frame-input");
+          input.addEventListener("input", () => send("input", { value: input.value }));
+          send("ready");
+        <\/script></body></html>`;
+      window.addEventListener("message", event => {
+        if (event.data?.source !== "screen-action-frame") return;
+        state.frameMessages.push(JSON.parse(JSON.stringify(event.data)));
+        if (event.data.type === "ready") state.frameReady = true;
+        render();
+      });
+
+      const nested = document.querySelector("#nested-scroll");
+      nested.addEventListener("wheel", () => {
+        state.nestedWheelEvents += 1;
+        queueMicrotask(render);
+      });
+      document.querySelector("#nested-target").addEventListener("click", () => {
+        state.nestedClicks += 1;
+        render();
+      });
+
+      const textarea = document.querySelector("#textarea-target");
+      textarea.addEventListener("input", () => {
+        state.textareaInputs += 1;
+        render();
+      });
+      const editable = document.querySelector("#editable-target");
+      editable.addEventListener("input", () => {
+        state.editableInputs += 1;
+        render();
+      });
+      const controlled = document.querySelector("#controlled-target");
+      controlled.addEventListener("input", () => {
+        state.controlledInputs += 1;
+        const start = controlled.selectionStart;
+        controlled.value = controlled.value.toUpperCase();
+        controlled.setSelectionRange(start, start);
+        render();
+      });
+      const select = document.querySelector("#select-target");
+      select.addEventListener("change", () => {
+        state.selectChanges += 1;
+        render();
+      });
+      document.querySelector("#tab-third").addEventListener("click", () => {
+        state.tabThirdClicks += 1;
+        render();
+      });
+
+      const layoutStage = document.querySelector("#layout-stage");
+      const movingTarget = document.querySelector("#moving-target");
+      layoutStage.addEventListener("click", event => {
+        if (event.target === layoutStage) state.layoutMisses += 1;
+        render();
+      });
+      movingTarget.addEventListener("click", () => {
+        state.movingClicks += 1;
+        movingTarget.dataset.moved = String(movingTarget.dataset.moved !== "true");
+        render();
+      });
+      const animatedTarget = document.querySelector("#animated-target");
+      animatedTarget.addEventListener("click", () => {
+        state.animatedClicks += 1;
+        animatedTarget.dataset.moved = String(animatedTarget.dataset.moved !== "true");
+        render();
+      });
+      animatedTarget.addEventListener("transitionend", event => {
+        if (event.propertyName !== "left") return;
+        state.animatedTransitions += 1;
+        render();
+      });
+
+      const dialog = document.querySelector("#dialog-target");
+      document.querySelector("#open-dialog-target").addEventListener("click", () => {
+        state.dialogOpens += 1;
+        dialog.showModal();
+        render();
+      });
+      document.querySelector("#confirm-dialog-target").addEventListener("click", () => {
+        state.dialogConfirms += 1;
+        render();
+      });
+      dialog.addEventListener("cancel", () => {
+        state.dialogCancels += 1;
+        render();
+      });
+
+      const form = document.querySelector("#form-target");
+      const formInput = document.querySelector("#form-input");
+      const formResult = document.querySelector("#form-result");
+      formInput.addEventListener("invalid", () => {
+        state.formInvalid += 1;
+        render();
+      });
+      form.addEventListener("submit", event => {
+        event.preventDefault();
+        state.formSubmits += 1;
+        state.formResultReady = false;
+        formResult.textContent = "Submitting";
+        render();
+        setTimeout(() => {
+          state.formResultReady = true;
+          formResult.textContent = `Accepted: ${formInput.value}`;
+          render();
+        }, 160);
+      });
+
+      const checkbox = document.querySelector("#checkbox-target");
+      checkbox.addEventListener("change", () => {
+        state.checkboxChanges += 1;
+        render();
+      });
+      const radios = [...document.querySelectorAll('input[name="choice"]')];
+      radios.forEach(radio => radio.addEventListener("change", () => {
+        state.radioChanges += 1;
+        render();
+      }));
+      const details = document.querySelector("#details-target");
+      details.addEventListener("toggle", () => {
+        state.detailsToggles += 1;
+        render();
+      });
+      const numberTarget = document.querySelector("#number-target");
+      numberTarget.addEventListener("input", () => {
+        state.numberInputs += 1;
+        render();
+      });
+      const clipboardSource = document.querySelector("#clipboard-source");
+      const clipboardTarget = document.querySelector("#clipboard-target");
+      clipboardSource.addEventListener("copy", event => {
+        state.copyEvents += 1;
+        state.copiedText = event.clipboardData?.getData("text/plain") || getSelection()?.toString() || "";
+        render();
+      });
+      clipboardTarget.addEventListener("paste", event => {
+        state.pasteEvents += 1;
+        state.pastedText = event.clipboardData?.getData("text/plain") || "";
+        render();
+      });
+      document.querySelector("#edge-target").addEventListener("click", () => {
+        state.edgeClicks += 1;
+        render();
+      });
+
+      function deepActiveElement(root = document) {
+        let active = root.activeElement;
+        while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement;
+        return active;
+      }
+
+      window.__readScreenStructureState = () => ({
+        ...JSON.parse(JSON.stringify(state)),
+        rangeValue: range.value,
+        nestedScrollTop: nested.scrollTop,
+        textareaValue: textarea.value,
+        textareaSelection: [textarea.selectionStart, textarea.selectionEnd],
+        editableText: editable.innerText,
+        controlledValue: controlled.value,
+        selectValue: select.value,
+        readonlyValue: document.querySelector("#readonly-target").value,
+        disabledValue: document.querySelector("#disabled-target").value,
+        shadowInputValue: document.querySelector("#shadow-host").shadowRoot.querySelector("#shadow-input").value,
+        activeElementId: deepActiveElement()?.id || "",
+        movingTargetMoved: movingTarget.dataset.moved === "true",
+        animatedTargetMoved: animatedTarget.dataset.moved === "true",
+        dialogOpen: dialog.open,
+        formInputValue: formInput.value,
+        formResultText: formResult.textContent,
+        checkboxChecked: checkbox.checked,
+        radioValue: radios.find(radio => radio.checked)?.value || "",
+        detailsOpen: details.open,
+        numberValue: numberTarget.value,
+        clipboardSelection: getSelection()?.toString() || "",
+        clipboardTargetValue: clipboardTarget.value,
+        scrollX: window.scrollX,
+        scrollY: window.scrollY,
+      });
+      render();
+    })();
+  </script>
+</body>
+</html>

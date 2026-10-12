@@ -1,0 +1,13 @@
+{
+  "language-settings.title": "Idioma",
+  "language-settings.interfaceLanguage": "Idioma da interface",
+  "language-settings.followBrowser": "Idioma do navegador",
+  "language-settings.loading": "Carregando o idioma salvo…",
+  "language-settings.unsavedChanges": "Alterações não salvas",
+  "language-settings.saveFailed": "Não foi possível salvar o idioma. Tente novamente.",
+  "language-settings.loadFailed": "Não foi possível carregar o idioma salvo. Abra as configurações novamente para tentar de novo.",
+  "language-settings.save": "Salvar",
+  "language-settings.saved": "Salvo",
+  "language-settings.saving": "Salvando…",
+  "language-settings.advanced": "Avançado"
+}

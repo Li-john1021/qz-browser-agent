@@ -1,0 +1,5 @@
+{
+  "product-public.thisProductHasNoGitPublishingAdapterExportThe": "A publicação direta no Git não está disponível nesta versão. Exporte a habilidade e faça um commit no seu repositório.",
+  "product-public.configureModelEndpoint": "Conectar um modelo",
+  "product-public.connectingToGpt": "Conectando ao modelo…"
+}

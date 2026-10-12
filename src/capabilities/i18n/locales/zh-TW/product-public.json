@@ -1,0 +1,5 @@
+{
+  "product-public.thisProductHasNoGitPublishingAdapterExportThe": "此版本不支援直接發佈至 Git。請匯出技能，再提交到你的儲存庫。",
+  "product-public.configureModelEndpoint": "連接模型",
+  "product-public.connectingToGpt": "正在連接模型…"
+}

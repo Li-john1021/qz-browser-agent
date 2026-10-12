@@ -1,0 +1,5 @@
+{
+  "manifest.extensionName": "qz",
+  "manifest.extensionDescription": "qz est un espace de travail pour agents IA dans votre navigateur.",
+  "manifest.switchModel": "Changer rapidement de profil de modèle"
+}

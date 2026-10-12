@@ -1,0 +1,34 @@
+/* Welcome */
+.welcome {
+  padding: clamp(18px, 4vh, 34px) 20px 14px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.welcome::-webkit-scrollbar {
+  display: none;
+}
+
+.welcome-icon {
+  width: clamp(78px, 12vh, 104px);
+  height: clamp(78px, 12vh, 104px);
+  background: url("../../../icons/logo-day.png") center / contain no-repeat;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  margin-bottom: 6px;
+  image-rendering: auto;
+}
+
+@media (prefers-color-scheme: dark) {
+  .welcome-icon {
+    background-image: url("../../../icons/logo-night.png");
+  }
+}
+
+.welcome-subtitle {
+  white-space: pre-line;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 0;
+}

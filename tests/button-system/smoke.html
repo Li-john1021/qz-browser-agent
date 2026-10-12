@@ -1,0 +1,776 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Button Design System Smoke Test</title>
+  <link rel="stylesheet" href="/extension/sidepanel/sidepanel.css">
+  <style>
+    html,
+    body {
+      height: auto;
+      min-height: 100%;
+      overflow: auto;
+    }
+
+    body {
+      padding: 24px;
+      background: var(--bg-tertiary);
+    }
+
+    main {
+      width: min(100%, 1120px);
+      margin: 0 auto;
+    }
+
+    .visual-page-title {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .visual-page-title h1 {
+      font-size: 16px;
+      font-weight: 680;
+    }
+
+    #status {
+      color: var(--text-muted);
+      font: 11px/1 var(--font-mono);
+    }
+
+    .visual-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .visual-scene {
+      min-width: 0;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background: var(--bg-primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .visual-scene-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 34px;
+      padding: 0 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 620;
+    }
+
+    .visual-scene-title code {
+      color: var(--text-faint);
+      font: 9px/1 var(--font-mono);
+    }
+
+    .visual-scene-body {
+      min-height: 116px;
+      padding: 14px;
+    }
+
+    .visual-scene.wide {
+      grid-column: 1 / -1;
+    }
+
+    .visual-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .visual-copy {
+      color: var(--text-secondary);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .visual-muted {
+      color: var(--text-muted);
+      font-size: 10px;
+    }
+
+    .visual-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 52px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--bg-secondary);
+    }
+
+    .visual-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      font-weight: 650;
+    }
+
+    .visual-brand-mark {
+      width: 20px;
+      height: 20px;
+      display: grid;
+      place-items: center;
+      background: var(--text-primary);
+      color: var(--bg-primary);
+      font-size: 10px;
+    }
+
+    .visual-scene .chat-search-bar {
+      position: static;
+      width: 100%;
+      margin-bottom: 12px;
+    }
+
+    .visual-message {
+      padding: 9px 10px;
+      border-radius: var(--radius-md);
+      background: var(--user-bubble-bg);
+      color: var(--text-primary);
+      font-size: 12px;
+    }
+
+    .visual-scene .msg-actions {
+      opacity: 1;
+    }
+
+    .visual-onboarding {
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background: var(--bg-secondary);
+    }
+
+    .visual-onboarding h3 {
+      font-size: 15px;
+    }
+
+    .visual-onboarding .onboarding-link {
+      justify-self: center;
+      color: var(--text-muted);
+      border: 0;
+      background: transparent;
+      font-size: 11px;
+    }
+
+    .visual-goal-shell {
+      display: grid;
+      gap: 10px;
+    }
+
+    .visual-goal-shell .goal-strip {
+      margin: 0;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 7px;
+    }
+
+    .visual-run-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .visual-run-row .abort-btn {
+      margin-left: auto;
+    }
+
+    .visual-scene .waiting-card {
+      max-width: none;
+    }
+
+    .visual-tool-card {
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: color-mix(in srgb, var(--bg-secondary) 72%, var(--bg-primary));
+    }
+
+    .visual-tool-card .tool-family-tabs {
+      margin-bottom: 12px;
+    }
+
+    .visual-tool-result {
+      min-height: 54px;
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      background: var(--block-fill);
+      color: var(--text-secondary);
+      font: 11px/1.5 var(--font-mono);
+    }
+
+    .visual-scene .sessions-list {
+      overflow: visible;
+      padding: 0;
+    }
+
+    .visual-scene .session-card {
+      padding: 8px;
+      background: var(--accent-subtle);
+    }
+
+    .visual-scene .session-action-btn {
+      opacity: 1;
+    }
+
+    .visual-scene .data-table-nav,
+    .visual-scene .data-table-controls {
+      padding: 8px 0;
+      background: transparent;
+    }
+
+    .visual-scene .data-table-nav {
+      border-top: 1px solid var(--border);
+    }
+
+    .visual-data-table-name {
+      height: 30px;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font: 11px/1 var(--font-mono);
+    }
+
+    .visual-filter {
+      height: 30px;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .visual-scene .data-grid-action-strip {
+      justify-self: end;
+    }
+
+    .visual-settings {
+      overflow: hidden;
+      border: 1px solid var(--modal-card-border);
+      border-radius: var(--radius-lg);
+      background: var(--modal-card-surface);
+    }
+
+    .visual-settings-content {
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+    }
+
+    .visual-settings-content h3 {
+      font-size: 14px;
+    }
+
+    .visual-field {
+      height: 34px;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+
+    .visual-scene .settings-save-state {
+      margin: 0;
+      border-radius: 0;
+    }
+
+    .visual-token-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .visual-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .visual-field-stack {
+      display: grid;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .visual-choice-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+      min-height: 34px;
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+
+    .visual-choice-row label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .visual-form-menu {
+      position: static;
+      max-height: none;
+    }
+
+    .visual-command-bar,
+    .visual-resource-row,
+    .visual-automation-row,
+    .visual-lightbox-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--bg-secondary);
+    }
+
+    .visual-command-bar > span,
+    .visual-resource-main,
+    .visual-automation-main {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .visual-resource-main,
+    .visual-automation-main {
+      display: grid;
+      gap: 3px;
+    }
+
+    .visual-resource-main b,
+    .visual-automation-main b {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 12px;
+    }
+
+    .visual-filter-popover {
+      display: grid;
+      gap: 10px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--bg-secondary);
+      box-shadow: var(--shadow-md);
+    }
+
+    .visual-filter-head,
+    .visual-filter-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .visual-filter-head b {
+      flex: 1;
+      font-size: 12px;
+    }
+
+    .visual-filter-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      color: var(--text-secondary);
+      font-size: 11px;
+    }
+
+    .visual-filter-options span {
+      padding: 4px 7px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+
+    .visual-lightbox-preview {
+      display: grid;
+      place-items: center;
+      min-height: 86px;
+      border-radius: var(--radius-md);
+      background: var(--block-fill);
+      color: var(--text-muted);
+      font: 11px/1.5 var(--font-mono);
+    }
+
+    .visual-lightbox-bar {
+      justify-content: space-between;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 680px) {
+      body {
+        padding: 12px;
+      }
+
+      .visual-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .visual-scene.wide {
+        grid-column: auto;
+      }
+
+      .visual-scene-body {
+        padding: 12px;
+      }
+
+      .visual-scene .data-table-nav,
+      .visual-scene .data-table-controls {
+        grid-template-columns: 1fr;
+      }
+
+      .visual-scene .data-grid-action-strip {
+        justify-self: stretch;
+      }
+
+      .visual-form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="visual-page-title">
+      <h1>轻舟 Button System</h1>
+      <span id="status">running</span>
+    </div>
+    <div class="visual-grid">
+      <article class="visual-scene wide" data-scene="header">
+        <div class="visual-scene-title"><span>顶部工具栏</span><code>icon-btn</code></div>
+        <div class="visual-scene-body">
+          <div class="visual-header">
+            <div class="visual-brand"><span class="visual-brand-mark">舟</span><span>轻舟</span></div>
+            <div class="header-actions qz:flex qz:flex-none qz:min-w-max qz:justify-end">
+              <button class="qz-icon-btn qz-icon-btn--md icon-btn" aria-label="新对话"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none"/></svg></button>
+              <button class="qz-icon-btn qz-icon-btn--md icon-btn notification-btn has-notifications" aria-label="通知"><svg viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 1 12 0c0 7 3 7 3 7H3s3 0 3-7m4 11h4" fill="none"/></svg></button>
+              <button class="qz-icon-btn qz-icon-btn--md icon-btn" aria-label="设置"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="none"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3" fill="none"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="visual-scene" data-scene="chat">
+        <div class="visual-scene-title"><span>对话搜索与消息操作</span><code>chat-search-btn / msg-action-btn</code></div>
+        <div class="visual-scene-body">
+          <div class="chat-search-bar qz:absolute qz:right-3 qz:z-60 qz:flex qz:min-h-9.5 qz:w-[min(360px,calc(100%-24px))] qz:items-center qz:gap-1 qz:p-1.25">
+            <input class="qz-field qz-field--bare chat-search-input qz:h-7 qz:min-w-0 qz:flex-auto qz:px-1.75 qz:py-0" type="search" value="会议室" aria-label="搜索对话">
+            <span class="chat-search-count qz:min-w-10 qz:flex-none qz:text-center qz:select-none">2/5</span>
+            <button class="qz-icon-btn qz-icon-btn--sm chat-search-btn" aria-label="上一个">‹</button>
+            <button class="qz-icon-btn qz-icon-btn--sm chat-search-btn" aria-label="下一个">›</button>
+            <button class="qz-icon-btn qz-icon-btn--sm chat-search-btn" aria-label="关闭">×</button>
+          </div>
+          <div class="visual-message">已整理会议室预订信息，并保留原始链接。</div>
+          <div class="msg-actions">
+            <button class="qz-icon-btn qz-icon-btn--xs msg-action-btn" aria-label="复制"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="11" height="11" rx="2" fill="none"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" fill="none"/></svg></button>
+            <button class="qz-icon-btn qz-icon-btn--xs msg-action-btn" aria-label="导出"><svg viewBox="0 0 24 24"><path d="M12 3v12m0-12 4 4m-4-4-4 4M5 14v5h14v-5" fill="none"/></svg></button>
+          </div>
+        </div>
+      </article>
+
+      <article class="visual-scene" data-scene="onboarding">
+        <div class="visual-scene-title"><span>首次配置</span><code>onboarding-primary-btn</code></div>
+        <div class="visual-scene-body">
+          <div class="visual-onboarding">
+            <h3>连接你的模型</h3>
+            <p class="visual-copy">完成配置后即可开始浏览、整理和处理数据。</p>
+            <button class="qz-btn qz-btn--primary qz-btn--lg onboarding-primary-btn qz:w-full">连接模型服务</button>
+            <button class="qz-btn qz-btn--ghost qz-btn--inline onboarding-link">或配置自定义接口</button>
+          </div>
+        </div>
+      </article>
+
+      <article class="visual-scene" data-scene="goal">
+        <div class="visual-scene-title"><span>目标与运行控制</span><code>goal-clear-btn / abort-btn</code></div>
+        <div class="visual-scene-body visual-goal-shell">
+          <div class="goal-strip">
+            <div class="goal-pill qz:flex qz:min-h-7.25 qz:items-center qz:gap-1.75 qz:py-0.75 qz:pr-0.75 qz:pl-2">
+              <svg class="goal-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>
+              <div class="goal-body qz:grid qz:min-w-0 qz:flex-auto qz:gap-0.25">
+                <div class="goal-title-row qz:flex qz:min-w-0 qz:items-center qz:gap-1.5"><span class="goal-label qz:flex-none">进行中的目标</span><span class="goal-title qz:min-w-0 qz:truncate">收集 30 条有效记录</span></div>
+                <div class="goal-meta qz:min-w-0 qz:truncate">已完成 18 条 · 下一步继续翻页</div>
+              </div>
+              <button class="qz-icon-btn qz-icon-btn--xs qz-icon-btn--danger goal-clear-btn" aria-label="删除目标">×</button>
+            </div>
+          </div>
+          <div class="visual-run-row"><span>思考中… 1m 24s</span><button class="qz-icon-btn qz-icon-btn--xs abort-btn qz:ml-auto" aria-label="停止">■</button></div>
+        </div>
+      </article>
+
+      <article class="visual-scene" data-scene="waiting">
+        <div class="visual-scene-title"><span>等待用户确认</span><code>waiting-continue-btn / waiting-cancel-btn</code></div>
+        <div class="visual-scene-body">
+          <div class="waiting-card qz:relative qz:overflow-hidden qz:px-3 qz:pt-2.5 qz:pb-3">
+            <div class="waiting-pulse"></div>
+            <div class="waiting-body qz:mb-2.5">
+              <div class="waiting-title qz:mb-1">确认预订时长</div>
+              <div class="waiting-message qz:mb-1">会议室已选定，请确认结束时间。</div>
+            </div>
+            <div class="waiting-actions qz:flex qz:gap-1.5">
+              <button class="qz-btn qz-btn--primary qz-btn--sm waiting-continue-btn qz:flex-1">继续预订</button>
+              <button class="qz-btn qz-btn--ghost qz-btn--sm waiting-cancel-btn">取消</button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="visual-scene" data-scene="timeline">
+        <div class="visual-scene-title"><span>工具组翻页</span><code>timeline-pager-btn</code></div>
+        <div class="visual-scene-body">
+          <div class="visual-tool-card">
+            <div class="tool-family-tabs">
+              <button class="tool-family-row active"><span class="mini-dot"></span><span>处理数据</span><b>12</b></button>
+              <button class="tool-family-row"><span class="mini-dot"></span><span>操作页面</span><b>4</b></button>
+            </div>
+            <div class="tool-timeline-slot-head">
+              <div class="tool-timeline-slot-title"><b>执行脚本</b><span>page</span></div>
+              <div class="timeline-pager"><button id="context-pager" class="qz-icon-btn qz-icon-btn--secondary qz-icon-btn--xs timeline-pager-btn">‹</button><span>4/12</span><button class="qz-icon-btn qz-icon-btn--secondary qz-icon-btn--xs timeline-pager-btn">›</button></div>
+            </div>
+            <div class="visual-tool-result">result { rows: 30, status: "done" }</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="visual-scene" data-scene="sessions">
+        <div class="visual-scene-title"><span>任务列表操作</span><code>session-action-btn</code></div>
+        <div class="visual-scene-body">
+          <div class="sessions-list qz:flex-1 qz:overflow-y-auto">
+            <div class="session-card active">
+              <span class="session-tree-leaf"></span>
+              <div class="session-card-body">
+                <div class="session-card-title-row">
+                  <span class="session-card-title">杭州周末活动采集</span>
+                  <span class="session-artifact-chip">产物 2</span>
+                  <span class="session-card-actions">
+                    <button class="qz-icon-btn qz-icon-btn--xs session-action-btn" aria-label="导出"><svg viewBox="0 0 24 24"><path d="M12 3v12m0-12 4 4m-4-4-4 4M5 14v5h14v-5" fill="none" stroke="currentColor"/></svg></button>
+                    <button class="qz-icon-btn qz-icon-btn--xs qz-icon-btn--danger session-action-btn session-delete-btn" aria-label="删除"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m-9 0 1 13h10l1-13" fill="none" stroke="currentColor"/></svg></button>
+                  </span>
+                </div>
+                <div class="session-card-meta"><span class="session-status session-status-running">运行中</span> · 18/30 条</div>
+                <div class="session-card-subline">最近：正在读取下一页并去重</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="visual-scene wide" data-scene="data">
+        <div class="visual-scene-title"><span>数据表工具栏</span><code>qz-btn modifiers</code></div>
+        <div class="visual-scene-body">
+          <div class="data-table-nav qz:flex-none qz:grid qz:items-center">
+            <div class="visual-data-table-name">hangzhou_weekend_outings</div>
+            <div class="data-toolbar qz:flex qz:justify-end qz:gap-1.5 qz:min-w-0">
+              <button class="qz-btn qz-btn--secondary">创建新表</button>
+              <button id="context-secondary" class="qz-btn qz-btn--secondary">导出 Excel</button>
+              <button class="qz-btn qz-btn--danger">删除</button>
+            </div>
+          </div>
+          <div class="data-table-controls">
+            <div class="visual-filter">搜索当前表…</div>
+            <div class="data-grid-action-strip qz:items-center">
+              <button class="qz-btn qz-btn--secondary qz-btn--sm"><span class="data-toolbar-icon qz:inline-flex qz:items-center qz:justify-center">＋</span><span>新增行</span></button>
+              <button class="qz-btn qz-btn--secondary qz-btn--sm" disabled><span>删除行</span></button>
+              <button class="qz-btn qz-btn--secondary qz-btn--sm"><span>字段</span></button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="visual-scene" data-scene="settings">
+        <div class="visual-scene-title"><span>设置保存</span><code>qz-btn--primary</code></div>
+        <div class="visual-scene-body">
+          <div class="visual-settings">
+            <div class="visual-settings-content">
+              <h3>模型设置</h3>
+              <div class="visual-field">gpt-5.5</div>
+            </div>
+            <div class="settings-save-state qz:z-8 qz:grid qz:grid-cols-[minmax(0,1fr)_auto] qz:items-center qz:gap-2.5">
+              <div class="settings-status-stack qz:grid qz:min-w-0 qz:gap-1"><div class="settings-save-status qz:grid qz:min-w-0 qz:grid-cols-[6px_minmax(0,1fr)] qz:items-start qz:gap-1.75" data-tone="dirty">有未保存修改</div><div class="settings-version-muted qz:truncate">当前版本 0.4.0</div></div>
+              <button id="context-primary" class="qz-btn qz-btn--primary">保存配置</button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="visual-scene wide" data-scene="forms">
+        <div class="visual-scene-title"><span>表单、选择器与浮层</span><code>qz-field / qz-choice / qz-popover</code></div>
+        <div class="visual-scene-body visual-form-grid">
+          <div class="visual-field-stack">
+            <label class="qz-field-label" for="form-field">模型名称</label>
+            <input id="form-field" class="qz-field qz-field--mono" value="gpt-5.5" aria-describedby="form-hint">
+            <span id="form-hint" class="qz-field-hint">普通字段共享同一套边框、焦点和禁用状态。</span>
+          </div>
+          <div class="visual-field-stack">
+            <label class="qz-field-label" for="form-select">上下文长度</label>
+            <select id="form-select" class="qz-field qz-field--lg qz-select"><option>262K</option><option>1M</option></select>
+            <span class="qz-field-hint">下拉指示由主题 token 着色。</span>
+          </div>
+          <div class="visual-field-stack">
+            <span class="qz-field-label">选择控件</span>
+            <div class="visual-choice-row">
+              <label><input id="form-checkbox" class="qz-checkbox" type="checkbox"> 清理旧结果</label>
+              <label><input id="form-checkbox-checked" class="qz-checkbox" type="checkbox" checked> 自动压缩</label>
+              <label><input id="form-radio" class="qz-radio" type="radio" name="form-radio"> 其他模型</label>
+              <label><input id="form-radio-checked" class="qz-radio" type="radio" name="form-radio" checked> 当前模型</label>
+              <label><input id="form-switch" class="qz-switch" type="checkbox" checked> 启用 MCP</label>
+            </div>
+          </div>
+          <div class="visual-field-stack">
+            <span class="qz-field-label">菜单与个性化身份</span>
+            <div id="form-menu" class="qz-popover qz-menu visual-form-menu">
+              <button class="qz-menu-item active" type="button">我的模型</button>
+              <button class="qz-menu-item" type="button">自定义接口</button>
+            </div>
+            <div class="visual-row">
+              <button class="qz-chiphead tool-summary" type="button">思考完成</button>
+              <button class="qz-pill tool-family-row" type="button"><span>处理数据</span><b>4</b></button>
+              <button class="qz-tree-toggle tool-tree-toggle" type="button" aria-label="展开">▾</button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="visual-scene" data-scene="editing">
+        <div class="visual-scene-title"><span>编辑与消息命令</span><code>qz icon / text actions</code></div>
+        <div class="visual-scene-body">
+          <div class="visual-command-bar">
+            <span class="visual-copy">已选中一段对话内容</span>
+            <button class="qz-icon-btn qz-icon-btn--xs" aria-label="复制">⧉</button>
+            <button class="qz-icon-btn qz-icon-btn--xs" aria-label="编辑">✎</button>
+            <button class="qz-icon-btn qz-icon-btn--xs qz-icon-btn--danger" aria-label="删除">×</button>
+          </div>
+          <div class="visual-row" style="margin-top: 10px">
+            <button class="qz-btn qz-btn--ghost qz-btn--sm">取消</button>
+            <button class="qz-btn qz-btn--primary qz-btn--sm">保存修改</button>
+          </div>
+        </div>
+      </article>
+
+      <article class="visual-scene" data-scene="filters">
+        <div class="visual-scene-title"><span>字段筛选浮层</span><code>compact commands</code></div>
+        <div class="visual-scene-body">
+          <div class="visual-filter-popover">
+            <div class="visual-filter-head"><b>城市</b><button class="qz-icon-btn qz-icon-btn--xs" aria-label="关闭">×</button></div>
+            <div class="visual-filter-options"><span>杭州 18</span><span>上海 9</span><span>(空) 2</span></div>
+            <div class="visual-filter-actions"><button class="qz-btn qz-btn--ghost qz-btn--xs">清除</button><button class="qz-btn qz-btn--primary qz-btn--xs">应用</button></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="visual-scene" data-scene="resources">
+        <div class="visual-scene-title"><span>技能资源编辑</span><code>resource commands</code></div>
+        <div class="visual-scene-body">
+          <div class="visual-resource-row">
+            <button class="qz-icon-btn qz-icon-btn--sm" aria-label="返回">‹</button>
+            <div class="visual-resource-main"><b>scripts/search.js</b><span class="visual-muted">JavaScript · 2.4 KB</span></div>
+            <button class="qz-icon-btn qz-icon-btn--sm qz-icon-btn--danger" aria-label="删除资源">×</button>
+          </div>
+          <div class="visual-row" style="justify-content: flex-end; margin-top: 10px"><button class="qz-btn qz-btn--ghost qz-btn--sm">取消</button><button class="qz-btn qz-btn--primary qz-btn--sm">保存资源</button></div>
+        </div>
+      </article>
+
+      <article class="visual-scene" data-scene="automation">
+        <div class="visual-scene-title"><span>定时任务操作</span><code>row commands</code></div>
+        <div class="visual-scene-body">
+          <div class="visual-automation-row">
+            <div class="visual-automation-main"><b>每天整理行业动态</b><span class="visual-muted">每天 09:00 · 已启用</span></div>
+            <button class="qz-icon-btn qz-icon-btn--xs" aria-label="立即运行">▶</button>
+            <button class="qz-icon-btn qz-icon-btn--xs" aria-label="编辑">✎</button>
+            <button class="qz-icon-btn qz-icon-btn--xs qz-icon-btn--danger" aria-label="删除">×</button>
+          </div>
+        </div>
+      </article>
+
+      <article class="visual-scene wide" data-scene="lightbox">
+        <div class="visual-scene-title"><span>图片预览控制</span><code>media commands</code></div>
+        <div class="visual-scene-body">
+          <div class="visual-lightbox-preview">1600 × 1067 · images.unsplash.com</div>
+          <div class="visual-lightbox-bar">
+            <button class="qz-icon-btn qz-icon-btn--sm qz-icon-btn--secondary" aria-label="上一张">‹</button>
+            <span class="visual-muted">3 / 12</span>
+            <div class="visual-row"><button class="qz-icon-btn qz-icon-btn--sm qz-icon-btn--secondary" aria-label="下一张">›</button><button class="qz-icon-btn qz-icon-btn--sm" aria-label="关闭">×</button></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="visual-scene wide" data-scene="tokens">
+        <div class="visual-scene-title"><span>语义与密度基线</span><code>qz-btn / qz-icon-btn</code></div>
+        <div class="visual-scene-body visual-token-grid">
+          <div class="visual-row">
+            <button id="primary" class="qz-btn qz-btn--primary">保存配置</button>
+            <button id="secondary" class="qz-btn">取消</button>
+            <button id="ghost" class="qz-btn qz-btn--ghost">稍后</button>
+            <button id="danger" class="qz-btn qz-btn--danger">删除</button>
+            <button id="disabled" class="qz-btn" disabled>不可用</button>
+          </div>
+          <div class="visual-row">
+            <button id="xs" class="qz-btn qz-btn--xs">极紧凑</button>
+            <button id="sm" class="qz-btn qz-btn--sm">紧凑</button>
+            <button id="md" class="qz-btn">默认</button>
+            <button id="lg" class="qz-btn qz-btn--lg">引导操作</button>
+            <button id="icon" class="qz-icon-btn qz-icon-btn--md" aria-label="设置"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3" fill="none" stroke="currentColor"/></svg></button>
+            <button id="context-icon" class="qz-icon-btn qz-icon-btn--md icon-btn" aria-label="新增"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none"/></svg></button>
+          </div>
+        </div>
+      </article>
+    </div>
+  </main>
+  <script>
+    const failures = [];
+    const expect = (condition, message) => {
+      if (!condition) failures.push(message);
+    };
+    const style = id => getComputedStyle(document.getElementById(id));
+    const height = id => document.getElementById(id).getBoundingClientRect().height;
+
+    expect(height("xs") === 22, "xs height");
+    expect(height("sm") === 28, "sm height");
+    expect(height("md") === 32, "md height");
+    expect(height("lg") === 38, "lg height");
+    expect(height("context-primary") === 32, "contextual primary size");
+    expect(height("context-secondary") === 32, "contextual secondary density");
+    expect(height("context-icon") === 32, "contextual icon size");
+    expect(height("context-pager") === 22, "contextual pager size");
+    expect(height("form-select") === 38, "large field height");
+    expect(style("form-select").backgroundImage !== "none", "select affordance");
+    expect(style("form-checkbox").appearance === "none", "checkbox primitive");
+    expect(document.getElementById("form-switch").getBoundingClientRect().width === 30, "switch width");
+    expect(style("form-menu").boxShadow !== "none", "popover elevation");
+    expect(style("secondary").borderTopWidth === "1px", "secondary border");
+    expect(style("ghost").borderTopColor === "rgba(0, 0, 0, 0)", "ghost border");
+    expect(Number.parseFloat(style("disabled").opacity) === 0.42, "disabled opacity");
+    expect(document.querySelectorAll("[data-scene]").length === 16, "all visual scenes exist");
+    expect(document.documentElement.scrollWidth === document.documentElement.clientWidth, "no horizontal overflow");
+
+    window.__buttonSystemSmoke = { failures, colorScheme: style("primary").colorScheme };
+    const status = document.getElementById("status");
+    status.dataset.result = failures.length ? "fail" : "pass";
+    status.textContent = failures.length ? `FAIL ${failures.join(", ")}` : "PASS";
+  </script>
+</body>
+</html>

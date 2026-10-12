@@ -1,0 +1,25 @@
+@layer components {
+/* Tool presentation owned by this capability. */
+.tool-details-streaming.tool-details-save_file {
+  max-height: none;
+  overflow: visible;
+}
+
+.tool-details-save_file .tool-file-content-block,
+.tool-timeline-slot-body.tool-details-save_file .tool-file-content-block {
+  max-height: min(42vh, 360px);
+  overflow-x: auto;
+  overflow-y: auto;
+  white-space: pre;
+  word-break: normal;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: auto;
+  scrollbar-gutter: stable;
+}
+
+.tool-details-streaming.tool-details-save_file .tool-file-content-block,
+.tool-timeline-slot-body.tool-details-streaming.tool-details-save_file .tool-file-content-block {
+  height: clamp(160px, 28vh, 260px);
+  max-height: clamp(160px, 28vh, 260px);
+}
+}

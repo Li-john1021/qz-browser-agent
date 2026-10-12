@@ -1,0 +1,34 @@
+<!doctype html>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Touch input fixture</title>
+<style>
+  body { margin: 16px; font: 16px sans-serif; }
+  #surface { width: 320px; height: 160px; background: #eee; touch-action: none; user-select: none; }
+  input, button { display: block; margin: 16px 0; font: inherit; }
+  #scroll { height: 120px; overflow: auto; }
+</style>
+<div id="surface">Touch-only carousel / drag target</div>
+<input id="query" placeholder="Keyword">
+<button id="link" onclick="location.href='mobile-touch.html?next'">Next page</button>
+<div id="scroll"><div style="height:800px">Scroll area</div></div>
+<script>
+  const state = { events: [], taps: 0, holds: 0, slides: 0, mouse: 0, active: 0 };
+  let start;
+  const surface = document.querySelector('#surface');
+  for (const type of ['touchstart', 'touchmove', 'touchend', 'touchcancel']) {
+    surface.addEventListener(type, event => {
+      if (event.cancelable) event.preventDefault(); // No compatibility mouse fallback can make this fixture pass.
+      state.events.push({type, trusted: event.isTrusted});
+      state.active = event.touches.length;
+      if (type === 'touchstart') start = {x:event.touches[0].clientX,time:performance.now()};
+      if (type === 'touchend') {
+        const distance = event.changedTouches[0].clientX - start.x;
+        if (Math.abs(distance) > 50) state.slides += Math.sign(distance);
+        else if (performance.now() - start.time >= 300) state.holds++;
+        else state.taps++;
+      }
+    }, {passive:false});
+  }
+  surface.addEventListener('mousedown', () => state.mouse++);
+  window.__readScreenActionState = () => structuredClone(state);
+</script>

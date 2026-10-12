@@ -1,0 +1,17 @@
+{
+  "schema": "qingzhou.article-extraction-final-corpus-policy.v1",
+  "scope": "chinese-realworld-1500-v3",
+  "exactSamples": 1500,
+  "exactBaseSamples": 500,
+  "exactIncrementSplitCounts": {
+    "train": 300,
+    "validation": 300,
+    "test": 400
+  },
+  "minRegistrableDomains": 250,
+  "minVerticals": 20,
+  "minPageTypes": 15,
+  "requireScreenshots": true,
+  "requireContentAddressedAssets": true,
+  "requireAllSourceManifests": true
+}

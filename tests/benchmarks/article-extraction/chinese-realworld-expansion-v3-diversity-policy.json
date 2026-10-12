@@ -1,0 +1,14 @@
+{
+  "schema": "qingzhou.article-extraction-diversity-policy.v1",
+  "scope": "chinese-realworld-expansion-v3-plan",
+  "minSamples": 1000,
+  "minSites": 200,
+  "minRegistrableDomains": 200,
+  "minVerticals": 20,
+  "minPageTypes": 8,
+  "maxPagesPerSite": 7,
+  "maxPagesPerSiteFamily": 20,
+  "maxCanonicalUrlDuplicateExcess": 0,
+  "requireAssignedSplits": true,
+  "requireSplitIsolation": true
+}

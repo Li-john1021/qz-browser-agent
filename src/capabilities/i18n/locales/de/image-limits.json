@@ -1,0 +1,8 @@
+{
+  "image-limits.invalid": "Die Bilddaten sind ungültig. Wähle das Bild erneut aus.",
+  "image-limits.inputTooLarge": "Das Originalbild überschreitet das Leselimit ({maxBytes} Bytes). Verkleinere es zuerst.",
+  "image-limits.tooLarge": "Das Bild überschreitet die zulässige Größe ({maxBytes} Bytes). Verkleinere es und versuche es erneut.",
+  "image-limits.dimensions": "Das Originalbild ist zum Dekodieren zu groß. Verkleinere es zuerst.",
+  "image-limits.decode": "Das Bild konnte nicht dekodiert werden. Wähle ein anderes Bild oder verwende einen Screenshot.",
+  "image-limits.encode": "Das Bild konnte nicht auf die zulässige Größe reduziert werden. Wähle ein kleineres Bild."
+}

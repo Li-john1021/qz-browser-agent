@@ -1,0 +1,5 @@
+{
+  "product-public.thisProductHasNoGitPublishingAdapterExportThe": "इस वर्शन में सीधे Git पर प्रकाशित नहीं किया जा सकता। स्किल एक्सपोर्ट करें और अपने रिपॉज़िटरी में कमिट करें।",
+  "product-public.configureModelEndpoint": "मॉडल कनेक्ट करें",
+  "product-public.connectingToGpt": "मॉडल से कनेक्ट हो रहा है…"
+}

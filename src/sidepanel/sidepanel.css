@@ -1,0 +1,20 @@
+/* Skin assembly: select the theme here. Stable layout lives in template utilities; interaction,
+   rich text and renderer rules stay with their owning modules. */
+@import "../themes/default/index.css";
+@import "./features/app/shell.css" layer(components);
+@import "./features/chat/transcript/viewport.css" layer(components);
+@import "./ui/overlays.css" layer(components);
+@import "./features/chat/welcome.css" layer(components);
+@import "./features/chat/transcript/messages.css" layer(components);
+@import "./tools/tool-timeline.css" layer(components);
+@import "./tools/tool-results.css" layer(components);
+@import "./features/chat/markdown.css" layer(components);
+@import "./features/chat/status.css" layer(components);
+@import "./features/chat/composer.css" layer(components);
+@import "./capability-host/settings.css" layer(components);
+@import "./features/chat/transcript/thinking.css" layer(components);
+@import "./features/chat/transcript/waiting-card.css" layer(components);
+@import "./tools/images.css" layer(components);
+@import "./ui/skin-hooks.css" layer(components);
+@import "./features/app/navigation.css" layer(components);
+@import "./features/app/workspace.css" layer(components);

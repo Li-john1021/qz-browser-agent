@@ -1,0 +1,13 @@
+{
+  "language-settings.title": "Langue",
+  "language-settings.interfaceLanguage": "Langue de l’interface",
+  "language-settings.followBrowser": "Langue du navigateur",
+  "language-settings.loading": "Chargement de la langue enregistrée…",
+  "language-settings.unsavedChanges": "Modifications non enregistrées",
+  "language-settings.saveFailed": "Impossible d’enregistrer la langue. Réessayez.",
+  "language-settings.loadFailed": "Impossible de charger la langue enregistrée. Rouvrez les paramètres pour réessayer.",
+  "language-settings.save": "Enregistrer",
+  "language-settings.saved": "Enregistré",
+  "language-settings.saving": "Enregistrement…",
+  "language-settings.advanced": "Avancé"
+}

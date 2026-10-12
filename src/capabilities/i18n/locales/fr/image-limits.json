@@ -1,0 +1,8 @@
+{
+  "image-limits.invalid": "Les données de l’image sont invalides. Sélectionnez à nouveau l’image.",
+  "image-limits.inputTooLarge": "L’image d’origine dépasse la limite de lecture ({maxBytes} octets). Réduisez d’abord sa taille.",
+  "image-limits.tooLarge": "L’image dépasse la taille autorisée ({maxBytes} octets). Réduisez sa taille et réessayez.",
+  "image-limits.dimensions": "L’image d’origine est trop grande pour être décodée. Réduisez d’abord sa taille.",
+  "image-limits.decode": "L’image n’a pas pu être décodée. Choisissez une autre image ou utilisez une capture d’écran.",
+  "image-limits.encode": "L’image n’a pas pu être réduite à la taille autorisée. Choisissez une image plus petite."
+}

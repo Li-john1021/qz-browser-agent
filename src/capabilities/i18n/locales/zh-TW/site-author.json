@@ -1,0 +1,4 @@
+{
+  "skills.siteAuthorName": "網站技能產生器",
+  "skills.siteAuthorDescription": "為特定網站、頁面或網域建立能力。用於教輕舟操作網站，或建立網站技能、工具、資料收集及頁面互動能力。與 skill-workbench 不同，此技能從網站需求出發設計專用能力。若要建立、更新、刪除或編輯已指定的技能及其內容、plugin.json、腳本或資源，請使用 skill-workbench。"
+}

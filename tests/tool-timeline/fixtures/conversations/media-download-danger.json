@@ -1,0 +1,69 @@
+{
+  "name": "media-download-danger",
+  "widths": [360, 420],
+  "conversation": {
+    "title": "媒体下载与危险态",
+    "entries": [
+      { "type": "user", "_uiKey": "mdd-u1", "text": "截图、列出下载和文档产物，再删除一个测试 skill。" },
+      {
+        "type": "tool",
+        "_uiKey": "mdd-t1",
+        "toolCallId": "mdd-t1",
+        "name": "screenshot",
+        "args": { "fullPage": false },
+        "result": { "method": "viewport", "width": 1280, "height": 720, "note": "截图预览证据" },
+        "image": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180' viewBox='0 0 320 180'%3E%3Crect width='320' height='180' fill='%23f7f7f5'/%3E%3Crect x='24' y='28' width='272' height='124' rx='10' fill='%23ffffff' stroke='%23d9d9d6'/%3E%3Ccircle cx='72' cy='78' r='20' fill='%2324845d'/%3E%3Cpath d='M112 72h128M112 96h88M44 128h232' stroke='%238b8f94' stroke-width='8' stroke-linecap='round' opacity='.7'/%3E%3C/svg%3E"
+      },
+      {
+        "type": "tool",
+        "_uiKey": "mdd-t2",
+        "toolCallId": "mdd-t2",
+        "name": "list_downloads",
+        "args": { "limit": 5 },
+        "result": {
+          "downloads": [
+            { "id": "dl_1", "filename": "report.csv", "url": "https://example.com/report.csv", "state": "complete", "bytesReceived": 49152, "totalBytes": 49152 },
+            { "id": "dl_2", "filename": "cover.png", "url": "https://example.com/cover.png", "state": "in_progress", "bytesReceived": 32768, "totalBytes": 98304 }
+          ]
+        }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "mdd-t3",
+        "toolCallId": "mdd-t3",
+        "name": "document_list_artifacts",
+        "args": { "limit": 5 },
+        "result": {
+          "artifacts": [
+            { "title": "竞品摘要", "artifactId": "doc_new_01", "format": "markdown", "blockCount": 8 },
+            { "title": "候选品牌表", "artifactId": "sheet_2102", "format": "xlsx", "sheetCount": 1 }
+          ]
+        }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "mdd-t4",
+        "toolCallId": "mdd-t4",
+        "name": "delete_skill",
+        "args": { "name": "obsolete-test-skill" },
+        "result": { "deleted": true, "name": "obsolete-test-skill", "scope": "site" }
+      }
+    ]
+  },
+  "steps": [
+    { "action": "expandGroup", "group": 0, "label": "展开媒体下载工具组" },
+    { "action": "assert", "expect": "navText", "equals": "4/4" },
+    { "action": "assert", "expect": "selectorCount", "selector": ".tool-danger-result", "equals": 1 },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "obsolete-test-skill" },
+    { "action": "clickStep", "group": 0, "step": "页面截图", "label": "查看页面截图" },
+    { "action": "assert", "expect": "selectorCount", "selector": ".tool-timeline-slot .tool-screenshot img", "equals": 1 },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "截图预览证据" },
+    { "action": "clickStep", "group": 0, "step": "查看下载", "label": "查看下载列表" },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "report.csv" },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "cover.png" },
+    { "action": "clickStep", "group": 0, "step": "查看文档产物", "label": "查看文档产物" },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "竞品摘要" },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "候选品牌表" },
+    { "action": "assert", "expect": "noHorizontalOverflow" }
+  ]
+}

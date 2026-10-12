@@ -1,0 +1,196 @@
+.case-toast {
+  position: fixed;
+  left: 50%;
+  top: var(--toast-viewport-top);
+  z-index: 130;
+  width: min(var(--toast-max-width), calc(100vw - (var(--toast-inline-margin) * 2)));
+  min-height: var(--toast-min-height);
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--control-gap-sm);
+  padding: 6px 6px 6px 11px;
+  border: 0;
+  border-radius: var(--control-radius);
+  background: var(--control-primary-surface);
+  color: var(--control-primary-text);
+  box-shadow: var(--shadow-md);
+  font-family: var(--font-sans);
+  text-align: start;
+  opacity: 0;
+  transform: translate(-50%, -6px);
+  pointer-events: none;
+  transition:
+    opacity var(--motion-base) var(--ease-standard),
+    transform var(--motion-base) var(--ease-emphasized);
+}
+
+.case-toast.anchored {
+  left: var(--toast-left, 50%);
+  top: var(--toast-top, auto);
+}
+
+.case-toast.visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+
+.case-toast-icon {
+  width: 18px;
+  height: var(--control-height-sm);
+  display: grid;
+  place-items: center;
+  color: color-mix(in srgb, var(--control-primary-text) 72%, transparent);
+}
+
+.case-toast-icon svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.case-toast-copy {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--control-gap-sm);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.case-toast-title,
+.case-toast-message {
+  display: block;
+  min-width: 0;
+  line-height: 18px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.case-toast-title {
+  color: var(--control-primary-text);
+  font-size: 12px;
+  font-weight: 620;
+}
+
+.case-toast-message {
+  color: color-mix(in srgb, var(--control-primary-text) 72%, transparent);
+  font-size: var(--control-font-sm);
+  font-weight: 400;
+}
+
+.case-toast:not(.has-title) .case-toast-copy {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.case-toast:not(.has-title) .case-toast-message {
+  color: var(--control-primary-text);
+  font-weight: var(--control-font-weight);
+}
+
+.case-toast-action,
+.case-toast-close {
+  appearance: none;
+  flex: none;
+  height: var(--control-height-sm);
+  border: 0;
+  border-radius: var(--control-radius);
+  background: transparent;
+  color: var(--control-primary-text);
+  cursor: pointer;
+}
+
+.case-toast-title[hidden],
+.case-toast-message[hidden],
+.case-toast-action[hidden],
+.case-toast-close[hidden] {
+  display: none;
+}
+
+.case-toast-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--control-padding-xs);
+  font: var(--control-font-weight) var(--control-font-sm)/1 var(--font-sans);
+}
+
+.case-toast-close {
+  width: var(--control-height-sm);
+  display: grid;
+  place-items: center;
+  color: color-mix(in srgb, var(--control-primary-text) 72%, transparent);
+}
+
+.case-toast-close svg {
+  width: var(--control-icon-xs);
+  height: var(--control-icon-xs);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.case-toast-action:hover,
+.case-toast-close:hover {
+  background: color-mix(in srgb, var(--control-primary-text) 10%, transparent);
+}
+
+.case-toast-action:focus-visible,
+.case-toast-close:focus-visible {
+  outline: 1px solid color-mix(in srgb, var(--control-primary-text) 44%, transparent);
+  outline-offset: -2px;
+}
+
+.case-toast.goal-status-toast {
+  width: min(420px, calc(100vw - (var(--toast-inline-margin) * 2)));
+}
+
+.case-toast.goal-status-toast .case-toast-copy {
+  display: block;
+  white-space: normal;
+}
+
+.case-toast.goal-status-toast .case-toast-title,
+.case-toast.goal-status-toast .case-toast-message {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-color-scheme: dark) {
+  .case-toast:is(*) {
+    border: 1px solid var(--border);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+  }
+
+  .case-toast-title,
+  .case-toast-action,
+  .case-toast:not(.has-title) .case-toast-message {
+    color: var(--text-primary);
+  }
+
+  .case-toast-message,
+  .case-toast-icon,
+  .case-toast-close {
+    color: var(--text-secondary);
+  }
+
+  .case-toast-action:hover,
+  .case-toast-close:hover {
+    background: var(--bg-elevated);
+  }
+
+  .case-toast-action:focus-visible,
+  .case-toast-close:focus-visible {
+    outline-color: color-mix(in srgb, var(--text-primary) 38%, transparent);
+  }
+}

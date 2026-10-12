@@ -1,0 +1,12 @@
+{
+  "provider-codex.signInWithYourChatgptAccountToUseCodex": "Войдите в аккаунт ChatGPT, чтобы использовать модели Codex.",
+  "provider-codex.openaiCodexModelsApiReturnedAnEmptyModelList": "API моделей OpenAI Codex вернул пустой список",
+  "provider-codex.theLoginSessionExpiredStartCodexLoginAgain": "Сеанс истёк. Войдите в Codex снова.",
+  "provider-codex.theCodexLoginCodeExpiredStartLoginAgain": "Срок действия кода входа в Codex истёк. Начните заново.",
+  "provider-codex.signInToOpenaiCodexInSettingsFirst": "Сначала войдите в OpenAI Codex в настройках.",
+  "provider-codex.openaiCodexLoginIsMissingAnAccessTokenSign": "Токен доступа OpenAI Codex не получен. Войдите снова.",
+  "provider-codex.openaiCodexLoginExpiredOrLacksPermissionSignIn": "Сеанс OpenAI Codex истёк или у него нет нужных разрешений ({status}). Войдите снова. {detail}",
+  "provider-codex.couldNotReadTheChatgptAccountIdFromThe": "Не удалось прочитать ID аккаунта ChatGPT из токена OpenAI Codex",
+  "provider-codex.loginCanceledStartAgain": "Вход отменён. Начните заново.",
+  "provider-codex.allProviders": "Все провайдеры"
+}

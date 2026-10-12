@@ -1,0 +1,49 @@
+{
+  "name": "error-selection-recovery",
+  "widths": [360, 420],
+  "conversation": {
+    "title": "错误默认选中与恢复证据",
+    "entries": [
+      { "type": "user", "_uiKey": "esr-u1", "text": "点击保存按钮，如果失败要给我证据。" },
+      {
+        "type": "tool",
+        "_uiKey": "esr-t1",
+        "toolCallId": "esr-t1",
+        "name": "read_dom",
+        "args": { "selector": "button", "depth": 2 },
+        "result": { "matched": 3, "text": "保存草稿 / 发布 / 取消" }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "esr-t2",
+        "toolCallId": "esr-t2",
+        "name": "act_on_element",
+        "args": { "target": "uid:btn-save", "action": "click" },
+        "result": { "message": "element is detached from DOM", "code": "stale-element", "retryable": true },
+        "isError": true
+      },
+      {
+        "type": "tool",
+        "_uiKey": "esr-t3",
+        "toolCallId": "esr-t3",
+        "name": "screenshot",
+        "args": { "fullPage": false },
+        "result": { "method": "viewport", "width": 1280, "height": 720, "note": "保存按钮重新渲染，页面仍停留在编辑态" }
+      }
+    ]
+  },
+  "steps": [
+    { "action": "assert", "expect": "collapsedLane", "lane": "tool" },
+    { "action": "expandGroup", "group": 0, "label": "展开错误工具组" },
+    { "action": "assert", "expect": "expandedLane", "lane": "tool" },
+    { "action": "assert", "expect": "navText", "equals": "2/3" },
+    { "action": "assert", "expect": "activeText", "includes": "操作元素" },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "stale-element" },
+    { "action": "assert", "expect": "selectorCount", "selector": ".tool-timeline-step.error", "equals": 1 },
+    { "action": "click", "selector": ".tool-timeline-nav-btn[data-timeline-nav-direction=\"1\"]", "label": "切到后续画面证据" },
+    { "action": "assert", "expect": "navText", "equals": "3/3" },
+    { "action": "assert", "expect": "activeText", "includes": "页面截图" },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "保存按钮重新渲染" },
+    { "action": "assert", "expect": "noHorizontalOverflow" }
+  ]
+}

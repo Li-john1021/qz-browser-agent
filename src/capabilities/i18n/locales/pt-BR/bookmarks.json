@@ -1,0 +1,21 @@
+{
+  "bookmarks.bookmarks": "Favoritos",
+  "bookmarks.history": "Histórico",
+  "bookmarks.visits": "Visitas: {count}",
+  "bookmarks.deleted": "Excluídos: {count}",
+  "bookmarks.manageBookmarks": "Gerenciar favoritos",
+  "bookmarks.browsingHistory": "Histórico de navegação",
+  "bookmarks.manageBookmarksSearchRequiresANonEmptyQuery": "Para buscar favoritos, query não pode estar vazio.",
+  "bookmarks.manageBookmarksCreateRequiresTitleOrUrl": "Criar um favorito exige title ou url.",
+  "bookmarks.manageBookmarksUpdateRequiresId": "Atualizar um favorito exige id.",
+  "bookmarks.manageBookmarksUpdateRequiresTitleOrUrlToMove": "Atualizar um favorito exige title ou url. Para mover um favorito ou pasta, use action=move com parentId ou index.",
+  "bookmarks.manageBookmarksMoveRequiresId": "Mover um favorito exige id.",
+  "bookmarks.manageBookmarksMoveRequiresParentidOrIndex": "Mover um favorito exige parentId ou index.",
+  "bookmarks.manageBookmarksDeleteRequiresId": "Excluir um favorito exige id.",
+  "bookmarks.unsupportedManageBookmarksAction": "Ação de manage_bookmarks não suportada: {action}",
+  "bookmarks.browseHistorySearchRequiresANonEmptyQuery": "Para buscar no histórico, query não pode estar vazio.",
+  "bookmarks.unsupportedBrowseHistoryAction": "Ação de browse_history não suportada: {action}",
+  "bookmarks.items": "Itens",
+  "bookmarks.manageBookmarksShort": "Gerenciar favoritos",
+  "bookmarks.browsingHistoryShort": "Histórico"
+}

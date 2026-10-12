@@ -1,0 +1,9 @@
+{
+  "name": "Synthetic example — no private data",
+  "sessionId": "real_examples_stub",
+  "title": "Rendering sample",
+  "transcript": [
+    { "type": "user", "text": "Summarize this sample.", "images": [] },
+    { "type": "assistant", "content": "This is a **synthetic** conversation for checking the fixture format." }
+  ]
+}

@@ -1,0 +1,238 @@
+#app[data-workspace-booting] {
+  visibility: hidden;
+}
+
+.workspace-boot-fallback {
+  flex: 0 0 auto;
+  padding: 7px 12px;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+#app[data-workspace-boot-fallback="error"] .workspace-boot-fallback {
+  color: var(--red);
+  background: var(--danger-subtle);
+}
+
+/* ============================================================================
+   Header
+   ============================================================================ */
+
+#header {
+  grid-template-columns: minmax(0, 1fr) max-content;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary);
+}
+
+.header-actions {
+  gap: 4px;
+}
+
+.icon-btn {
+  border: none;
+}
+
+.icon-btn svg {
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.icon-btn svg :is(path, circle, line, polyline, polygon, rect) {
+  stroke: currentColor;
+}
+
+.icon-btn.recording {
+  color: var(--red);
+  background: var(--danger-subtle);
+}
+
+.icon-btn.recording::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px solid currentColor;
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+  animation: subtle-ring 1.8s var(--ease-standard) infinite;
+}
+
+.icon-btn.recording svg {
+  fill: currentColor;
+}
+
+.session-title-bar {
+  padding: 4px 10px 5px 14px;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-secondary) 88%, var(--bg-primary));
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.chat-text-size-trigger {
+  --qz-control-size: 24px;
+  --qz-control-icon-size: 16px;
+}
+
+.chat-text-size-trigger .chat-text-size-glyph {
+  transform: translateY(0.5px);
+}
+
+.chat-text-size-trigger[aria-expanded="true"] {
+  background: var(--control-surface-hover);
+}
+
+.chat-text-size-popover {
+  --qz-popover-radius: var(--radius-md);
+  --qz-popover-shadow: var(--shadow-md);
+}
+
+.chat-text-size-step {
+  --qz-control-size: 26px;
+  color: var(--text-secondary);
+  font-size: 10.5px;
+  font-weight: 620;
+}
+
+.chat-text-size-value {
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 520;
+}
+
+.chat-text-size-value:disabled {
+  color: var(--text-primary);
+  opacity: 1;
+}
+
+.session-title-edit-trigger {
+  width: fit-content;
+  max-width: calc(100% + 3px);
+  min-width: 0;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  margin-left: -3px;
+  padding: 0 3px;
+  border: 0;
+  border-radius: var(--radius-md);
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: text;
+}
+
+.session-title-edit-trigger:hover {
+  color: var(--text-secondary);
+}
+
+.session-title-edit-trigger:focus-visible {
+  box-shadow: var(--control-focus-ring);
+}
+
+.session-title-input {
+  display: none;
+  width: min(100%, 320px);
+  height: 24px;
+  min-height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: var(--control-font-sm);
+  caret-color: var(--text-primary);
+}
+
+.session-title-bar.is-editing .session-title-edit-trigger {
+  display: none;
+}
+
+.session-title-bar.is-editing .session-title-input {
+  display: block;
+}
+
+.session-title-export-btn {
+  --qz-control-size: 24px;
+  --qz-control-icon-size: 15px;
+  flex: 0 0 auto;
+}
+
+.session-title-export-btn svg {
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.session-export-btn {
+  position: relative;
+}
+
+.session-title-export-btn > svg,
+.session-export-btn > svg {
+  transition: opacity var(--motion-fast) var(--ease-standard), transform var(--motion-base) var(--ease-emphasized);
+}
+
+.session-title-export-btn::after,
+.session-export-btn::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 11px;
+  height: 11px;
+  border: 1.5px solid color-mix(in srgb, var(--text-muted) 28%, transparent);
+  border-top-color: currentColor;
+  border-right-color: currentColor;
+  border-radius: 50%;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.72) rotate(-45deg);
+  transform-origin: center;
+  pointer-events: none;
+}
+
+.session-title-export-btn.is-preparing,
+.session-title-export-btn.is-preparing:hover,
+.session-export-btn.is-preparing,
+.session-export-btn.is-preparing:hover {
+  background: var(--control-hover-fill);
+  color: var(--text-secondary);
+  cursor: progress;
+  opacity: 1;
+}
+
+.session-title-export-btn.is-preparing > svg,
+.session-export-btn.is-preparing > svg {
+  opacity: 0;
+  transform: scale(0.72);
+}
+
+.session-title-export-btn.is-preparing::after,
+.session-export-btn.is-preparing::after {
+  opacity: 1;
+  animation: session-export-spin 780ms linear infinite;
+}
+
+@keyframes session-export-spin {
+  from { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+  to { transform: translate(-50%, -50%) scale(1) rotate(360deg); }
+}
+
+.session-title-export-btn.is-confirmed {
+  color: var(--text-primary);
+}

@@ -1,0 +1,28 @@
+{
+  "name": "turn-boundary-grouping",
+  "widths": [360, 420],
+  "conversation": {
+    "title": "对话轮次边界",
+    "entries": [
+      { "type": "user", "_uiKey": "tbg-u1", "text": "分几步查，过程中给我一句说明。" },
+      { "type": "tool", "_uiKey": "tbg-t1", "toolCallId": "tbg-t1", "name": "open_tab", "args": { "url": "https://example.com/a" }, "result": { "title": "页面 A" } },
+      { "type": "assistant", "_uiKey": "tbg-a1", "content": "页面已经打开，我先说明一下再继续读取。" },
+      { "type": "tool", "_uiKey": "tbg-t2", "toolCallId": "tbg-t2", "name": "read_article", "args": { "source": "auto", "limit": 4000 }, "result": { "title": "正文 A", "text": "正文内容 A" } },
+      { "type": "assistant", "_uiKey": "tbg-a2", "content": "正文读到了，接下来写入表并生成文档。" },
+      { "type": "tool", "_uiKey": "tbg-t3", "toolCallId": "tbg-t3", "name": "data_store", "args": { "action": "upsert", "table": "turn_boundary", "rows": [{ "name": "正文 A", "status": "done" }] }, "result": { "table": "turn_boundary", "inserted": 1, "rows": [{ "name": "正文 A", "status": "done" }] } },
+      { "type": "tool", "_uiKey": "tbg-t4", "toolCallId": "tbg-t4", "name": "document_create", "args": { "title": "轮次边界报告" }, "result": { "title": "轮次边界报告", "artifactId": "doc_tbg", "blockCount": 2 } }
+    ]
+  },
+  "steps": [
+    { "action": "assert", "expect": "selectorCount", "selector": ".msg-tool-timeline", "equals": 1 },
+    { "action": "assert", "expect": "selectorCount", "selector": ".msg-tool:not(.msg-tool-timeline)", "equals": 2 },
+    { "action": "assert", "expect": "selectorText", "selector": "#messages", "includes": "页面已经打开" },
+    { "action": "assert", "expect": "selectorText", "selector": "#messages", "includes": "正文读到了" },
+    { "action": "expandGroup", "group": 0, "label": "展开最后连续工具组" },
+    { "action": "assert", "expect": "navText", "equals": "2/2" },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "轮次边界报告" },
+    { "action": "click", "selector": ".msg-tool:not(.msg-tool-timeline) > .tool-summary", "index": 0, "label": "展开第一段单工具" },
+    { "action": "assert", "expect": "singleToolExpanded", "selector": ".msg-tool:not(.msg-tool-timeline)" },
+    { "action": "assert", "expect": "noHorizontalOverflow" }
+  ]
+}

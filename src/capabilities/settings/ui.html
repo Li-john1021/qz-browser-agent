@@ -1,0 +1,254 @@
+<template id="settings-ui-template">
+    <dialog id="model-preset-switcher" class="model-preset-switcher qz:fixed qz:w-full qz:h-full qz:m-0 qz:overflow-hidden" aria-label="切换模型" data-i18n-aria-label="settings.switchModel">
+      <section class="model-preset-switcher-panel qz:grid qz:overflow-hidden">
+        <div class="model-preset-switcher-search qz:grid qz:items-center qz:min-h-10 qz:m-0">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <circle cx="7" cy="7" r="4.25" stroke="currentColor" stroke-width="1.35"/>
+            <path d="M10.2 10.2L13.3 13.3" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/>
+          </svg>
+          <input
+            id="model-preset-switcher-input"
+            class="qz-field qz-field--bare"
+            type="text"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="搜索已配置模型"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-controls="model-preset-switcher-list"
+            aria-expanded="false"
+           data-i18n-placeholder="settings.searchConfiguredModels">
+        </div>
+        <div id="model-preset-switcher-list" class="qz-menu model-preset-switcher-list qz:min-h-12" role="listbox"></div>
+        <footer class="model-preset-switcher-footer qz:flex qz:items-center qz:justify-between qz:gap-2.5">
+          <span id="model-preset-switcher-status" class="model-preset-switcher-status qz:min-w-0" role="status" aria-live="polite"></span>
+          <span class="model-preset-switcher-hints" aria-hidden="true"><span class="qz:whitespace-nowrap"><kbd>↑↓</kbd> <span data-i18n="settings.select">选择</span></span> <span class="qz:whitespace-nowrap"><kbd>Enter</kbd> <span data-i18n="settings.switch">切换</span></span> <span class="qz:whitespace-nowrap"><kbd>Esc</kbd> <span data-i18n="core.close">关闭</span></span></span>
+        </footer>
+      </section>
+    </dialog>
+
+<div id="settings-section-content" hidden>
+        <div id="settings-panel-model" class="settings-body settings-tab-panel" role="tabpanel" aria-labelledby="settings-tab-model" data-settings-panel="model">
+          <label class="qz-field-label" data-i18n="settings.currentPreset">当前</label>
+          <div class="settings-preset-row qz:grid qz:gap-1.5 qz:items-center">
+            <select id="cfg-preset" class="qz-field qz-select">
+              <option value="" data-i18n="settings.newConfiguration">新配置</option>
+            </select>
+            <button id="btn-delete-preset" class="qz-btn qz-btn--secondary qz-btn--danger " type="button" data-i18n="settings.delete">删除</button>
+          </div>
+          <span id="cfg-provider-label" class="qz-field-label" data-i18n="settings.provider">服务商</span>
+          <select id="cfg-provider" hidden aria-hidden="true" tabindex="-1"></select>
+          <button id="cfg-provider-trigger" type="button" class="qz-field qz-select provider-picker-trigger" popovertarget="cfg-provider-picker" aria-haspopup="dialog" aria-expanded="false" aria-controls="cfg-provider-picker" aria-labelledby="cfg-provider-label cfg-provider-value">
+            <span id="cfg-provider-value" dir="auto"></span>
+          </button>
+          <div id="cfg-provider-endpoint" class="provider-endpoint" dir="ltr" hidden></div>
+          <div id="cfg-provider-picker" class="qz-popover provider-picker" popover="auto" role="dialog" aria-labelledby="cfg-provider-label">
+            <div class="provider-picker-search">
+              <input id="cfg-provider-search" class="qz-field" type="search" autocomplete="off" spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="cfg-provider-list" data-i18n-placeholder="settings.searchProviders" data-i18n-aria-label="settings.searchProviders" placeholder="搜索服务商" aria-label="搜索服务商">
+            </div>
+            <div id="cfg-provider-list" class="qz-menu qz-scroll provider-picker-list" role="listbox" aria-labelledby="cfg-provider-label"></div>
+            <div id="cfg-provider-empty" class="provider-picker-empty" role="status" data-i18n="settings.noProvidersFound" hidden>未找到服务商</div>
+          </div>
+          <div id="cfg-apikey-field" class="settings-field qz:gap-1.5">
+            <div class="settings-field-label-row qz:flex qz:items-center qz:justify-between qz:gap-2">
+              <label class="qz-field-label" data-i18n="settings.apiKey">API 密钥</label>
+            </div>
+            <input id="cfg-apikey" type="password" class="qz-field" placeholder="sk-...">
+          </div>
+          <div id="product-model-settings" style="display:contents"></div>
+          <div id="provider-auth-box" class="provider-auth-box hidden qz:grid qz:gap-1.5">
+            <div class="provider-auth-row qz:grid qz:items-center qz:gap-1.5">
+              <span id="provider-auth-status" class="provider-auth-status qz:min-w-0 qz:overflow-hidden qz:whitespace-nowrap" data-i18n="settings.notSignedIn">未登录</span>
+              <button id="btn-provider-login" class="qz-btn qz-btn--secondary " type="button" data-i18n="settings.signIn">登录</button>
+              <button id="btn-provider-logout" class="qz-btn qz-btn--secondary qz-btn--danger " type="button" data-i18n="settings.signOut">退出登录</button>
+            </div>
+            <div id="provider-device-box" class="provider-device-box hidden qz:grid qz:gap-1.5 qz:items-center">
+              <div id="provider-device-code" class="provider-device-code qz:min-w-0"></div>
+              <div id="provider-device-hint" class="qz-field-hint"></div>
+              <button id="btn-provider-open" class="qz-btn qz-btn--secondary " type="button" data-i18n="settings.openSignInPage">打开登录页</button>
+            </div>
+          </div>
+          <div id="provider-options-box" class="provider-options-box hidden qz:grid qz:gap-1.5"></div>
+          <div id="custom-provider-box" class="custom-provider-box hidden qz:grid">
+            <label class="custom-option-row qz:grid">
+              <span data-i18n="settings.protocol">协议</span>
+              <select id="cfg-custom-protocol" class="qz-field qz-select">
+                <option value="openai">OpenAI</option>
+                <option value="anthropic">Anthropic</option>
+              </select>
+            </label>
+            <label class="custom-option-row qz:grid">
+              <span data-i18n="settings.presetName">预设名称</span>
+              <input id="cfg-custom-preset-name" type="text" class="qz-field" placeholder="我的接口" data-i18n-placeholder="settings.myEndpoint">
+            </label>
+            <div class="custom-option-row full qz:grid">
+              <label for="cfg-custom-endpoint" data-i18n="settings.endpointUrl">接口地址</label>
+              <div class="custom-endpoint-editor qz:relative qz:min-w-0">
+                <input
+                  id="cfg-custom-endpoint"
+                  type="url"
+                  class="qz-field custom-endpoint-input qz:w-full"
+                  placeholder="https://example.com/v1/chat/completions"
+                  autocomplete="off"
+                  inputmode="url"
+                  spellcheck="false"
+                  aria-autocomplete="inline"
+                >
+                <span
+                  id="cfg-custom-endpoint-completion"
+                  class="custom-endpoint-inline-completion hidden qz:absolute qz:flex qz:items-center qz:whitespace-nowrap"
+                  aria-hidden="true"
+                ></span>
+              </div>
+            </div>
+          </div>
+          <label class="qz-field-label" data-i18n="settings.modelName">模型名称</label>
+          <div id="cfg-model-combobox" class="qz-combobox model-combobox">
+            <input
+              id="cfg-model"
+              type="text"
+              class="qz-field qz-field--mono qz-combobox-input model-combobox-input"
+              placeholder="选择或输入模型名"
+              autocomplete="off"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-expanded="false"
+              aria-controls="cfg-model-options"
+             data-i18n-placeholder="settings.selectOrEnterAModelName">
+            <button id="cfg-model-clear" class="qz-icon-btn qz-icon-btn--sm qz-combobox-clear model-combobox-clear hidden" type="button" aria-label="清空模型名" tabindex="-1" data-i18n-aria-label="settings.clearModelName">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path d="M4.25 4.25l5.5 5.5M9.75 4.25l-5.5 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </button>
+            <button id="cfg-model-toggle" class="qz-icon-btn qz-icon-btn--sm qz-combobox-toggle model-combobox-toggle" type="button" aria-label="展开模型列表" tabindex="-1" data-i18n-aria-label="settings.showModelList">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path d="M3.5 5.25L7 8.75l3.5-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <div id="cfg-model-options" class="qz-popover qz-menu qz-combobox-menu model-suggestions hidden" role="listbox" popover="manual"></div>
+          </div>
+          <label class="qz-field-label" data-i18n="settings.contextLength">上下文长度</label>
+          <div class="context-window-box qz:grid qz:gap-0">
+            <select id="cfg-context-preset" class="qz-field qz-select context-window-select" aria-label="上下文长度" data-i18n-aria-label="settings.contextLength"></select>
+            <input id="cfg-context-window" type="text" class="qz-field context-window-input hidden qz:h-8.5" placeholder="262K / 1M / 200000">
+          </div>
+          <label class="settings-model-capability-field qz:grid">
+            <span class="qz-field-label" data-i18n="settings.imageSupport">支持图片</span>
+            <select id="cfg-vision" class="qz-field qz-select">
+              <option value="false" data-i18n="settings.no">否</option>
+              <option value="true" data-i18n="settings.yes">是</option>
+            </select>
+          </label>
+          <section class="model-parameters-editor qz:grid" aria-label="自定义参数" data-i18n-aria-label="settings.customParameters">
+            <span id="cfg-model-parameters-label" class="qz-field-label hidden" data-i18n="settings.customParameters">自定义参数</span>
+            <div id="cfg-model-parameters" class="model-parameter-list qz:gap-1.5"></div>
+            <button id="btn-add-model-parameter" class="qz-btn qz-btn--ghost qz-btn--inline model-parameter-add" type="button" data-i18n="settings.addCustomParameter">＋ 添加自定义参数</button>
+          </section>
+          <div id="cfg-model-parameter-suggestions" class="qz-popover qz-menu model-parameter-suggestions hidden qz:fixed qz:m-0" role="listbox" popover="manual"></div>
+        </div>
+        <div id="settings-panel-skills" class="settings-body settings-tab-panel hidden" role="tabpanel" aria-labelledby="settings-tab-skills" data-settings-panel="skills">
+          <div id="skill-settings-list" class="skill-settings-list qz:grid qz:w-full qz:gap-2.5" aria-live="polite">
+            <div class="skill-settings-empty qz:grid qz:min-h-37.5 qz:gap-2.5" data-i18n="settings.loadingSkillSettings">正在读取 Skill 设置…</div>
+          </div>
+        </div>
+        <div id="settings-panel-advanced" class="settings-body settings-tab-panel hidden" role="tabpanel" aria-labelledby="settings-tab-advanced" data-settings-panel="advanced">
+          <section class="advanced-section qz:grid qz:gap-2" aria-label="高级设置" data-i18n-aria-label="settings.advancedSettings">
+            <div id="cfg-trim-old-tool-results-field" class="hidden" aria-hidden="true">
+              <label class="settings-toggle-row qz:flex qz:items-center qz:justify-between qz:gap-3 qz:min-h-8">
+                <span class="advanced-setting-title" data-i18n="settings.trimOldContext">历史上下文裁剪</span>
+                <input id="cfg-trim-old-tool-results" class="qz-checkbox" type="checkbox">
+              </label>
+              <div class="qz-field-hint settings-advanced-hint" data-i18n="settings.removeOlderToolResultsImagesAndOtherHistoryToUse">清理多轮之前的工具结果、图片等历史内容，提高上下文利用率。长上下文模型可以关闭以提高缓存命中率。</div>
+            </div>
+            <div class="settings-toggle-row qz:flex qz:items-center qz:justify-between qz:gap-3 qz:min-h-8">
+              <span class="advanced-setting-title" data-i18n="settings.openQingzhou">唤起轻舟</span>
+              <button id="btn-edit-side-panel-shortcut" class="qz-btn qz-btn--secondary qz-btn--sm settings-shortcut-edit" type="button" title="修改唤起轻舟快捷键" aria-label="修改唤起轻舟快捷键" data-i18n-title="settings.changeTheOpenQingzhouShortcut" data-i18n-aria-label="settings.changeTheOpenQingzhouShortcut">
+                <kbd id="side-panel-shortcut-value" data-i18n="settings.loading">读取中</kbd>
+              </button>
+            </div>
+            <div class="settings-toggle-row qz:flex qz:items-center qz:justify-between qz:gap-3 qz:min-h-8">
+              <span class="advanced-setting-title" data-i18n="settings.switchModel">切换模型</span>
+              <button id="btn-edit-model-switcher-shortcut" class="qz-btn qz-btn--secondary qz-btn--sm settings-shortcut-edit" type="button" title="修改切换模型快捷键" aria-label="修改切换模型快捷键" data-i18n-title="settings.changeTheSwitchModelShortcut" data-i18n-aria-label="settings.changeTheSwitchModelShortcut">
+                <kbd id="model-switcher-shortcut-value" data-i18n="settings.loading">读取中</kbd>
+              </button>
+            </div>
+            <label class="settings-toggle-row qz:flex qz:items-center qz:justify-between qz:gap-3 qz:min-h-8">
+              <span class="advanced-setting-title" data-i18n="settings.modelRateLimiting">模型限速</span>
+              <input id="cfg-request-rate-limit" class="qz-checkbox" type="checkbox">
+            </label>
+            <label class="settings-toggle-row qz:flex qz:items-center qz:justify-between qz:gap-3 qz:min-h-8">
+              <span class="advanced-setting-title" data-i18n="settings.debugMode">调试模式</span>
+              <input id="cfg-debug-mode" class="qz-checkbox" type="checkbox">
+            </label>
+          </section>
+          <section class="advanced-section guardrail-section qz:grid qz:gap-2" aria-label="安全策略" data-i18n-aria-label="settings.securityPolicies">
+            <div class="advanced-section-header qz:grid qz:gap-1">
+              <div class="advanced-setting-title" data-i18n="settings.securityPolicies">安全策略</div>
+            </div>
+            <div class="guardrail-form qz:grid qz:gap-2" aria-label="新增访问规则" data-i18n-aria-label="settings.newAccessRule">
+              <div class="guardrail-form-header qz:flex qz:flex-wrap qz:items-start qz:justify-between qz:min-w-0">
+                <div class="guardrail-form-title" data-i18n="settings.newRule">新增规则</div>
+                <div class="guardrail-form-hint" data-i18n="settings.allowAccessCreatesExceptionsToBlockRulesOrdinaryAccessNeeds">“允许访问”用于反向加白，普通访问无需配置。</div>
+              </div>
+              <div class="guardrail-add-row qz:grid qz:gap-2">
+                <div class="guardrail-filter-row qz:grid-cols-2">
+                  <select id="guardrail-rule-action" class="qz-field qz-select guardrail-rule-action" aria-label="访问动作" data-i18n-aria-label="settings.accessAction">
+                    <option value="block" data-i18n="settings.blockAccess">禁止访问</option>
+                    <option value="allow" data-i18n="settings.allowAccess">允许访问</option>
+                    <option value="rate_limit" data-i18n="settings.rateLimit">流控</option>
+                  </select>
+                  <select id="guardrail-rule-type" class="qz-field qz-select guardrail-rule-type" aria-label="规则类型" data-i18n-aria-label="settings.ruleType">
+                    <option value="domain" data-i18n="settings.domain">域名</option>
+                    <option value="pattern" data-i18n="settings.wildcardMatch">模糊匹配</option>
+                  </select>
+                </div>
+                <div class="guardrail-input-row">
+                  <input id="guardrail-domain-input" type="text" class="qz-field" placeholder="example.com" autocomplete="off">
+                  <div id="guardrail-rate-limit-field" class="guardrail-rate-limit-field hidden qz:relative qz:min-w-0">
+                    <input id="guardrail-rate-limit-interval" type="number" class="qz-field guardrail-rate-limit-interval qz:min-w-0 qz:w-full qz:pe-7.5" min="0.5" max="86400" step="0.5" inputmode="decimal" placeholder="3" autocomplete="off" aria-label="最小打开间隔秒数" data-i18n-aria-label="settings.minimumNavigationIntervalInSeconds">
+                    <span class="guardrail-rate-limit-unit qz:absolute" aria-hidden="true" data-i18n="settings.seconds">秒</span>
+                  </div>
+                  <button id="btn-add-guardrail-domain" class="qz-btn qz-btn--secondary " type="button" data-i18n="settings.add">添加</button>
+                </div>
+              </div>
+              <div id="guardrail-status" class="settings-inline-status hidden" role="status" aria-live="polite"></div>
+            </div>
+            <div class="guardrail-list-title qz:mt-1" data-i18n="settings.configuredRules">已配置规则</div>
+            <div id="guardrail-domain-list" class="guardrail-domain-list qz:grid qz:gap-1.5"></div>
+          </section>
+        </div>
+</div>
+</template>
+<template id="settings-onboarding-template">
+        <section class="welcome-onboarding" aria-label="建议任务" data-i18n-aria-label="settings.suggestedTasks">
+          <h2 data-i18n="settings.startWithASmallTask">先从一个小任务开始</h2>
+          <p class="onboarding-copy" data-i18n="settings.chooseAScenarioToPutADraftInTheMessage">选一个场景，我会把任务草稿放进输入框；你确认后再发送。</p>
+          <div id="onboarding-status" class="onboarding-status qz:grid qz:items-center qz:gap-2 qz:min-h-8.5 qz:mb-2.5" data-state="loading">
+            <span class="onboarding-status-dot" aria-hidden="true"></span>
+            <span id="onboarding-status-text" data-i18n="settings.checkingModelConfiguration">正在检查模型配置</span>
+          </div>
+          <div id="onboarding-setup-actions" class="onboarding-setup-actions hidden qz:grid qz:gap-2 qz:mb-2.5">
+            <button id="onboarding-primary-btn" class="qz-btn qz-btn--primary qz-btn--lg onboarding-primary-btn qz:w-full" type="button" data-onboarding-action="setup" data-i18n="settings.configureModelEndpoint">配置模型接口</button>
+          </div>
+          <div class="onboarding-actions qz:grid qz:gap-1.5">
+            <button type="button" class="onboarding-action qz:grid qz:gap-0.5 qz:w-full qz:min-h-12.5" data-onboarding-action="summarize">
+              <span data-i18n="settings.summarizePageTitle">世界主要城市未来 7 天天气</span>
+              <small data-i18n="settings.summarizePageDescription">整理成一份 Excel 文件</small>
+            </button>
+            <button type="button" class="onboarding-action qz:grid qz:gap-0.5 qz:w-full qz:min-h-12.5" data-onboarding-action="extract">
+              <span data-i18n="settings.compareOptionsTitle">大模型后训练最新科研成果综述</span>
+              <small data-i18n="settings.compareOptionsDescription">整理近期论文和关键进展</small>
+            </button>
+            <button type="button" class="onboarding-action qz:grid qz:gap-0.5 qz:w-full qz:min-h-12.5" data-onboarding-action="assist">
+              <span data-i18n="settings.researchTopicTitle">今天网上最火的新闻是啥</span>
+              <small data-i18n="settings.researchTopicDescription">帮我抓几个真正值得看的热点</small>
+            </button>
+            <button type="button" class="onboarding-action qz:grid qz:gap-0.5 qz:w-full qz:min-h-12.5" data-onboarding-action="skill">
+              <span data-i18n="settings.createWebsiteSkillTitle">给 Hacker News 生成站点 Skill</span>
+              <small data-i18n="settings.createWebsiteSkillDescription">让轻舟学会搜索帖子、阅读评论和查看作者</small>
+            </button>
+          </div>
+        </section>
+</template>
+<template id="settings-notices-template"><div id="gpt-connect-hint" class="input-network-hint hidden qz:items-center qz:overflow-hidden qz:whitespace-nowrap" aria-live="polite"></div></template>
+<template id="settings-model-template"><span id="current-model-indicator" class="input-model-indicator hidden qz:min-w-0 qz:overflow-hidden qz:whitespace-nowrap" aria-live="polite"></span></template>

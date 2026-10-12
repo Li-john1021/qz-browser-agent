@@ -1,0 +1,21 @@
+{
+  "bookmarks.bookmarks": "Закладки",
+  "bookmarks.history": "История",
+  "bookmarks.visits": "Посещений: {count}",
+  "bookmarks.deleted": "Удалено: {count}",
+  "bookmarks.manageBookmarks": "Управлять закладками",
+  "bookmarks.browsingHistory": "История просмотров",
+  "bookmarks.manageBookmarksSearchRequiresANonEmptyQuery": "Для поиска закладок нужен непустой query.",
+  "bookmarks.manageBookmarksCreateRequiresTitleOrUrl": "Для создания закладки нужен title или url.",
+  "bookmarks.manageBookmarksUpdateRequiresId": "Для обновления закладки нужен id.",
+  "bookmarks.manageBookmarksUpdateRequiresTitleOrUrlToMove": "Для обновления закладки нужен title или url. Для перемещения закладки или папки используйте action=move с parentId или index.",
+  "bookmarks.manageBookmarksMoveRequiresId": "Для перемещения закладки нужен id.",
+  "bookmarks.manageBookmarksMoveRequiresParentidOrIndex": "Для перемещения закладки нужен parentId или index.",
+  "bookmarks.manageBookmarksDeleteRequiresId": "Для удаления закладки нужен id.",
+  "bookmarks.unsupportedManageBookmarksAction": "Неподдерживаемое действие manage_bookmarks: {action}",
+  "bookmarks.browseHistorySearchRequiresANonEmptyQuery": "Для поиска по истории нужен непустой query.",
+  "bookmarks.unsupportedBrowseHistoryAction": "Неподдерживаемое действие browse_history: {action}",
+  "bookmarks.items": "Элементы",
+  "bookmarks.manageBookmarksShort": "Управлять закладками",
+  "bookmarks.browsingHistoryShort": "История"
+}

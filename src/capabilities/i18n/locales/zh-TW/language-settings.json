@@ -1,0 +1,13 @@
+{
+  "language-settings.title": "語言",
+  "language-settings.interfaceLanguage": "介面語言",
+  "language-settings.followBrowser": "跟隨瀏覽器",
+  "language-settings.loading": "正在讀取語言設定…",
+  "language-settings.unsavedChanges": "有尚未儲存的變更",
+  "language-settings.saveFailed": "無法儲存語言設定，請重試。",
+  "language-settings.loadFailed": "無法讀取已儲存的語言，請重新開啟設定後重試。",
+  "language-settings.save": "儲存",
+  "language-settings.saved": "已儲存",
+  "language-settings.saving": "正在儲存…",
+  "language-settings.advanced": "進階"
+}

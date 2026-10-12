@@ -1,0 +1,72 @@
+{
+  "name": "qz-browser-agent",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "node scripts/build-extension.mjs --watch",
+    "build": "node scripts/build-extension.mjs --mode production --typecheck",
+    "typecheck": "node scripts/typecheck.mjs",
+    "test": "node --import tsx tests/run.mjs",
+    "verify": "npm run typecheck && npm test -- --all --coverage",
+    "benchmark": "node --import tsx tests/benchmarks/run.mjs",
+    "docs": "node scripts/docs-api.mjs",
+    "doctor": "node --import tsx tests/doctor.mjs",
+    "release": "python3 scripts/publish-release.py"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.61.1",
+    "@tailwindcss/oxide": "4.3.3",
+    "@types/chrome": "0.3.0",
+    "@types/js-yaml": "4.0.9",
+    "@types/tabulator-tables": "6.3.6",
+    "@types/turndown": "5.0.6",
+    "acorn": "8.18.0",
+    "c8": "11.0.0",
+    "css-tree": "3.2.1",
+    "enhanced-resolve": "5.25.1",
+    "esbuild": "0.28.1",
+    "playwright": "1.61.1",
+    "postcss": "8.5.28",
+    "tailwindcss": "4.3.3",
+    "terser": "5.43.1",
+    "tsx": "4.23.13",
+    "typescript": "7.0.2"
+  },
+  "dependencies": {
+    "@cfworker/json-schema": "4.1.1",
+    "@medv/finder": "4.0.2",
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "@mozilla/readability": "0.6.0",
+    "@opencode-ai/models": "0.0.79",
+    "highlight.js": "11.11.1",
+    "js-yaml": "4.3.2",
+    "marked": "12.0.2",
+    "mathjax": "3.2.2",
+    "partial-json": "0.1.7",
+    "pdfjs-dist": "4.10.38",
+    "tabulator-tables": "6.5.2",
+    "turndown": "7.2.4",
+    "turndown-plugin-gfm": "1.0.2",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+  },
+  "overrides": {
+    "zod": "4.4.3",
+    "fast-uri": "3.1.6",
+    "eventsource-parser": "3.1.0"
+  },
+  "imports": {
+    "#mcp-sdk": "./dist/generated/mcp-sdk.mjs",
+    "#models-dev": "./dist/generated/models-dev.ts",
+    "#capabilities/*": "./dist/generated/capabilities/*.ts",
+    "#sdk/background": "./src/sdk/background.ts",
+    "#sdk/sidepanel": "./src/sdk/sidepanel.ts",
+    "#sdk/background/*": "./src/sdk/background/*.ts",
+    "#sdk/sidepanel/*": "./src/sdk/sidepanel/*.ts",
+    "#sdk/shared/*": "./src/sdk/shared/*.ts"
+  },
+  "description": "An extensible browser agent workspace for Chrome",
+  "license": "Apache-2.0"
+}

@@ -1,0 +1,15 @@
+{
+  "accessibility.inspectPageTree": "Seitenstruktur prüfen",
+  "accessibility.pageInspection": "Seitenprüfung",
+  "accessibility.pageStructure": "Seitenstruktur",
+  "accessibility.element": "Element",
+  "accessibility.editable": "Bearbeitbar",
+  "accessibility.outsideViewport": "Außerhalb des sichtbaren Bereichs",
+  "accessibility.interactiveElements": "Interaktive Elemente",
+  "accessibility.attributes": "Attribute",
+  "accessibility.cannotResolveAxRoot": "Wurzel der Seitenstruktur nicht gefunden: {selector}",
+  "accessibility.pageOverviewResponseIsInvalid": "Die Seitenübersicht hat eine ungültige Antwort zurückgegeben.",
+  "accessibility.items": "Elemente",
+  "accessibility.showingTheFirst": "Angezeigt werden die ersten",
+  "accessibility.inspectPageTreeShort": "Seite prüfen"
+}

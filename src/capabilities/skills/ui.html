@@ -1,0 +1,274 @@
+<div id="skills-panel" class="tab-panel hidden qz-scroll">
+      <div class="qz-list-toolbar skills-toolbar qz:sticky">
+        <div class="qz-list-toolbar-tabs-row">
+          <div class="qz-segment qz-list-toolbar-tabs skills-filters qz:flex-none" aria-label="技能来源" data-i18n-aria-label="skills.skillSource">
+            <button class="qz-segment-item qz-list-toolbar-tab skill-filter-btn active" type="button" data-skill-filter="mine" aria-pressed="true" data-i18n="skills.mine">我的</button>
+            <button class="qz-segment-item qz-list-toolbar-tab skill-filter-btn" type="button" data-skill-filter="builtin" aria-pressed="false" data-i18n="skills.builtIn">内置</button>
+          </div>
+        </div>
+        <div class="qz-list-toolbar-search-row">
+          <input id="skills-search" type="search" class="qz-field qz-list-toolbar-search" placeholder="搜索技能..." data-i18n-placeholder="skills.searchSkills">
+          <div class="qz-list-toolbar-actions skills-package-actions qz:justify-end">
+            <div class="skills-import-control qz:relative">
+              <button id="btn-import-skills" class="qz-btn qz-btn--secondary qz-list-toolbar-action" type="button">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"/>
+                  <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
+                  <path d="M2 15h10"/>
+                  <path d="m9 18 3-3-3-3"/>
+                </svg>
+                <span data-i18n="skills.import">导入</span>
+              </button>
+              <div id="skills-import-menu" class="qz-popover qz-menu skills-import-menu hidden qz:absolute qz:min-w-28">
+                <button id="btn-import-skills-zip" class="qz-menu-item skills-import-menu-item" type="button" data-i18n="skills.zipPackage">Zip 包</button>
+                <button id="btn-import-skills-dir" class="qz-menu-item skills-import-menu-item" type="button" data-i18n="skills.directory">目录</button>
+                <button id="btn-import-skills-git" class="qz-menu-item skills-import-menu-item" type="button" data-i18n="skills.gitRepository">Git 仓库</button>
+              </div>
+            </div>
+            <button id="btn-export-skills" class="qz-btn qz-btn--secondary qz-list-toolbar-action" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/>
+              </svg>
+              <span data-i18n="skills.export">导出</span>
+            </button>
+            <input id="skills-import-file" class="hidden" type="file" accept=".zip,application/zip,application/x-zip-compressed">
+          </div>
+        </div>
+      </div>
+      <section id="git-skill-sources-panel" class="git-skill-sources-panel hidden qz:relative qz:flex qz:min-h-0 qz:flex-1 qz:flex-col qz:overflow-hidden" aria-label="Git 仓库来源" data-i18n-aria-label="skills.gitRepositorySources">
+        <div class="git-skill-sources-head qz:grid qz:items-center qz:gap-2">
+          <button id="btn-close-git-skill-sources" class="qz-icon-btn qz-icon-btn--md icon-btn" type="button" title="返回技能列表" aria-label="返回技能列表" data-i18n-title="skills.backToSkills" data-i18n-aria-label="skills.backToSkills">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <div>
+            <h3 data-i18n="skills.gitRepository">Git 仓库</h3>
+            <p id="git-skill-sources-summary" data-i18n="skills.repositorySources">仓库来源</p>
+          </div>
+        </div>
+        <form id="git-skill-source-form" class="git-skill-source-form qz:grid" novalidate>
+          <label class="qz-field-label" for="git-skill-source-url" data-i18n="skills.repositoryUrl">仓库地址</label>
+          <div class="git-skill-source-bind-row qz:grid qz:items-center">
+            <input id="git-skill-source-url" class="qz-field qz-field--sm" type="text" inputmode="url" autocomplete="url" spellcheck="false" placeholder="粘贴仓库页面地址" data-i18n-placeholder="skills.pasteARepositoryPageUrl">
+            <button id="btn-bind-git-skill-source" class="qz-btn qz-btn--primary qz-btn--sm" type="submit" data-i18n="skills.connect">绑定</button>
+          </div>
+          <p class="git-skill-source-support qz:m-0" data-i18n="skills.supportsGithubAndGitlabRepositoryOrDirectoryUrls">支持 GitHub 与 GitLab，可粘贴仓库或目录页</p>
+        </form>
+        <div id="git-skill-sources-list" class="git-skill-sources-list qz-scroll qz:min-h-0 qz:flex-1 qz:overflow-x-hidden qz:overflow-y-auto"></div>
+        <div id="git-skill-sources-status" class="git-skill-sources-status qz:flex qz:items-center" role="status" aria-live="polite"></div>
+      </section>
+      <div id="skills-list" class="skills-list qz-scroll qz:flex-1 qz:overflow-x-hidden qz:overflow-y-auto"></div>
+      <div id="skill-detail" class="skill-detail hidden qz:relative qz:flex-1 qz:overflow-hidden qz:flex-col">
+        <div class="skill-detail-header qz:h-13.5">
+          <button id="btn-back-skills" class="qz-icon-btn qz-icon-btn--md icon-btn" type="button" title="返回技能列表" aria-label="返回技能列表" data-i18n-title="skills.backToSkills" data-i18n-aria-label="skills.backToSkills">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="skill-detail-title-block qz:min-w-0 qz:flex-1 qz:overflow-hidden">
+            <div class="skill-detail-title-row qz:flex qz:items-center qz:overflow-hidden">
+              <h3 id="skill-detail-name"></h3>
+            </div>
+          </div>
+          <button id="btn-publish-skill-git" class="qz-btn qz-btn--secondary qz-btn--sm skill-git-publish-btn hidden" type="button" title="提交到当前 Code 目录" aria-label="提交到当前 Code 目录" data-i18n-title="skills.commitToCurrentCodeDirectory" data-i18n-aria-label="skills.commitToCurrentCodeDirectory">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+              <path d="M3 12h6M15 12h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span data-i18n="skills.commitToGit">提交 Git</span>
+          </button>
+          <button id="btn-save-skill-edit-top" class="qz-btn qz-btn--secondary qz-btn--sm skill-editor-save-btn saved" type="button" title="Skill 已保存" disabled data-i18n-title="skills.skillSavedStatus">
+            <svg class="skill-save-icon skill-save-icon-save" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7M7 3v4a1 1 0 0 0 1 1h7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <svg class="skill-save-icon skill-save-icon-check" width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="m3.5 8.25 2.75 2.75 6.25-6.25" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span data-i18n="skills.saved">已保存</span>
+          </button>
+          <div class="skill-detail-actions qz:flex-none qz:flex qz:items-center qz:gap-px">
+            <span class="skill-context-action-slot qz:w-8 qz:h-8" aria-label="当前分区操作" data-i18n-aria-label="skills.currentSectionActions">
+              <button id="btn-edit-skill" class="qz-icon-btn qz-icon-btn--md icon-btn skill-header-action skill-context-action" type="button" title="编辑正文" aria-label="编辑正文" aria-pressed="false" data-i18n-title="skills.editContent" data-i18n-aria-label="skills.editContent">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              </button>
+              <button id="btn-preview-skill" class="qz-icon-btn qz-icon-btn--md icon-btn skill-header-action skill-context-action hidden" type="button" title="预览正文" aria-label="预览正文" aria-pressed="true" data-i18n-title="skills.previewContent" data-i18n-aria-label="skills.previewContent">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg>
+              </button>
+              <button id="btn-add-skill-resource" class="qz-icon-btn qz-icon-btn--md icon-btn skill-header-action skill-context-action hidden" type="button" title="添加资源" aria-label="添加资源" data-i18n-title="skills.addResource" data-i18n-aria-label="skills.addResource">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg>
+              </button>
+              <button id="btn-add-skill-mcp" class="qz-icon-btn qz-icon-btn--md icon-btn skill-header-action skill-context-action hidden" type="button" title="添加 MCP" aria-label="添加 MCP" data-i18n-title="skills.addMcp" data-i18n-aria-label="skills.addMcp">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg>
+              </button>
+            </span>
+            <span class="skill-actions-menu-anchor qz:relative qz:inline-flex qz:flex-none">
+              <button id="btn-skill-actions" class="qz-icon-btn qz-icon-btn--md icon-btn skill-header-action" type="button" title="更多 Skill 操作" aria-label="更多 Skill 操作" aria-haspopup="menu" aria-expanded="false" aria-controls="skill-actions-menu" data-i18n-title="skills.moreSkillActions" data-i18n-aria-label="skills.moreSkillActions">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
+              </button>
+              <div id="skill-actions-menu" class="qz-popover qz-menu skill-actions-menu hidden qz:absolute qz:w-42" role="menu" aria-label="Skill 操作" data-i18n-aria-label="skills.skillActions">
+                <button id="btn-skill-settings" class="qz-menu-item skill-actions-menu-item qz:flex qz:items-center" type="button" role="menuitem">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z"/><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+                  <span data-i18n="skills.basicSettings">基本设置</span>
+                </button>
+                <button id="btn-export-skill" class="qz-menu-item skill-actions-menu-item qz:flex qz:items-center" type="button" role="menuitem">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+                  <span data-i18n="skills.exportSkill">导出 Skill</span>
+                </button>
+                <div class="skill-actions-menu-separator qz:h-px" role="separator"></div>
+                <button id="btn-delete-skill" class="qz-menu-item skill-actions-menu-item skill-actions-menu-danger qz:flex qz:items-center" type="button" role="menuitem">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M6 7l1 14h10l1-14"/><path d="M9 7V4h6v3"/></svg>
+                  <span data-i18n="skills.deleteSkillAction">删除 Skill</span>
+                </button>
+              </div>
+            </span>
+          </div>
+        </div>
+        <section id="skill-search-bar" class="qz-popover chat-search-bar skill-search-bar hidden qz:absolute qz:right-3 qz:z-60 qz:flex qz:min-h-9.5 qz:w-[min(360px,calc(100%-24px))] qz:items-center qz:gap-1 qz:p-1.25" role="search" aria-label="搜索关键词" data-i18n-aria-label="skills.searchKeywords">
+          <input id="skill-search-input" class="qz-field qz-field--bare chat-search-input qz:h-7 qz:min-w-0 qz:flex-auto qz:px-1.75 qz:py-0" type="search" autocomplete="off" placeholder="搜索关键词" aria-label="搜索关键词" data-i18n-placeholder="skills.searchKeywords" data-i18n-aria-label="skills.searchKeywords">
+          <span id="skill-search-count" class="chat-search-count qz:min-w-10 qz:flex-none qz:text-center qz:select-none" aria-live="polite">0/0</span>
+          <button id="skill-search-prev" class="qz-icon-btn qz-icon-btn--sm chat-search-btn" type="button" title="上一个" aria-label="上一个搜索结果" data-i18n-title="skills.previous" data-i18n-aria-label="skills.previousSearchResult">
+            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4.5 9.5 8 6l3.5 3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button id="skill-search-next" class="qz-icon-btn qz-icon-btn--sm chat-search-btn" type="button" title="下一个" aria-label="下一个搜索结果" data-i18n-title="skills.next" data-i18n-aria-label="skills.nextSearchResult">
+            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4.5 6.5 8 10l3.5-3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button id="skill-search-close" class="qz-icon-btn qz-icon-btn--sm chat-search-btn" type="button" title="关闭" aria-label="关闭搜索" data-i18n-title="skills.close" data-i18n-aria-label="skills.closeSearch">
+            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4.5 4.5 11.5 11.5M11.5 4.5 4.5 11.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </button>
+        </section>
+        <nav class="qz-segment skill-workbench-tabs qz:h-11 qz:flex-none qz:flex qz:items-center" role="tablist" aria-label="Skill 分区" data-i18n-aria-label="skills.skillSections">
+          <div class="skill-workbench-tab-track qz:w-full qz:h-9.5 qz:grid qz:grid-cols-3 qz:gap-0.5">
+            <button id="skill-tab-content" class="qz-segment-item skill-workbench-tab active qz:min-w-0 qz:h-8 qz:inline-flex qz:items-center qz:justify-center qz:gap-1.5" type="button" role="tab" aria-selected="true" data-skill-section="content" data-i18n="skills.content">内容</button>
+            <button id="skill-tab-resources" class="qz-segment-item skill-workbench-tab qz:min-w-0 qz:h-8 qz:inline-flex qz:items-center qz:justify-center qz:gap-1.5" type="button" role="tab" aria-selected="false" data-skill-section="resources">
+              <span data-i18n="skills.resources">资源</span><span id="skill-tab-resource-count" class="skill-workbench-tab-count">0</span>
+            </button>
+            <button id="skill-tab-mcp" class="qz-segment-item skill-workbench-tab qz:min-w-0 qz:h-8 qz:inline-flex qz:items-center qz:justify-center qz:gap-1.5" type="button" role="tab" aria-selected="false" data-skill-section="mcp">
+              <span>MCP</span><span id="skill-tab-mcp-count" class="skill-workbench-tab-count">0</span>
+            </button>
+          </div>
+        </nav>
+        <div class="skill-workbench-body qz:relative qz:min-w-0 qz:min-h-0 qz:flex-1 qz:overflow-hidden">
+          <section id="skill-section-content" class="skill-workbench-panel active qz:absolute qz:flex-col" data-skill-section-panel="content" aria-label="Skill 内容" data-i18n-aria-label="skills.skillContent">
+            <div id="skill-content-preview" class="skill-content-preview qz-scroll qz:min-w-0 qz:overflow-y-auto">
+              <div id="skill-detail-time" class="skill-time qz:flex-none"></div>
+              <p id="skill-detail-desc" class="skill-desc qz:flex-none"></p>
+              <div id="skill-detail-content" class="skill-content qz-scroll qz:min-w-0"></div>
+            </div>
+            <div id="skill-editor" class="skill-editor hidden qz-scroll qz:relative qz:flex qz:flex-col">
+              <div class="markdown-editor skill-body-editor qz:flex-1">
+                <pre id="skill-body-highlight" class="hljs language-markdown" aria-hidden="true"></pre>
+                <textarea id="skill-body-text" spellcheck="false" wrap="soft" aria-label="Skill 正文" data-i18n-aria-label="skills.skillInstructions"></textarea>
+              </div>
+            </div>
+            <footer class="skill-workbench-statusbar qz:h-7 qz:flex-none qz:flex qz:items-center qz:gap-3">
+              <span id="skill-content-status" data-i18n="skills.previewIsUpToDate">预览已同步</span>
+              <span id="skill-content-summary" class="skill-workbench-status-right qz:ml-auto"></span>
+            </footer>
+          </section>
+
+          <section id="skill-detail-resources" class="skill-workbench-panel qz:absolute qz:flex-col" data-skill-section-panel="resources" aria-label="Skill 资源" data-i18n-aria-label="skills.skillResources">
+            <div id="skill-resources-list" class="skill-resource-edit-list qz-scroll"></div>
+          </section>
+
+          <section id="skill-mcp-editor" class="skill-workbench-panel skill-mcp-editor qz:absolute qz:flex-col" data-skill-section-panel="mcp" aria-label="Skill MCP">
+            <div id="skill-mcp-list" class="skill-mcp-edit-list qz-scroll qz:gap-2"></div>
+          </section>
+
+          <section id="skill-settings-view" class="skill-workbench-subview hidden qz:absolute qz:flex qz:flex-col qz:min-w-0 qz:min-h-0" aria-label="Skill 基本配置" data-i18n-aria-label="skills.skillBasicConfiguration">
+            <div class="skill-subview-header qz:h-12 qz:flex qz:items-center qz:gap-2">
+              <button id="btn-close-skill-settings" class="qz-icon-btn qz-icon-btn--md icon-btn" type="button" title="返回内容" aria-label="返回内容" data-i18n-title="skills.backToContent" data-i18n-aria-label="skills.backToContent">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 3 5 8l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <strong data-i18n="skills.basicConfiguration">基本配置</strong>
+            </div>
+            <div class="skill-settings-scroll qz-scroll">
+              <section class="skill-config-section skill-config-identity">
+                <div class="skill-config-grid skill-config-identity-grid qz:grid-cols-2">
+                  <label><span data-i18n="skills.displayName">显示名称</span><input id="skill-config-display-name" class="qz-field qz-field--sm" type="text" autocomplete="off"></label>
+                  <label><span>Skill ID</span><input id="skill-config-name" class="qz-field qz-field--sm qz-field--mono" type="text" autocomplete="off" spellcheck="false"></label>
+                  <label class="skill-config-description-field"><span data-i18n="skills.description">描述</span><textarea id="skill-config-description" class="qz-field qz-field--sm" rows="2" wrap="soft"></textarea></label>
+                </div>
+              </section>
+              <section class="skill-config-section skill-config-behavior">
+                <div class="skill-config-scope-row qz:grid qz:items-center qz:gap-2">
+                  <span class="skill-config-row-label" data-i18n="skills.scope">作用范围</span>
+                  <div id="skill-config-scope" class="qz-segment skill-config-scope qz:grid qz:grid-cols-3 qz:gap-0.5" role="group" aria-label="作用范围" data-i18n-aria-label="skills.scope">
+                    <button class="qz-segment-item skill-config-scope-btn" type="button" data-skill-scope="resident" data-i18n="skills.resident">常驻</button>
+                    <button class="qz-segment-item skill-config-scope-btn" type="button" data-skill-scope="global" data-i18n="skills.global">全局</button>
+                    <button class="qz-segment-item skill-config-scope-btn" type="button" data-skill-scope="site" data-i18n="skills.site">站点</button>
+                  </div>
+                </div>
+                <div class="skill-config-grid skill-config-scope-fields">
+                  <label><span data-i18n="skills.siteDomains">站点域名</span><textarea id="skill-config-domains" class="qz-field qz-field--sm qz-field--mono" rows="1" spellcheck="false" wrap="soft" placeholder="example.com，每行一个" data-i18n-placeholder="skills.exampleComOnePerLine"></textarea></label>
+                  <label><span data-i18n="skills.urlPatterns">URL 匹配</span><textarea id="skill-config-url-patterns" class="qz-field qz-field--sm qz-field--mono" rows="1" spellcheck="false" wrap="soft" placeholder="https://*.example.com/**"></textarea></label>
+                  <label><span data-i18n="skills.excludedUrls">排除 URL</span><textarea id="skill-config-exclude-patterns" class="qz-field qz-field--sm qz-field--mono" rows="1" spellcheck="false" wrap="soft" placeholder="可选" data-i18n-placeholder="skills.optional"></textarea></label>
+                </div>
+                <label class="skill-config-enabled qz:flex qz:items-center qz:justify-between qz:gap-3">
+                  <strong data-i18n="skills.enableSkill">启用 Skill</strong>
+                  <input id="skill-config-enabled" class="qz-switch" type="checkbox">
+                </label>
+              </section>
+              <section class="skill-config-section skill-config-advanced qz:pt-1 qz:pb-0">
+                <button id="btn-open-skill-source" class="skill-source-link qz:min-h-9.5 qz:items-center" type="button">
+                  <span class="skill-source-link-icon qz:w-6 qz:h-6 qz:inline-flex qz:items-center qz:justify-center">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg>
+                  </span>
+                  <span><strong data-i18n="skills.fullSkillMd">完整 SKILL.md</strong></span>
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+                </button>
+              </section>
+            </div>
+          </section>
+
+          <section id="skill-source-view" class="skill-workbench-subview hidden qz:absolute qz:flex qz:flex-col qz:min-w-0 qz:min-h-0" aria-label="完整 SKILL.md 源码" data-i18n-aria-label="skills.fullSkillMdSource">
+            <div class="skill-subview-header qz:h-12 qz:flex qz:items-center qz:gap-2">
+              <button id="btn-close-skill-source" class="qz-icon-btn qz-icon-btn--md icon-btn" type="button" title="返回基本配置" aria-label="返回基本配置" data-i18n-title="skills.backToBasicConfiguration" data-i18n-aria-label="skills.backToBasicConfiguration">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 3 5 8l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <strong data-i18n="skills.fullSkillMd">完整 SKILL.md</strong>
+            </div>
+            <div class="skill-source-editor qz:min-w-0 qz:flex-1">
+              <div class="markdown-editor qz:flex-1">
+                <pre id="skill-editor-highlight" class="hljs language-markdown" aria-hidden="true"></pre>
+                <textarea id="skill-editor-text" spellcheck="false" wrap="soft" aria-label="完整 SKILL.md 源码" data-i18n-aria-label="skills.fullSkillMdSource"></textarea>
+              </div>
+            </div>
+            <footer class="skill-workbench-statusbar qz:h-7 qz:flex-none qz:flex qz:items-center qz:gap-3">
+              <span id="skill-source-status" data-i18n="skills.validYaml">YAML 有效</span>
+            </footer>
+          </section>
+
+          <div id="skill-editor-status" class="skill-editor-status qz:absolute" role="status" aria-live="polite"></div>
+        </div>
+        <div id="skill-git-publish-confirm" class="skill-git-publish-confirm hidden qz:absolute qz:items-end qz:justify-center" role="dialog" aria-modal="true" aria-labelledby="skill-git-publish-title" aria-describedby="skill-git-publish-note">
+          <button class="qz-btn qz-btn--ghost skill-git-publish-backdrop qz:absolute qz:w-full qz:h-full qz:min-h-0 qz:block qz:m-0" type="button" data-skill-git-publish-action="cancel" aria-label="取消提交" data-i18n-aria-label="skills.cancelCommit"></button>
+          <div class="skill-git-publish-sheet qz:relative qz:w-full">
+            <div class="skill-git-publish-heading qz:flex qz:items-start">
+              <span class="skill-git-publish-mark qz:w-7 qz:h-7 qz:inline-flex qz:items-center qz:justify-center" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                  <path d="M3 12h6M15 12h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </span>
+              <div>
+                <h4 id="skill-git-publish-title" data-i18n="skills.commitToCode">提交到 Code</h4>
+                <p id="skill-git-publish-repository"></p>
+              </div>
+            </div>
+            <div class="skill-git-publish-target qz:grid qz:items-baseline">
+              <span data-i18n="skills.targetDirectory">目标目录</span>
+              <code id="skill-git-publish-path"></code>
+              <small id="skill-git-publish-meta"></small>
+            </div>
+            <label class="skill-git-publish-message qz:grid">
+              <span data-i18n="skills.commitMessage">提交说明</span>
+              <input id="skill-git-publish-message" class="qz-field qz-field--sm" type="text" maxlength="240" autocomplete="off" spellcheck="false">
+            </label>
+            <p id="skill-git-publish-note" class="skill-git-publish-note" data-i18n="skills.filesWithMatchingNamesWillBeUpdatedExtraRemoteFiles">同名文件会更新；远端多出的文件不会删除。全部文件在一次 commit 中原子提交。</p>
+            <div id="skill-git-publish-status" class="skill-git-publish-status qz:flex qz:items-center qz:gap-1.5" role="status" aria-live="polite"></div>
+            <div class="skill-git-publish-actions qz:flex qz:justify-end qz:gap-1.5 qz:mt-2.5">
+              <button class="qz-btn qz-btn--ghost qz-btn--sm" type="button" data-skill-git-publish-action="cancel" data-i18n="skills.cancel">取消</button>
+              <button id="btn-confirm-skill-git-publish" class="qz-btn qz-btn--primary qz-btn--sm" type="button" data-i18n="skills.commitToCode">提交到 Code</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>

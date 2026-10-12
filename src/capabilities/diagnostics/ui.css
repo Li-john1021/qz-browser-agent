@@ -1,0 +1,93 @@
+@layer components {
+.logs-toolbar {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.logs-action-status {
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.logs-content {
+  padding: 12px 14px;
+  word-break: break-word;
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+/* Tool presentation owned by this capability. */
+.tool-console-list {
+  margin-top: 8px;
+}
+
+.tool-console-list {
+  display: grid;
+  gap: 6px;
+}
+
+.tool-console-rows {
+  display: grid;
+  gap: 5px;
+  max-height: 260px;
+  overflow: auto;
+  scrollbar-gutter: stable;
+}
+
+.tool-console-row {
+  min-width: 0;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: var(--block-radius);
+  background: var(--block-fill);
+}
+
+.tool-console-row-error,
+.tool-console-row-exception,
+.tool-console-row-assert {
+  background: color-mix(in srgb, var(--red) 7%, var(--block-fill));
+}
+
+.tool-console-row-warning,
+.tool-console-row-warn {
+  background: color-mix(in srgb, var(--orange) 7%, var(--block-fill));
+}
+
+.tool-console-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 4px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: calc(10px * var(--chat-text-scale, 1));
+  line-height: 1.45;
+}
+
+.tool-console-level {
+  color: var(--text-secondary);
+  font-weight: 650;
+}
+
+.tool-console-message {
+  min-width: 0;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: calc(11px * var(--chat-text-scale, 1));
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.tool-console-source {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: calc(10px * var(--chat-text-scale, 1));
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+}

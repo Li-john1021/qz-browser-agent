@@ -1,0 +1,5 @@
+{
+  "manifest.extensionName": "輕舟",
+  "manifest.extensionDescription": "輕舟是瀏覽器中的 AI 助理工作區。",
+  "manifest.switchModel": "快速切換模型預設組合"
+}

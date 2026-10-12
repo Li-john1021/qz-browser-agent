@@ -1,0 +1,94 @@
+{
+  "name": "thinking-tools-stream",
+  "widths": [360, 420, 560],
+  "conversation": {
+    "title": "思考与工具交错流",
+    "entries": [
+      {
+        "type": "user",
+        "_uiKey": "tts-u1",
+        "text": "帮我查杭州天气，过程保持轻量。"
+      },
+      {
+        "type": "thinking",
+        "_uiKey": "tts-th1",
+        "text": "先判断任务边界：用户要天气信息，不涉及提交、发送消息或远程删除，因此可以直接读取公开页面。"
+      },
+      {
+        "type": "tool",
+        "_uiKey": "tts-t1",
+        "toolCallId": "tts-t1",
+        "name": "open_tab",
+        "args": {
+          "url": "https://wttr.in/Hangzhou?lang=zh"
+        },
+        "result": {
+          "title": "wttr.in — Weather Report",
+          "url": "https://wttr.in/Hangzhou?lang=zh",
+          "tabId": 1887129311
+        }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "tts-t2",
+        "toolCallId": "tts-t2",
+        "name": "wait_for_navigation",
+        "args": {
+          "tabId": 1887129311,
+          "timeoutMs": 10000
+        },
+        "result": {
+          "message": "已导航到目标页",
+          "elapsedMs": 812,
+          "_pageTitle": "wttr.in — Weather Report",
+          "_pageUrl": "https://wttr.in/Hangzhou?lang=zh"
+        }
+      },
+      {
+        "type": "thinking",
+        "_uiKey": "tts-th2",
+        "text": "页面已打开，接下来读取正文并只保留用户需要的摘要。这里是用于收起态预览的长文本，前半段不重要，后半段应稳定停在最新串流尾部。",
+        "streaming": true
+      },
+      {
+        "type": "tool",
+        "_uiKey": "tts-t3",
+        "toolCallId": "tts-t3",
+        "name": "read_article",
+        "args": {
+          "source": "auto",
+          "tabId": 1887129311,
+          "limit": 4000
+        },
+        "result": {
+          "title": "Hangzhou Weather",
+          "url": "https://wttr.in/Hangzhou?lang=zh",
+          "text": "Hangzhou: Light Rain Shower +22°C 88% ↖5km/h 0.2mm\n\nHumidity: 88%\nWind: northwest 5km/h\nRain: 0.2mm\n\n用于测试正文卡片的短文本。"
+        }
+      }
+    ]
+  },
+  "steps": [
+    { "action": "assert", "expect": "selectorCount", "selector": ".msg-thinking-group", "equals": 1 },
+    { "action": "assert", "expect": "selectorCount", "selector": ".msg-tool-timeline", "equals": 1 },
+    { "action": "assert", "expect": "collapsedLane", "lane": "thinking" },
+    { "action": "assert", "expect": "collapsedLane", "lane": "tool" },
+    { "action": "assert", "expect": "laneOrder" },
+    { "action": "assert", "expect": "laneWidthsAligned" },
+    { "action": "assert", "expect": "thinkingPreviewTail", "includes": "最新串流尾部" },
+    { "action": "expandThinking", "label": "展开思考 lane" },
+    { "action": "assert", "expect": "expandedLane", "lane": "thinking" },
+    { "action": "assert", "expect": "navText", "selector": ".thinking-group-slot-nav span", "equals": "2/2" },
+    { "action": "clickThinkingNav", "direction": -1, "label": "回看第一段思考" },
+    { "action": "assert", "expect": "navText", "selector": ".thinking-group-slot-nav span", "equals": "1/2" },
+    { "action": "assert", "expect": "selectorText", "selector": ".thinking-group-body", "includes": "判断任务边界" },
+    { "action": "collapseThinking", "label": "收起思考 lane" },
+    { "action": "assert", "expect": "collapsedLane", "lane": "thinking" },
+    { "action": "expandGroup", "group": 0, "label": "展开工具 lane" },
+    { "action": "assert", "expect": "expandedLane", "lane": "tool" },
+    { "action": "assert", "expect": "navText", "selector": ".tool-timeline-slot-nav span", "equals": "3/3" },
+    { "action": "clickStep", "group": 0, "step": "采集正文", "label": "切到采集正文" },
+    { "action": "assert", "expect": "activeText", "includes": "采集正文" },
+    { "action": "assert", "expect": "noHorizontalOverflow" }
+  ]
+}

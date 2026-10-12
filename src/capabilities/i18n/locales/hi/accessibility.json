@@ -1,0 +1,15 @@
+{
+  "accessibility.inspectPageTree": "पेज की संरचना जाँचें",
+  "accessibility.pageInspection": "पेज की जाँच",
+  "accessibility.pageStructure": "पेज की संरचना",
+  "accessibility.element": "एलिमेंट",
+  "accessibility.editable": "संपादन योग्य",
+  "accessibility.outsideViewport": "दिखाई देने वाले हिस्से से बाहर",
+  "accessibility.interactiveElements": "इंटरैक्टिव एलिमेंट",
+  "accessibility.attributes": "एट्रिब्यूट",
+  "accessibility.cannotResolveAxRoot": "पेज की संरचना का रूट नहीं मिला: {selector}",
+  "accessibility.pageOverviewResponseIsInvalid": "पेज के अवलोकन ने अमान्य जवाब दिया।",
+  "accessibility.items": "आइटम",
+  "accessibility.showingTheFirst": "शुरुआती",
+  "accessibility.inspectPageTreeShort": "पेज जाँचें"
+}

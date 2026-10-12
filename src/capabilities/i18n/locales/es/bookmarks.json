@@ -1,0 +1,21 @@
+{
+  "bookmarks.bookmarks": "Marcadores",
+  "bookmarks.history": "Historial",
+  "bookmarks.visits": "Visitas: {count}",
+  "bookmarks.deleted": "Eliminados: {count}",
+  "bookmarks.manageBookmarks": "Gestionar marcadores",
+  "bookmarks.browsingHistory": "Historial de navegación",
+  "bookmarks.manageBookmarksSearchRequiresANonEmptyQuery": "Para buscar marcadores, query no puede estar vacío.",
+  "bookmarks.manageBookmarksCreateRequiresTitleOrUrl": "Para crear un marcador, se necesita title o url.",
+  "bookmarks.manageBookmarksUpdateRequiresId": "Para actualizar un marcador, se necesita id.",
+  "bookmarks.manageBookmarksUpdateRequiresTitleOrUrlToMove": "Para actualizar un marcador, se necesita title o url. Para mover un marcador o carpeta, usa action=move con parentId o index.",
+  "bookmarks.manageBookmarksMoveRequiresId": "Para mover un marcador, se necesita id.",
+  "bookmarks.manageBookmarksMoveRequiresParentidOrIndex": "Para mover un marcador, se necesita parentId o index.",
+  "bookmarks.manageBookmarksDeleteRequiresId": "Para eliminar un marcador, se necesita id.",
+  "bookmarks.unsupportedManageBookmarksAction": "Acción de manage_bookmarks no compatible: {action}",
+  "bookmarks.browseHistorySearchRequiresANonEmptyQuery": "Para buscar en el historial, query no puede estar vacío.",
+  "bookmarks.unsupportedBrowseHistoryAction": "Acción de browse_history no compatible: {action}",
+  "bookmarks.items": "Elementos",
+  "bookmarks.manageBookmarksShort": "Gestionar marcadores",
+  "bookmarks.browsingHistoryShort": "Historial"
+}

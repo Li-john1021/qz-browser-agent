@@ -1,0 +1,134 @@
+/* ============================================================================
+   Messages
+   ============================================================================ */
+
+#messages {
+  --chat-tail-safe-bottom: 12px;
+  --chat-turn-gap: 14px;
+  --chat-trace-gap: 8px;
+  --chat-preference-scale: 1;
+  --chat-text-scale: clamp(0.875, var(--chat-preference-scale), 1.291667);
+  --chat-meta-text-scale: 1;
+  --chat-content-font-size: clamp(11px, calc(13px * var(--chat-preference-scale)), 18px);
+  --chat-table-font-size: clamp(10.5px, calc(12px * var(--chat-preference-scale)), 15.5px);
+  --messages-top-gap: 18px;
+  --viewport-anchor-before-space: 0px;
+  --viewport-anchor-after-space: 0px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  /* Symmetric scrollbar gutters keep both sides aligned; padding preserves the reading inset. */
+  padding: 0 10px var(--chat-tail-safe-bottom);
+  scroll-padding-bottom: var(--chat-tail-safe-bottom);
+  scroll-behavior: auto;
+  scrollbar-gutter: stable both-edges;
+  scrollbar-color: transparent transparent;
+  overflow-anchor: none;
+  overscroll-behavior: contain;
+}
+
+#messages[data-chat-text-size="small"] { --chat-preference-scale: 0.8; --chat-meta-text-scale: 0.909091; }
+#messages[data-chat-text-size="compact"] { --chat-preference-scale: 0.9; --chat-meta-text-scale: 0.954545; }
+#messages[data-chat-text-size="standard"] { --chat-preference-scale: 1; --chat-meta-text-scale: 1; }
+#messages[data-chat-text-size="comfortable"] { --chat-preference-scale: 1.1; --chat-meta-text-scale: 1.054545; }
+#messages[data-chat-text-size="large"] { --chat-preference-scale: 1.25; --chat-meta-text-scale: 1.127273; }
+#messages[data-chat-text-size="xlarge"] { --chat-preference-scale: 1.4; --chat-meta-text-scale: 1.181818; }
+
+#messages::before {
+  content: "";
+  display: block;
+  height: calc(var(--messages-top-gap) + var(--viewport-anchor-before-space));
+  flex: 0 0 auto;
+}
+
+#messages::after {
+  content: "";
+  display: block;
+  height: var(--viewport-anchor-after-space);
+  pointer-events: none;
+}
+
+#messages[data-chat-state="landing"] {
+  overflow-y: hidden;
+  padding-inline: 14px;
+  scrollbar-gutter: auto;
+}
+
+#messages[data-chat-state="landing"]::before {
+  height: 0;
+}
+
+#messages:hover,
+#messages:focus-within {
+  scrollbar-color: var(--qz-scrollbar-thumb) transparent;
+}
+
+#messages::-webkit-scrollbar {
+  width: var(--qz-scrollbar-size);
+  height: var(--qz-scrollbar-size);
+}
+#messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+#messages::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: var(--qz-scrollbar-radius);
+}
+
+#messages:hover::-webkit-scrollbar-thumb,
+#messages:focus-within::-webkit-scrollbar-thumb {
+  background: var(--qz-scrollbar-thumb);
+}
+
+.chat-search-bar {
+  --qz-popover-border: color-mix(in srgb, var(--border) 82%, transparent);
+  --qz-popover-radius: var(--radius-lg);
+  --qz-popover-surface: color-mix(in srgb, var(--popover-surface) 94%, transparent);
+  --qz-popover-shadow: var(--shadow-md);
+  --qz-popover-motion: var(--motion-fast);
+  top: 58px;
+  backdrop-filter: blur(14px);
+  animation: panel-in var(--motion-fast) var(--ease-emphasized);
+}
+
+#session-title-bar:not(.hidden) + .chat-search-bar {
+  top: 92px;
+}
+
+.chat-search-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text-primary);
+  font: 13px/1.4 var(--font-sans);
+}
+
+.chat-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.chat-search-count {
+  color: var(--text-muted);
+  font: 11px/1 var(--font-mono);
+}
+
+.chat-search-btn {
+  border: none;
+}
+
+.msg.chat-search-match-entry {
+  scroll-margin-top: 72px;
+}
+
+.msg:is(.msg-tool, .msg-tool-timeline, .msg-thinking-group).chat-search-active {
+  outline: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  outline-offset: 4px;
+  border-radius: var(--radius-sm);
+}
+
+.chat-search-hit {
+  border-radius: 3px;
+  background: color-mix(in srgb, #f1c40f 44%, transparent);
+  color: inherit;
+  padding: 0 1px;
+}

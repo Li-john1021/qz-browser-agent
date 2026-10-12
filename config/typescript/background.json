@@ -1,0 +1,26 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "lib": [
+      "ES2022",
+      "WebWorker"
+    ],
+    "types": [
+      "chrome"
+    ]
+  },
+  "include": [
+    "../../src/background/**/*.ts",
+    "../../src/shared/**/*.ts",
+    "../../src/products/*/background/**/*.ts",
+    "../../src/products/*/shared/**/*.ts",
+    "../../src/sdk/background.ts",
+    "../../src/sdk/background/**/*.ts",
+    "../../src/sdk/shared/**/*.ts",
+    "../../dist/generated/capabilities/background-roots.ts",
+    "../../dist/generated/capabilities/shared-roots.ts"
+  ],
+  "files": [
+    "../../src/shared/vendor-apis.d.ts"
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "name": "document-network-console",
+  "widths": [360, 420],
+  "conversation": {
+    "title": "文档网络 Console 混合流",
+    "entries": [
+      { "type": "user", "_uiKey": "dnc-u1", "text": "解析文档，同时看下接口和 console 报错。" },
+      {
+        "type": "tool",
+        "_uiKey": "dnc-t1",
+        "toolCallId": "dnc-t1",
+        "name": "qingzhou_documents__document_fetch",
+        "args": { "url": "https://example.com/report.docx" },
+        "result": { "filename": "竞品报告.docx", "sourceUrl": "https://example.com/report.docx", "fileId": "file_8421", "size": 245760, "blockCount": 18, "outline": [{ "level": 1, "text": "摘要" }, { "level": 2, "text": "候选品牌" }] }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "dnc-t2",
+        "toolCallId": "dnc-t2",
+        "name": "qingzhou_documents__document_parse",
+        "args": { "fileId": "file_8421" },
+        "result": { "title": "竞品报告", "docModelId": "doc_8421", "sheetCount": 1, "sheets": [{ "name": "候选品牌", "rowCount": 6, "columns": ["name", "status", "owner", "url"] }], "outline": [{ "level": 1, "text": "结论" }] }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "dnc-t3",
+        "toolCallId": "dnc-t3",
+        "name": "qingzhou_documents__document_read_chunk",
+        "args": { "docModelId": "doc_8421", "chunkIndex": 2, "limit": 1200 },
+        "result": { "title": "竞品报告", "docModelId": "doc_8421", "type": "text", "chunkIndex": 2, "chunkCount": 8, "text": "本块覆盖候选品牌的定位、价格带和渠道状态。A 品牌在线下渠道更强，B 品牌内容种草效率更高。" }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "dnc-t4",
+        "toolCallId": "dnc-t4",
+        "name": "network_body",
+        "args": { "requestId": "req_42", "maxBytes": 24000 },
+        "result": { "requestId": "req_42", "method": "POST", "url": "https://example.com/api/search", "status": 200, "mimeType": "application/json", "durationMs": 1280, "body": "{\"ok\":true,\"items\":[{\"name\":\"蒋村花园\",\"score\":0.82}],\"debug\":{\"source\":\"api-search\"}}" }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "dnc-t5",
+        "toolCallId": "dnc-t5",
+        "name": "read_console_messages",
+        "args": { "level": "warning", "textPattern": "response" },
+        "result": {
+          "messages": [
+            { "level": "warning", "text": "slow response: /api/search 1280ms", "url": "https://example.com/app.js", "lineNumber": 118 },
+            { "level": "error", "text": "retry exhausted for /api/detail", "url": "https://example.com/api.js", "lineNumber": 42 }
+          ],
+          "totalBuffered": 18
+        }
+      }
+    ]
+  },
+  "steps": [
+    { "action": "assert", "expect": "collapsedLane", "lane": "tool" },
+    { "action": "expandGroup", "group": 0, "label": "展开混合工具组" },
+    { "action": "assert", "expect": "navText", "equals": "5/5" },
+    { "action": "assert", "expect": "activeText", "includes": "查看 Console" },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "slow response" },
+    { "action": "clickStep", "group": 0, "step": "解析文档", "label": "查看文档解析" },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "候选品牌" },
+    { "action": "clickStep", "group": 0, "step": "读取文档块", "label": "查看文档块" },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "内容种草效率" },
+    { "action": "clickStep", "group": 0, "step": "读取响应体", "label": "查看响应体" },
+    { "action": "assert", "expect": "selectorCount", "selector": ".tool-timeline-slot .json-block", "min": 1 },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "api-search" },
+    { "action": "assert", "expect": "noHorizontalOverflow" }
+  ]
+}

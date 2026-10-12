@@ -1,0 +1,8 @@
+{
+  "media-tools.screenshotMaxWidth": "Maximale Breite des zurückgegebenen Bildes. Standard und Obergrenze: 2048; kodierte Ausgabe höchstens 2 MiB.",
+  "media-tools.screenshotMaxHeight": "Maximale Höhe des zurückgegebenen Bildes. Standard und Obergrenze: 2048; kodierte Ausgabe höchstens 2 MiB.",
+  "media-tools.collectImagesMaxWidth": "Maximale Bildbreite beim Lesen oder Speichern. Standard und Obergrenze: 2048; kodierte Ausgabe höchstens 2 MiB.",
+  "media-tools.collectImagesMaxHeight": "Maximale Bildhöhe beim Lesen oder Speichern. Standard und Obergrenze: 2048; kodierte Ausgabe höchstens 2 MiB.",
+  "media-tools.collectImagesMaxBytes": "Maximal gelesene Bytes pro URL-Bild. Standard: 20 MiB; Obergrenze: 32 MiB. Kodierte Ausgabe höchstens 2 MiB.",
+  "media-tools.readImageMaxBytes": "Maximal gelesene Bytes pro URL-Bild. Standard: 20 MiB; Obergrenze: 32 MiB. Kodierte Ausgabe höchstens 2 MiB."
+}

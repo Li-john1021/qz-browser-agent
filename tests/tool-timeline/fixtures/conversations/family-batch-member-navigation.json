@@ -1,0 +1,142 @@
+{
+  "name": "family-batch-member-navigation",
+  "widths": [420],
+  "conversation": {
+    "title": "二级聚合批次内翻页",
+    "entries": [
+      { "type": "user", "_uiKey": "fbmn-u1", "text": "连续采集同一页面正文，检查二级聚合批次内翻页。" },
+      {
+        "type": "tool",
+        "_uiKey": "fbmn-t0",
+        "toolCallId": "fbmn-t0",
+        "name": "open_tab",
+        "args": { "url": "https://example.com/repeated" },
+        "result": { "title": "重复正文页", "url": "https://example.com/repeated" }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "fbmn-t1",
+        "toolCallId": "fbmn-t1",
+        "name": "read_article",
+        "args": { "source": "auto", "limit": 1000 },
+        "result": { "title": "重复正文页", "text": "第 1 条正文证据" }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "fbmn-t2",
+        "toolCallId": "fbmn-t2",
+        "name": "read_article",
+        "args": { "source": "auto", "limit": 1000 },
+        "result": { "title": "重复正文页", "text": "第 2 条正文证据" }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "fbmn-t3",
+        "toolCallId": "fbmn-t3",
+        "name": "read_article",
+        "args": { "source": "auto", "limit": 1000 },
+        "result": { "title": "重复正文页", "text": "第 3 条正文证据" }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "fbmn-t4",
+        "toolCallId": "fbmn-t4",
+        "name": "read_article",
+        "args": { "source": "auto", "limit": 1000 },
+        "result": { "title": "重复正文页", "text": "第 4 条正文证据" }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "fbmn-t5",
+        "toolCallId": "fbmn-t5",
+        "name": "read_article",
+        "args": { "source": "auto", "limit": 1000 },
+        "result": { "title": "重复正文页", "text": "第 5 条正文证据" }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "fbmn-t6",
+        "toolCallId": "fbmn-t6",
+        "name": "read_article",
+        "args": { "source": "auto", "limit": 1000 },
+        "result": { "title": "重复正文页", "text": "第 6 条正文证据" }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "fbmn-t7",
+        "toolCallId": "fbmn-t7",
+        "name": "read_article",
+        "args": { "source": "auto", "limit": 1000 },
+        "result": { "title": "重复正文页", "text": "第 7 条正文证据" }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "fbmn-t8",
+        "toolCallId": "fbmn-t8",
+        "name": "read_article",
+        "args": { "source": "auto", "limit": 1000 },
+        "result": { "title": "重复正文页", "text": "第 8 条正文证据" }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "fbmn-t9",
+        "toolCallId": "fbmn-t9",
+        "name": "read_article",
+        "args": { "source": "auto", "limit": 1000 },
+        "result": { "title": "重复正文页", "text": "第 9 条正文证据" }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "fbmn-t10",
+        "toolCallId": "fbmn-t10",
+        "name": "read_article",
+        "args": { "source": "auto", "limit": 1000 },
+        "result": { "title": "重复正文页", "text": "第 10 条正文证据" }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "fbmn-t11",
+        "toolCallId": "fbmn-t11",
+        "name": "read_article",
+        "args": { "source": "auto", "limit": 1000 },
+        "result": { "title": "重复正文页", "text": "第 11 条正文证据" }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "fbmn-t12",
+        "toolCallId": "fbmn-t12",
+        "name": "run_script",
+        "args": { "target": "page", "timeout": 5, "code": "async () => ({ ok: true, marker: 'after-batch' })" },
+        "result": { "ok": true, "hasResult": true, "result": { "ok": true, "marker": "after-batch" }, "elapsedMs": 80 }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "fbmn-t13",
+        "toolCallId": "fbmn-t13",
+        "name": "data_store",
+        "args": { "action": "insert", "table": "evidence", "rows": [{ "id": 1, "title": "重复正文页" }] },
+        "result": { "action": "insert", "table": "evidence", "totalRows": 1 }
+      }
+    ]
+  },
+  "steps": [
+    { "action": "eval", "expression": "() => { window.__QINGZHOU_TOOL_TIMELINE_TRACE = true; window.__QINGZHOU_TOOL_TIMELINE_TRACE_BUFFER = []; }", "label": "开启 timeline trace" },
+    { "action": "expandGroup", "group": 0, "label": "展开二级工具聚合" },
+    { "action": "assert", "expect": "selectorCount", "selector": ".tool-family-trace", "equals": 1 },
+    { "action": "click", "selector": ".tool-family-row[data-tool-family-id=\"collect\"]", "label": "切到采集信息 family" },
+    { "action": "clickText", "selector": ".tool-family-batch[data-tool-family-id=\"collect\"]", "text": "采集正文", "label": "切到采集正文合并批次" },
+    { "action": "assert", "expect": "navText", "equals": "11/11" },
+    { "action": "assert", "expect": "activeText", "selector": ".tool-family-batch.active", "includes": "×11" },
+    { "action": "assert", "expect": "js", "expression": "() => document.querySelector('.tool-family-batch.active')?.dataset.toolTimelineIndexes === '1,2,3,4,5,6,7,8,9,10,11'", "message": "active batch should carry every raw member index" },
+    { "action": "click", "selector": ".tool-timeline-nav-btn[data-timeline-nav-direction=\"-1\"]", "label": "批次内上一条：第 10 条" },
+    { "action": "assert", "expect": "navText", "equals": "10/11" },
+    { "action": "assert", "expect": "activeText", "selector": ".tool-family-batch.active", "includes": "×11" },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "第 10 条正文证据" },
+    { "action": "click", "selector": ".tool-timeline-nav-btn[data-timeline-nav-direction=\"-1\"]", "label": "批次内再上一条：第 9 条" },
+    { "action": "assert", "expect": "navText", "equals": "9/11" },
+    { "action": "assert", "expect": "activeText", "selector": ".tool-family-batch.active", "includes": "×11" },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "第 9 条正文证据" },
+    { "action": "assert", "expect": "js", "expression": "() => (window.__QINGZHOU_TOOL_TIMELINE_TRACE_BUFFER || []).some(item => item.stage === 'nav' && item.mode === 'family' && item.current === 11 && item.next === 10)", "message": "family pager navigation should be traced with raw indexes" },
+    { "action": "assert", "expect": "noHorizontalOverflow" }
+  ]
+}

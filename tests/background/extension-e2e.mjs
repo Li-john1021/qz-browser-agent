@@ -1,0 +1,2264 @@
+import assert from "node:assert/strict";
+import { createServer } from "node:http";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { createDocumentBytes } from "../../src/shared/documents/document-codecs.js";
+import { AUTOMATION_SCHEDULER_ALARM } from "../../src/background/automation/runtime.js";
+import {
+  createZip,
+  skillToSkillMarkdown,
+} from "../../src/shared/skills/skill-package.js";
+import { normalizeModernSkill } from "../../src/shared/skills/skill-utils.js";
+import { getMcpSkillToolName } from "../../src/capabilities/mcp/skill-contract.js";
+import { ensureTestExtension } from "../support/extension-build.mjs";
+
+const root = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
+const extensionPath = await ensureTestExtension({
+  extensionDir: process.env.QINGZHOU_EXTENSION_PATH || process.env.QINGZHOU_TEST_EXTENSION_DIR,
+});
+const { chromium } = await import("playwright");
+const executablePath = findChromeExecutable(chromium.executablePath());
+if (!executablePath) throw new Error("Chrome executable not found");
+
+const provider = await createProviderServer();
+const gitRepository = await createGitRepositoryServer();
+const profile = mkdtempSync(join(tmpdir(), "qingzhou-background-e2e-"));
+let context;
+let page;
+const pageErrors = [];
+
+try {
+  context = await chromium.launchPersistentContext(profile, {
+    locale: "zh-CN",
+    headless: true,
+    executablePath,
+    ignoreDefaultArgs: ["--disable-extensions"],
+    viewport: { width: 980, height: 860 },
+    args: [
+      "--lang=zh-CN",
+      `--disable-extensions-except=${extensionPath}`,
+      `--load-extension=${extensionPath}`,
+    ],
+  });
+  context.on("page", current => current.on("pageerror", error => pageErrors.push(String(error))));
+  const extensionId = await getExtensionId(context, profile);
+  page = await context.newPage();
+  await page.goto(`chrome-extension://${extensionId}/sidepanel/sidepanel.html`);
+  await waitForWorkspaceReady(page);
+  await installHarness(page);
+  await saveConfig(page, provider.endpoint);
+  await mcpOutputSchemaSurvivesExtensionCsp(page, provider);
+  page = await automationAlarmRunsWithoutSidepanel(page, context, extensionId, provider);
+  await runningAutomationCanBeDeleted(page, provider);
+
+  const attachmentFixtureBase64 = process.env.QINGZHOU_ATTACHMENT_E2E_BASE64
+    || Buffer.from(await createDocumentBytes({
+      format: "xlsx",
+      title: "Attachment E2E",
+      sheets: [{
+        name: "Data",
+        columns: ["id", "value"],
+        rows: [{ id: "1", value: "真实后台解析" }],
+      }],
+    })).toString("base64");
+  await saveConfig(page, provider.endpoint, { vision: true });
+  await screenActionFeedbackRoundTrip(page, context, provider);
+  page = await composerDraftSurvivesActualSidepanelCloseAndResize(page, context, extensionId);
+  await composerAttachmentsSurviveSessionSwitchAndSend(page, attachmentFixtureBase64, provider);
+  await saveConfig(page, provider.endpoint);
+  await gitSkillSourceAuthenticatedArchive(page, gitRepository);
+  await uiComposerRoundTrip(page);
+  await manualCompactRendersLifecycleCard(page);
+  await queuedComposerBubbleUsesOutgoingMotion(page);
+  await basicAndRetryScenarios(page, provider);
+  await steeringReentersTheActiveRun(page, provider);
+  await steeringQueueLifecycleMatrix(page, provider);
+  await providerFailureReleasesTheSession(page);
+  await providerFaultLifecycleMatrix(page, provider);
+  await manageExistingSession(page, provider);
+  await stopCutsOffLateStreaming(page, provider);
+  await concurrentSessionsStayIsolated(page);
+  await sidepanelReloadKeepsTheBackgroundRun(page);
+  await serviceWorkerRestartSettlesInterruptedTurn(page, context, extensionId, provider);
+
+  console.log(JSON.stringify({
+    ok: true,
+    scenarios: ["mcp_output_schema_csp", "automation_alarm_without_sidepanel", "running_automation_delete", "screen_action_feedback", "composer_draft_actual_close_and_resize", "composer_attachment_session_switch", "git_skill_authenticated_archive", "ui_composer", "manual_compact_card", "queued_composer_motion", "basic", "retry", "steering", "steering_matrix", "provider_error_recovery", "stream_stop_queue_resume", "concurrent", "sidepanel_reload", "worker_restart"],
+    providerRequests: provider.requests.length,
+    providerFaultCases: 16,
+  }));
+} catch (error) {
+  const events = await page?.evaluate(() => window.__qzBackgroundE2E?.events?.() || []).catch(() => []);
+  const sidepanelState = await page?.evaluate(() => ({
+    booting: document.querySelector("#app")?.hasAttribute("data-workspace-booting"),
+    fallback: document.querySelector("#app")?.getAttribute("data-workspace-boot-fallback") || "",
+    fallbackText: document.querySelector("#workspace-boot-fallback")?.textContent || "",
+    activeTab: document.querySelector(".tab-btn.active")?.getAttribute("data-tab") || "",
+    composer: {
+      text: document.querySelector("#input")?.value || "",
+      attachments: [...document.querySelectorAll(".input-image-attachment, .input-document-attachment")].map(node => ({
+        className: node.className,
+        text: node.textContent,
+        title: node.getAttribute("title"),
+        image: node.querySelector("img")?.getAttribute("alt"),
+      })),
+      disabled: document.querySelector("#btn-send")?.disabled,
+      toast: document.querySelector(".case-toast")?.textContent,
+    },
+  })).catch(() => null);
+  console.error(JSON.stringify({
+    stage: "background-extension-e2e-failure",
+    providerRequests: provider.requests,
+    recentEvents: events.slice(-30),
+    pageErrors,
+    sidepanelState,
+  }, null, 2));
+  throw error;
+} finally {
+  await context?.close().catch(() => undefined);
+  await gitRepository.close();
+  await provider.close();
+  rmSync(profile, { recursive: true, force: true });
+}
+
+async function waitForWorkspaceReady(page) {
+  await page.waitForFunction(() => {
+    const app = document.querySelector("#app");
+    return app
+      && !app.hasAttribute("data-workspace-booting")
+      && !app.hasAttribute("data-workspace-boot-fallback");
+  }, null, { timeout: 10_000 });
+}
+
+async function mcpOutputSchemaSurvivesExtensionCsp(page, providerServer) {
+  const sessionId = await createSession(page, "MCP output schema under MV3 CSP");
+  assert.match(await runPrompt(page, sessionId, "QZ_E2E_MCP_OUTPUT_SCHEMA"), /QZ_E2E_MCP_OUTPUT_SCHEMA_OK/);
+  const events = await sessionEvents(page, sessionId);
+  const toolResult = id => events.find(event => event.type === "tool_execution_end" && event.toolCallId === id);
+  const inspected = toolResult("mcp_schema_inspect");
+  assert.equal(inspected?.isError, false, "MCP tools/list must compile outputSchema under the real extension CSP");
+  assert.equal(inspected.result.tools[0].outputSchema.properties.count.type, "integer");
+  for (const id of ["mcp_schema_valid", "mcp_schema_recovered"]) {
+    assert.equal(toolResult(id)?.isError, false, `${id} should validate successfully`);
+    assert.deepEqual(toolResult(id).result.structuredContent, { count: 1 });
+  }
+  const invalid = toolResult("mcp_schema_invalid");
+  assert.equal(invalid?.isError, true, "invalid structured output must remain an error after the session reconnects");
+  assert.equal(invalid.result.code, "MCP_-32602");
+  assert.equal(providerServer.mcpRequests.filter(method => method === "initialize").length, 2);
+  assert.equal(providerServer.mcpRequests.filter(method => method === "tools/list").length, 2, "each connection initializes its SDK validators once");
+  assert.equal(providerServer.mcpRequests.filter(method => method === "tools/call").length, 4);
+}
+
+async function screenActionFeedbackRoundTrip(page, browserContext, providerServer) {
+  const sessionId = await createSession(page, "screen action feedback");
+  const result = await runPrompt(page, sessionId, "QZ_E2E_SCREEN_ACTION");
+  assert.match(result, /QZ_E2E_SCREEN_ACTION_OK/);
+
+  const targetPage = browserContext.pages().find(candidate => candidate.url() === providerServer.screenActionUrl);
+  assert.ok(targetPage, "screen action should keep its owned target tab");
+  await targetPage.waitForFunction(() => {
+    const state = window.__readScreenActionState?.();
+    return state?.inputValue === "扩展最终值"
+      && state?.wheelEvents === 3
+      && state?.dragReleased === true;
+  });
+  const observedState = await targetPage.evaluate(() => window.__readScreenActionState());
+  assert.equal(observedState.clickCount, 1);
+  assert.equal(observedState.doubleClickClicks, 2);
+  assert.equal(observedState.doubleClickCount, 1);
+  assert.ok(observedState.hoverEnterCount >= 1);
+  assert.ok(observedState.hoverMoveCount >= 1);
+  assert.equal(observedState.longPressActive, false);
+  assert.ok(observedState.longPressMs >= 260, `the page should observe the requested long press (${observedState.longPressMs}ms)`);
+  assert.equal(observedState.inputValue, "扩展最终值");
+  assert.equal(observedState.keyEvents.at(-1)?.key, "Enter");
+  assert.equal(observedState.wheelDeltaX, 30);
+  assert.equal(observedState.wheelDeltaY, 360);
+  assert.equal(observedState.scrollY, 0);
+  assert.ok(observedState.dragMoves >= 8);
+  assert.equal(observedState.dragReleased, true);
+  assert.equal(observedState.dropped, true);
+
+  const events = await page.evaluate(() => window.__qzBackgroundE2E.events());
+  const screenshotEnd = events.find(event => (
+    event?.type === "tool_execution_end"
+    && event?.sessionId === sessionId
+    && event?.toolName === "screenshot"
+    && event?.result?.actionable === true
+  ));
+  const macroEnd = events.find(event => (
+    event?.type === "tool_execution_end"
+    && event?.sessionId === sessionId
+    && event?.toolName === "run_script"
+    && event?.toolCallId === "call_screen_macro"
+  ));
+  const actions = macroEnd?.result?.result?.batch?.actions || [];
+  const longPress = actions.find(action => action.action === "long_press");
+  const wheel = actions.find(action => action.action === "scroll");
+  const finalAction = actions.at(-1);
+  assert.ok(screenshotEnd?.result?.screenshotId, "actionable screenshot should expose a bound screenshot id");
+  assert.equal(screenshotEnd?.result?.coordinateSpace?.unit, "pixel");
+  assert.ok(screenshotEnd?.result?.coordinateSpace?.width >= 500);
+  assert.ok(screenshotEnd?.result?.coordinateSpace?.height >= 500);
+  assert.equal(macroEnd?.isError, false);
+  assert.deepEqual(
+    actions.map(action => action.action),
+    ["click", "double_click", "hover", "long_press", "type", "press", "type", "press", "scroll", "drag"],
+    "the extension E2E should exercise every act_on_screen action in one ordered sequence",
+  );
+  assert.equal(actions[0]?.sourceScreenshotId, screenshotEnd.result.screenshotId);
+  assert.equal(
+    actions.filter(action => action.coordinateBound).every(action => (
+      action.sourceScreenshotId === screenshotEnd.result.screenshotId
+    )),
+    true,
+    "coordinate-bound actions should reuse one basis without hidden screenshots",
+  );
+  assert.equal(
+    actions.filter(action => !action.coordinateBound).every(action => action.sourceScreenshotId == null),
+    true,
+    "coordinate-free actions should not consume a screenshot coordinate basis",
+  );
+  assert.equal(actions.every(action => action.feedbackAvailable === false), true);
+  assert.equal(actions.every(action => action.coordinateBasisReady === true), true);
+  assert.equal(longPress?.durationMs, 300);
+  assert.equal(wheel?.repeat, 3, "the visual macro should preserve one bounded real-wheel sequence");
+  assert.equal(wheel?.coordinateBasisReady, true);
+  assert.deepEqual(wheel?.viewportChange, {
+    observed: true,
+    scrolled: false,
+    deltaX: 0,
+    deltaY: 0,
+    scaled: false,
+    resized: false,
+  }, "the tool should report that the page consumed wheel input without moving Chrome's viewport");
+  assert.equal(finalAction?.feedbackAvailable, false);
+  assert.equal(finalAction?.coordinateBasisReady, true);
+  assert.equal(finalAction?.sourceScreenshotId, screenshotEnd.result.screenshotId);
+  assert.equal(finalAction?.action, "drag");
+  assert.equal(finalAction?.marker?.kind, "drag");
+  assert.equal(finalAction?.marker?.action, "drag");
+  assert.ok(finalAction?.marker?.endX > finalAction?.marker?.x);
+  assert.equal(macroEnd?.result?.result?.ok, true);
+  assert.equal(macroEnd?.result?.result?.filled, 10);
+  assert.deepEqual(macroEnd?.result?.result?.batch?.state, observedState);
+  assert.equal(macroEnd?.result?._display, undefined, "run_script should not synthesize an action animation");
+  assert.match(macroEnd?.result?._image, /^data:image\/jpeg;base64,/);
+  const feedbackPixels = await page.evaluate(async id => {
+    const event = window.__qzBackgroundE2E.events().find(item => (
+      item?.type === "tool_execution_end"
+      && item?.sessionId === id
+      && item?.toolName === "run_script"
+      && item?.toolCallId === "call_screen_macro"
+    ));
+    const response = await fetch(event?.result?._image || "");
+    const bitmap = await createImageBitmap(await response.blob());
+    const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(bitmap, 0, 0);
+    bitmap.close();
+    const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    let red = 0;
+    let green = 0;
+    for (let index = 0; index < pixels.length; index += 4) {
+      const r = pixels[index];
+      const g = pixels[index + 1];
+      const b = pixels[index + 2];
+      if (r > 170 && g < 130 && b < 140) red += 1;
+      if (r > 190 && g > r + 6 && g > b + 3) green += 1;
+    }
+    return { red, green };
+  }, sessionId);
+  assert.ok(feedbackPixels.red < 20, `model feedback should not contain a burned-in red position marker (${feedbackPixels.red})`);
+  assert.ok(feedbackPixels.green > 1000, `run_script should promote the final explicit screenshot after the green hover/drop states (${feedbackPixels.green})`);
+
+  const requests = providerServer.requests.filter(item => item.marker === "QZ_E2E_SCREEN_ACTION");
+  assert.equal(requests.length, 11, "one run should execute the visual macro and seven further screenshot observations");
+  assert.equal(requests[2].imageCount, 1, "the actionable screenshot should reach the model");
+  assert.equal(requests[3].imageCount, 1, "the batch's last explicit observation should return to the model");
+  assert.equal(requests[2].imageMessageCount, 1);
+  assert.equal(requests[2].totalImageCount, 1);
+  assert.equal(requests[2].imagePlaceholderCount, 0);
+  assert.deepEqual(requests.slice(2).map(item => item.imageMessageCount), [1, 2, 3, 4, 5, 6, 7, 8, 8],
+    "successive tool images in a single run must obey the default eight-message limit");
+  assert.equal(requests.at(-1).totalImageCount, 8, "the entire final model request retains only the latest eight screenshots");
+  assert.equal(requests.at(-1).imagePlaceholderCount, 1, "the oldest screenshot remains represented by its placeholder");
+  assert.equal(requests[3].containsDisplayProjection, false, "chat-only action metadata must not enter model context");
+
+  const history = await historyMessages(page, sessionId);
+  assert.equal(imageProjectionStats(history).totalImageCount, 9, "model projection must preserve all nine original history images");
+  const exported = await request(page, "get_messages", { sessionId }, "messages");
+  const exportedMessages = (exported.session?.entries || []).map(entry => entry.message);
+  assert.equal(imageProjectionStats(exportedMessages).totalImageCount, 9, "conversation export retains all nine original tool images");
+  assert.equal(imageProjectionStats(exportedMessages).imagePlaceholderCount, 0);
+}
+
+async function automationAlarmRunsWithoutSidepanel(currentPage, browserContext, extensionId, providerServer) {
+  const fireAt = Date.now() + 3_000;
+  const saved = await request(currentPage, "save_automation", {
+    automation: {
+      title: "alarm without sidepanel",
+      instruction: "QZ_E2E_AUTOMATION",
+      schedule: { type: "once", runAt: new Date(fireAt).toISOString() },
+      missedPolicy: "skip",
+      notifyPolicy: "silent",
+      enabled: true,
+    },
+  }, "automation_saved");
+  const automationId = saved.automation?.id;
+  assert.ok(automationId, "automation should be saved before the sidepanel closes");
+
+  await currentPage.evaluate(async ({ alarmName, when }) => {
+    await chrome.alarms.clear(alarmName);
+    await chrome.alarms.create(alarmName, { when, periodInMinutes: 1 });
+  }, { alarmName: AUTOMATION_SCHEDULER_ALARM, when: fireAt });
+  await currentPage.close();
+
+  const deadline = Date.now() + 15_000;
+  while (providerServer.count("QZ_E2E_AUTOMATION") === 0 && Date.now() < deadline) {
+    await sleep(100);
+  }
+  assert.equal(
+    providerServer.count("QZ_E2E_AUTOMATION"),
+    1,
+    "a real Chrome alarm should launch the automation while no sidepanel page is open",
+  );
+
+  const nextPage = await browserContext.newPage();
+  await nextPage.goto(`chrome-extension://${extensionId}/sidepanel/sidepanel.html`);
+  await waitForWorkspaceReady(nextPage);
+  await installHarness(nextPage);
+  await nextPage.waitForFunction(async id => {
+    const { _automation_runs: runs = {} } = await chrome.storage.local.get("_automation_runs");
+    const run = Object.values(runs).find(item => item?.automationId === id);
+    return run && ["completed", "error", "aborted", "interrupted"].includes(run.status);
+  }, automationId, { timeout: 20_000 });
+
+  const listed = await request(nextPage, "list_automations", { runLimit: 5 }, "automations");
+  const run = listed.runs?.[automationId]?.[0];
+  assert.equal(run?.status, "completed");
+  assert.equal(run?.triggerType, "schedule");
+  assert.equal(run?.delayed, false, "an on-time alarm must not be classified as a missed run");
+  await request(nextPage, "delete_automation", { automationId }, "automation_deleted");
+  return nextPage;
+}
+
+async function runningAutomationCanBeDeleted(page, providerServer) {
+  const marker = "QZ_E2E_DELETE_RUNNING_AUTOMATION";
+  const saved = await request(page, "save_automation", {
+    automation: {
+      title: "delete while running",
+      instruction: marker,
+      schedule: { type: "daily", time: "23:59" },
+      notifyPolicy: "silent",
+      enabled: false,
+    },
+  }, "automation_saved");
+  const automationId = saved.automation?.id;
+  assert.ok(automationId);
+
+  const started = await request(page, "run_automation", { automationId }, "automation_run_started");
+  assert.ok(started.run?.sessionId, "manual automation should own a running Session before deletion");
+  const deadline = Date.now() + 5_000;
+  while (providerServer.count(marker) === 0 && Date.now() < deadline) await sleep(25);
+  assert.equal(providerServer.count(marker), 1, "the automation Provider request must still be active when deletion begins");
+
+  try {
+    const deleted = await request(page, "delete_automation", { automationId }, "automation_deleted", 5_000);
+    assert.equal(deleted.deleted, true, "deleting a running automation must complete without a lifecycle deadlock");
+  } finally {
+    providerServer.release(marker);
+  }
+
+  const persisted = await page.evaluate(async id => {
+    const { _automations: automations = {}, _automation_runs: runs = {} } = await chrome.storage.local.get([
+      "_automations",
+      "_automation_runs",
+    ]);
+    return {
+      definition: automations[id] || null,
+      runs: Object.values(runs).filter(run => run?.automationId === id),
+    };
+  }, automationId);
+  assert.equal(persisted.definition, null);
+  assert.deepEqual(persisted.runs, []);
+}
+
+async function composerDraftSurvivesActualSidepanelCloseAndResize(currentPage, browserContext, extensionId) {
+  const draftText = "切换侧边栏时需要保留这段较长的草稿，同时输入框应该按照侧边栏最终宽度重新计算高度，不能停留在展开过程中较窄宽度测出的高度。";
+  await currentPage.locator("#btn-new").click();
+  await currentPage.waitForFunction(() => (
+    document.querySelector("#session-title-bar")?.classList.contains("hidden")
+    && document.querySelector("#input")?.value === ""
+  ));
+  await currentPage.locator("#input").fill(draftText);
+  await currentPage.close();
+
+  const nextPage = await browserContext.newPage();
+  await nextPage.setViewportSize({ width: 240, height: 860 });
+  await nextPage.goto(`chrome-extension://${extensionId}/sidepanel/sidepanel.html`);
+  await waitForWorkspaceReady(nextPage);
+  await installHarness(nextPage);
+  await nextPage.waitForFunction(expected => (
+    document.querySelector("#input")?.value === expected
+  ), draftText, { timeout: 10_000 });
+  const narrowHeight = await nextPage.locator("#input").evaluate(input => input.getBoundingClientRect().height);
+  assert.ok(narrowHeight >= 80, `the narrow restored composer should wrap (${narrowHeight}px)`);
+
+  await nextPage.setViewportSize({ width: 520, height: 860 });
+  await nextPage.waitForFunction(previousHeight => {
+    const input = document.querySelector("#input");
+    return input?.clientWidth >= 400
+      && input.getBoundingClientRect().height < previousHeight - 20;
+  }, narrowHeight, { timeout: 5_000 });
+  const settledHeight = await nextPage.locator("#input").evaluate(input => input.getBoundingClientRect().height);
+  assert.ok(
+    settledHeight < narrowHeight - 20,
+    `the composer should remeasure after its width settles (${narrowHeight}px -> ${settledHeight}px)`,
+  );
+
+  await nextPage.setViewportSize({ width: 980, height: 860 });
+  await nextPage.locator("#input").fill("");
+  await sleep(350);
+  return nextPage;
+}
+
+async function composerAttachmentsSurviveSessionSwitchAndSend(page, fixtureBase64, providerServer) {
+  const historicalSessionId = await createSession(page, "attachment history");
+  await runPrompt(page, historicalSessionId, "QZ_E2E_ATTACHMENT_HISTORY_SEED");
+
+  await page.locator("#btn-new").click();
+  await page.waitForFunction(() => (
+    document.querySelector("#session-title-bar")?.classList.contains("hidden")
+    && document.querySelector("#input")?.value === ""
+    && document.querySelectorAll(".input-attachment").length === 0
+  ), null, { timeout: 10_000 });
+
+  const createdAfter = await eventCount(page);
+  await pasteComposerAttachments(page, {
+    fixtureBase64,
+    imageName: "new-session-image.png",
+    documentName: "new-session-document.xlsx",
+  });
+  const created = await waitEvent(page, { type: "session_created" }, createdAfter, 20_000);
+  const newSessionId = created.session?.id;
+  assert.ok(newSessionId, "adding files in a new chat must create one real Session");
+  await page.locator("#input").fill("QZ_E2E_ATTACHMENT_NEW");
+  await assertComposerAttachments(page, {
+    text: "QZ_E2E_ATTACHMENT_NEW",
+    imageName: "new-session-image.png",
+    documentName: "new-session-document.xlsx",
+  });
+  assert.equal(
+    await matchingEventCount(page, { type: "session_created" }, createdAfter),
+    1,
+    "adding an image and document together must create exactly one Session",
+  );
+
+  await switchUiToSession(page, historicalSessionId);
+  await assertComposerEmpty(page);
+  await pasteComposerAttachments(page, {
+    fixtureBase64,
+    imageName: "history-session-image.png",
+    documentName: "history-session-document.xlsx",
+  });
+  await page.locator("#input").fill("QZ_E2E_ATTACHMENT_HISTORY");
+  await assertComposerAttachments(page, {
+    text: "QZ_E2E_ATTACHMENT_HISTORY",
+    imageName: "history-session-image.png",
+    documentName: "history-session-document.xlsx",
+  });
+
+  for (let round = 0; round < 3; round += 1) {
+    await switchUiToSession(page, newSessionId);
+    await assertComposerAttachments(page, {
+      text: "QZ_E2E_ATTACHMENT_NEW",
+      imageName: "new-session-image.png",
+      documentName: "new-session-document.xlsx",
+    });
+    await switchUiToSession(page, historicalSessionId);
+    await assertComposerAttachments(page, {
+      text: "QZ_E2E_ATTACHMENT_HISTORY",
+      imageName: "history-session-image.png",
+      documentName: "history-session-document.xlsx",
+    });
+  }
+
+  const trace = await request(page, "get_trace", {}, "trace");
+  const attachmentTrace = (trace.logs || []).filter(line => line.includes("attachment_trace action=stage"));
+  for (const phase of ["decoded", "parsed", "ready"]) {
+    assert.ok(
+      attachmentTrace.filter(line => line.includes(` phase=${phase}`)).length >= 2,
+      `both real documents should reach ${phase}`,
+    );
+  }
+  assert.doesNotMatch(attachmentTrace.join("\n"), /真实后台解析/, "attachment trace must not include parsed file content");
+
+  await sendComposerAttachments(page, historicalSessionId, "QZ_E2E_ATTACHMENT_HISTORY", providerServer);
+  await switchUiToSession(page, newSessionId);
+  await assertComposerAttachments(page, {
+    text: "QZ_E2E_ATTACHMENT_NEW",
+    imageName: "new-session-image.png",
+    documentName: "new-session-document.xlsx",
+  });
+  await sendComposerAttachments(page, newSessionId, "QZ_E2E_ATTACHMENT_NEW", providerServer);
+
+  for (const sessionId of [historicalSessionId, newSessionId]) {
+    await switchUiToSession(page, sessionId);
+    await assertComposerEmpty(page);
+  }
+  await deleteSession(page, historicalSessionId);
+  await deleteSession(page, newSessionId);
+}
+
+async function pasteComposerAttachments(page, {
+  fixtureBase64,
+  imageName,
+  documentName,
+}) {
+  const imageBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
+  await page.locator("#input").evaluate((input, value) => {
+    const bytes = source => Uint8Array.from(atob(source), char => char.charCodeAt(0));
+    const transfer = new DataTransfer();
+    transfer.items.add(new File([bytes(value.imageBase64)], value.imageName, { type: "image/png" }));
+    transfer.items.add(new File([bytes(value.fixtureBase64)], value.documentName, {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    }));
+    input.dispatchEvent(new ClipboardEvent("paste", {
+      bubbles: true,
+      cancelable: true,
+      clipboardData: transfer,
+    }));
+  }, { fixtureBase64, imageBase64, imageName, documentName });
+}
+
+async function assertComposerAttachments(page, expected) {
+  await page.waitForFunction(value => {
+    const images = [...document.querySelectorAll(".input-image-attachment img")];
+    const documents = [...document.querySelectorAll(".input-document-attachment")];
+    return documents.some(node => node.classList.contains("is-error")) || (document.querySelector("#input")?.value === value.text
+      && images.length === 1
+      && images[0].getAttribute("alt") === value.imageName
+      && documents.length === 1
+      && documents[0].classList.contains("is-ready")
+      && documents[0].querySelector(".document-attachment-name")?.textContent === value.documentName);
+  }, expected, { timeout: 20_000 });
+  const errors = await page.locator(".input-document-attachment.is-error").evaluateAll(nodes => nodes.map(node => node.getAttribute("title")));
+  assert.deepEqual(errors, [], "composer document parsing failed");
+  const state = await page.evaluate(() => ({
+    text: document.querySelector("#input")?.value || "",
+    imageCount: document.querySelectorAll(".input-image-attachment").length,
+    documentCount: document.querySelectorAll(".input-document-attachment").length,
+    sendDisabled: document.querySelector("#btn-send")?.disabled,
+  }));
+  assert.deepEqual(state, {
+    text: expected.text,
+    imageCount: 1,
+    documentCount: 1,
+    sendDisabled: false,
+  });
+}
+
+async function assertComposerEmpty(page) {
+  await page.waitForFunction(() => (
+    document.querySelector("#input")?.value === ""
+    && document.querySelectorAll(".input-image-attachment").length === 0
+    && document.querySelectorAll(".input-document-attachment").length === 0
+    && document.querySelector("#btn-send")?.disabled === true
+  ), null, { timeout: 10_000 });
+}
+
+async function sendComposerAttachments(page, sessionId, marker, providerServer) {
+  const after = await eventCount(page);
+  await page.locator("#input").press("Enter");
+  const started = await waitEvent(page, { type: "agent_start", sessionId }, after, 20_000);
+  await waitEvent(page, { type: "agent_end", sessionId, runId: started.runId }, after, 20_000);
+  await assertComposerEmpty(page);
+
+  const userMessages = (await historyMessages(page, sessionId)).filter(message => (
+    message.role === "user" && messageText(message).trim() === marker
+  ));
+  assert.equal(userMessages.length, 1, `${marker} should be committed exactly once`);
+  const [message] = userMessages;
+  const imageParts = Array.isArray(message.content)
+    ? message.content.filter(part => part?.type === "image_url")
+    : [];
+  assert.equal(imageParts.length, 1, `${marker} should retain one image in transcript`);
+  assert.equal(message.documents?.length, 1, `${marker} should retain one document in transcript`);
+  assert.equal(message.documents[0].messageId, message.clientMessageId, "document and message identity must match");
+
+  const requestRecord = [...providerServer.requests].reverse().find(item => item.marker === marker);
+  assert.ok(requestRecord, `${marker} should reach the Provider`);
+  assert.equal(providerServer.count(marker), 1, `${marker} should produce one Provider request`);
+  assert.equal(requestRecord.imageCount, 1, `${marker} should send one image to a vision Provider`);
+  assert.ok(requestRecord.documentCapsuleCount >= 1, `${marker} should send its document capsule`);
+
+  const bubble = page.locator(".msg-user").filter({ hasText: marker }).last();
+  assert.equal(await bubble.locator(".msg-images img").count(), 1);
+  assert.equal(await bubble.locator(".document-attachment-card").count(), 1);
+}
+
+async function gitSkillSourceAuthenticatedArchive(page, repositoryServer) {
+  const result = await request(page, "bind_git_skill_source", {
+    repositoryUrl: repositoryServer.repositoryUrl,
+  }, "git_skill_source_synced", 60_000);
+  assert.equal(result.ok, true);
+  assert.equal(result.action, "bound");
+  assert.deepEqual(result.names, ["git-auth-e2e-skill"]);
+  assert.equal(repositoryServer.archiveRequests, 1, "archive download must use only the authenticated repository tab");
+  assert.equal(repositoryServer.authenticatedArchiveRequests, 1, "the tab download must carry the repository page cookie");
+
+  const stored = await page.evaluate(async () => chrome.storage.local.get(["_skills", "_gitSkillSources"]));
+  const skill = stored._skills?.["git-auth-e2e-skill"];
+  const source = Object.values(stored._gitSkillSources || {})[0];
+  assert.equal(skill?.metadata?.qingzhou?.origin?.type, "git");
+  assert.equal(skill?.metadata?.qingzhou?.origin?.sourceId, source?.id);
+  assert.equal(source?.repositoryUrl, repositoryServer.rootUrl);
+  assert.equal(source?.browseUrl, repositoryServer.repositoryUrl);
+  assert.equal(source?.ref, "main");
+  assert.equal(source?.subpath, "skills");
+  assert.equal(source?.branch, "main");
+  assert.equal(stored._skills?.["git-auth-outside-skill"], undefined);
+
+  const listed = await request(page, "list_git_skill_sources", {}, "git_skill_sources");
+  assert.equal(listed.sources?.[0]?.modifiedCount, 0, "a freshly overwritten repository Skill must match its installed baseline");
+
+  const checked = await request(page, "check_git_skill_source", {
+    sourceId: source.id,
+  }, "git_skill_source_checked", 60_000);
+  assert.equal(checked.action, "checked");
+  assert.equal(checked.updateAvailable, false);
+  assert.equal(checked.remoteChanged, false);
+  const afterCheck = await page.evaluate(async () => chrome.storage.local.get(["_skills", "_gitSkillSources"]));
+  assert.equal(afterCheck._skills?.["git-auth-e2e-skill"]?.content, skill?.content, "check must not write Skill content");
+  assert.equal(afterCheck._gitSkillSources?.[source.id]?.revision, source.revision, "check must not advance the installed revision");
+
+  const current = await request(page, "update_git_skill_source", {
+    sourceId: source.id,
+  }, "git_skill_source_synced", 60_000);
+  assert.equal(current.action, "current");
+  await page.evaluate(async () => {
+    const { _skills: skills = {} } = await chrome.storage.local.get("_skills");
+    skills["git-auth-e2e-skill"].content = "# Locally modified before unbind";
+    await chrome.storage.local.set({ _skills: skills });
+  });
+  const removed = await request(page, "remove_git_skill_source", {
+    sourceId: source.id,
+    deleteUnmodifiedSkills: true,
+  }, "git_skill_source_removed");
+  assert.equal(removed.deletedCount, 0);
+  assert.equal(removed.preservedModifiedCount, 1);
+  const detached = await page.evaluate(async () => {
+    const { _skills: skills = {} } = await chrome.storage.local.get("_skills");
+    const value = skills["git-auth-e2e-skill"];
+    return { content: value?.content, origin: value?.metadata?.qingzhou?.origin || null };
+  });
+  assert.equal(detached.content, "# Locally modified before unbind");
+  assert.equal(detached.origin, null);
+  await page.evaluate(async () => {
+    const { _skills: skills = {} } = await chrome.storage.local.get("_skills");
+    delete skills["git-auth-e2e-skill"];
+    await chrome.storage.local.set({ _skills: skills });
+  });
+}
+
+async function uiComposerRoundTrip(page) {
+  await page.locator("#input").fill("QZ_E2E_UI");
+  await page.locator("#input").press("Enter");
+  await page.waitForFunction(() => document.querySelector("#messages")?.innerText?.includes("QZ_E2E_UI_OK"), null, {
+    timeout: 20_000,
+  });
+  const text = await page.locator("#messages").innerText();
+  assert.match(text, /QZ_E2E_UI/);
+  assert.match(text, /QZ_E2E_UI_OK/);
+}
+
+async function manualCompactRendersLifecycleCard(page) {
+  const sessionId = await createSession(page, "manual compact lifecycle");
+  const longRound = "compact fixture history ".repeat(80);
+  await runPrompt(page, sessionId, `${longRound} first`);
+  await runPrompt(page, sessionId, `${longRound} second`);
+  await runPrompt(page, sessionId, `${longRound} retained`);
+  await switchUiToSession(page, sessionId);
+  const messages = page.locator("#messages");
+  await messages.hover();
+  await page.mouse.wheel(0, -1200);
+  await page.waitForFunction(() => {
+    const host = document.querySelector("#messages");
+    return host && host.scrollHeight - host.scrollTop - host.clientHeight > 100;
+  });
+
+  const after = await eventCount(page);
+  await submitComposerMessage(page, "/compact 重点保留第二轮内容");
+  const started = await waitEvent(page, { type: "context_compaction_start", sessionId }, after, 20_000);
+  assert.ok(started.compactId, "manual compact must publish its stable operation identity");
+  await page.locator(`.msg-compact`).last().waitFor({ state: "visible", timeout: 10_000 });
+  await waitEvent(page, {
+    type: "context_compaction_end",
+    sessionId,
+    compactId: started.compactId,
+  }, after, 20_000);
+  await waitEvent(page, { type: "state", sessionId, status: "completed" }, after, 20_000);
+  await page.waitForFunction(() => (
+    [...document.querySelectorAll(".msg-compact")]
+      .some(card => card.textContent?.includes("上下文已压缩"))
+  ), null, { timeout: 10_000 });
+  const compactCardIsInViewport = await page.locator(".msg-compact").last().evaluate(card => {
+    const host = document.querySelector("#messages");
+    const cardRect = card.getBoundingClientRect();
+    const hostRect = host?.getBoundingClientRect();
+    return Boolean(hostRect && cardRect.bottom > hostRect.top && cardRect.top < hostRect.bottom);
+  });
+  assert.equal(compactCardIsInViewport, true, "an explicit compact command must reveal its lifecycle card");
+
+  const state = await request(page, "get_state", { sessionId }, "state");
+  assert.equal(state.status, "completed", "manual compact must settle its Session runtime");
+  assert.equal(state.runtime?.running, false, "manual compact must not leave the Session runtime active");
+  await deleteSession(page, sessionId);
+}
+
+async function queuedComposerBubbleUsesOutgoingMotion(page) {
+  await page.locator("#input").fill("QZ_QUEUE_ACTIVE");
+  await page.locator("#input").press("Enter");
+  await page.locator("#btn-abort").waitFor({ state: "visible", timeout: 20_000 });
+
+  await page.evaluate(() => {
+    window.__qzQueuedEntryMotion = null;
+    window.__qzQueuedEntryObserver?.disconnect?.();
+    const messages = document.querySelector("#messages");
+    const observer = new MutationObserver(() => {
+      const message = [...messages.querySelectorAll(".msg-user")]
+        .find(element => element.textContent?.includes("QZ_QUEUE_NEXT"));
+      if (!message) return;
+      const content = message.querySelector(".msg-content");
+      window.__qzQueuedEntryMotion = {
+        armed: message.classList.contains("msg-user-outgoing-enter"),
+        animationName: content ? getComputedStyle(content).animationName : "",
+      };
+      observer.disconnect();
+    });
+    observer.observe(messages, { childList: true, subtree: true });
+    window.__qzQueuedEntryObserver = observer;
+  });
+
+  await page.locator("#input").fill("QZ_QUEUE_NEXT");
+  await page.locator("#input").press("Enter");
+  await page.waitForFunction(() => document.querySelector("#queued-followups")?.innerText?.includes("QZ_QUEUE_NEXT"), null, {
+    timeout: 10_000,
+  });
+  await page.waitForFunction(() => window.__qzQueuedEntryMotion !== null, null, { timeout: 20_000 });
+  const motion = await page.evaluate(() => window.__qzQueuedEntryMotion);
+  assert.deepEqual(motion, { armed: true, animationName: "user-message-sail-in" });
+  await page.waitForFunction(() => document.querySelector("#messages")?.innerText?.includes("QZ_QUEUE_NEXT_OK"), null, {
+    timeout: 20_000,
+  });
+}
+
+async function basicAndRetryScenarios(page, providerServer) {
+  const basic = await createSession(page, "deterministic basic");
+  const basicResult = await runPrompt(page, basic, "QZ_E2E_BASIC");
+  assert.match(basicResult, /QZ_E2E_BASIC_OK/);
+  await deleteSession(page, basic);
+
+  const retry = await createSession(page, "deterministic retry");
+  const retryResult = await runPrompt(page, retry, "QZ_E2E_RETRY");
+  assert.match(retryResult, /QZ_E2E_RETRY_OK/);
+  assert.equal(providerServer.count("QZ_E2E_RETRY"), 2, "503 must produce exactly one retry");
+  await deleteSession(page, retry);
+}
+
+async function steeringReentersTheActiveRun(page, providerServer) {
+  const sessionId = await createSession(page, "steering active run");
+  const firstClientMessageId = id("steering-first");
+  const secondClientMessageId = id("steering-second");
+  const after = await eventCount(page);
+  await send(page, "prompt", {
+    sessionId,
+    text: "QZ_E2E_STEER_ACTIVE",
+    clientMessageId: id("steering-active"),
+  });
+  const activeRun = await waitEvent(page, { type: "agent_start", sessionId }, after, 20_000);
+
+  await send(page, "follow_up", {
+    sessionId,
+    text: "QZ_E2E_STEER_ONE",
+    clientMessageId: firstClientMessageId,
+  });
+  await send(page, "follow_up", {
+    sessionId,
+    text: "QZ_E2E_STEER_TWO",
+    clientMessageId: secondClientMessageId,
+  });
+  await waitForQueueCount(page, sessionId, 2, after);
+
+  const first = await request(page, "steer_follow_up", {
+    sessionId,
+    clientMessageId: firstClientMessageId,
+  }, "follow_up_steered");
+  assert.equal(first.moved, true);
+  const second = await request(page, "steer_follow_up", {
+    sessionId,
+    clientMessageId: secondClientMessageId,
+  }, "follow_up_steered");
+  assert.equal(second.moved, true);
+  assert.deepEqual(second.pendingFollowUps, []);
+  assert.deepEqual(
+    second.pendingSteerings.map(item => item.clientMessageId),
+    [firstClientMessageId, secondClientMessageId],
+  );
+
+  await waitEvent(page, { type: "agent_end", sessionId, runId: activeRun.runId }, after, 20_000);
+  const history = await historyMessages(page, sessionId);
+  assert.deepEqual(
+    history
+      .filter(message => message.role === "user" && /QZ_E2E_STEER_(?:ONE|TWO)/u.test(messageText(message)))
+      .map(message => messageText(message)),
+    ["QZ_E2E_STEER_ONE", "QZ_E2E_STEER_TWO"],
+  );
+  const events = await page.evaluate(({ sessionId, after }) => (
+    window.__qzBackgroundE2E.events().slice(after).filter(event => event?.sessionId === sessionId)
+  ), { sessionId, after });
+  const acceptedSteering = events.filter(event => (
+    event.type === "message_start"
+    && [firstClientMessageId, secondClientMessageId].includes(event.clientMessageId || event.message?.clientMessageId)
+  ));
+  assert.equal(acceptedSteering.length, 2);
+  const firstAcceptedIndex = events.findIndex(event => (
+    event.type === "message_start"
+    && (event.clientMessageId || event.message?.clientMessageId) === firstClientMessageId
+  ));
+  let handoffQueueIndex = -1;
+  for (let index = 0; index < firstAcceptedIndex; index += 1) {
+    const event = events[index];
+    if (
+      event.type === "queue_update"
+      && event.pendingFollowUps?.length === 0
+      && event.pendingSteerings?.length === 0
+    ) handoffQueueIndex = index;
+  }
+  assert.notEqual(handoffQueueIndex, -1, "steering handoff must publish the final queue state");
+  assert.equal(
+    firstAcceptedIndex,
+    handoffQueueIndex + 1,
+    "the first accepted steering message must immediately follow the visible batch dequeue",
+  );
+  assert.ok(acceptedSteering.every(event => event.runId === activeRun.runId), "steering must stay inside the active run");
+  assert.equal(events.filter(event => event.type === "agent_start").length, 1, "steering must not open follow-up runs");
+
+  const steeredRequest = providerServer.requests.find(item => item.marker === "QZ_E2E_STEER_TWO");
+  assert.ok(steeredRequest, "provider must receive a continuation after steering is injected");
+  assert.deepEqual(
+    steeredRequest.userTexts.filter(text => /QZ_E2E_STEER_(?:ONE|TWO)/u.test(text)),
+    ["QZ_E2E_STEER_ONE", "QZ_E2E_STEER_TWO"],
+    "all steering messages available at the safe point must share one LLM request",
+  );
+  const checkpoint = await readRuntime(page, sessionId);
+  assert.deepEqual(checkpoint.pendingSteeringMessages, []);
+  assert.deepEqual(checkpoint.pendingFollowUpMessages, []);
+  await deleteSession(page, sessionId);
+}
+
+async function steeringQueueLifecycleMatrix(page, providerServer) {
+  const singleSessionId = await createSession(page, "steering matrix single");
+  const otherSessionId = await createSession(page, "steering matrix other");
+  const multiSessionId = await createSession(page, "steering matrix multi");
+
+  try {
+    await switchUiToSession(page, singleSessionId);
+    const singleAfter = await eventCount(page);
+    await submitComposerMessage(page, "QZ_E2E_STEER_SINGLE_ACTIVE");
+    const singleRun = await waitEvent(page, { type: "agent_start", sessionId: singleSessionId }, singleAfter, 20_000);
+    const singleMessageId = await enqueueComposerMessage(page, "QZ_E2E_STEER_SINGLE_MESSAGE");
+    await steerQueuedMessage(page, singleMessageId);
+    await waitForRuntimeQueues(page, singleSessionId, {
+      steerings: [singleMessageId],
+      followUps: [],
+    });
+
+    providerServer.release("QZ_E2E_STEER_SINGLE_ACTIVE");
+    await waitEvent(page, { type: "agent_end", sessionId: singleSessionId, runId: singleRun.runId }, singleAfter, 20_000);
+    await page.waitForFunction(text => document.querySelector("#messages")?.innerText?.includes(text), "QZ_E2E_STEER_SINGLE_OK", {
+      timeout: 20_000,
+    });
+
+    const singleHistory = await historyMessages(page, singleSessionId);
+    assert.deepEqual(
+      singleHistory
+        .filter(message => message.role === "user" && messageText(message).includes("QZ_E2E_STEER_SINGLE_MESSAGE"))
+        .map(message => messageText(message)),
+      ["QZ_E2E_STEER_SINGLE_MESSAGE"],
+      "one steering message must enter the transcript exactly once",
+    );
+    assert.equal(
+      singleHistory.filter(message => message?._contextCapsule?.reason === "queued_user_message").length,
+      1,
+      "one steering handoff must create exactly one runtime-context capsule",
+    );
+    assertGaplessSteeringHandoff(
+      await sessionEvents(page, singleSessionId, singleAfter),
+      [singleMessageId],
+    );
+    assert.deepEqual(await visibleQueueRows(page), [], "single steering queue must be empty after handoff");
+    assertRuntimeQueuesEmpty(await readRuntime(page, singleSessionId));
+    const singleRequest = [...providerServer.requests].reverse()
+      .find(item => item.marker === "QZ_E2E_STEER_SINGLE_MESSAGE");
+    assert.ok(singleRequest, "provider must receive the single steering continuation");
+    assert.equal(
+      singleRequest.userTexts.filter(text => text.includes("QZ_E2E_STEER_SINGLE_MESSAGE")).length,
+      1,
+      "provider must receive the single steering message exactly once",
+    );
+
+    await switchUiToSession(page, multiSessionId);
+    const multiAfter = await eventCount(page);
+    await submitComposerMessage(page, "QZ_E2E_STEER_MULTI_ACTIVE");
+    const multiRun = await waitEvent(page, { type: "agent_start", sessionId: multiSessionId }, multiAfter, 20_000);
+
+    const firstId = await enqueueComposerMessage(page, "QZ_E2E_STEER_MULTI_ONE");
+    const deletedSteeringId = await enqueueComposerMessage(page, "QZ_E2E_STEER_MULTI_DELETE_STEERING");
+    const thirdId = await enqueueComposerMessage(page, "QZ_E2E_STEER_MULTI_THREE");
+    const deletedFollowUpId = await enqueueComposerMessage(page, "QZ_E2E_STEER_MULTI_DELETE_FOLLOWUP");
+    await steerQueuedMessage(page, firstId);
+    await steerQueuedMessage(page, deletedSteeringId);
+    await steerQueuedMessage(page, thirdId);
+    await deleteQueuedMessage(page, deletedSteeringId);
+    await deleteQueuedMessage(page, deletedFollowUpId);
+    await waitForRuntimeQueues(page, multiSessionId, {
+      steerings: [firstId, thirdId],
+      followUps: [],
+    });
+    assert.deepEqual(await visibleQueueRows(page), [
+      { id: firstId, kind: "steering", text: "QZ_E2E_STEER_MULTI_ONE" },
+      { id: thirdId, kind: "steering", text: "QZ_E2E_STEER_MULTI_THREE" },
+    ], "deleting one steering and one follow-up must preserve the remaining order");
+
+    await switchUiToSession(page, otherSessionId);
+    assert.deepEqual(await visibleQueueRows(page), [], "another session must not display the active session queue");
+    await switchUiToSession(page, multiSessionId);
+    assert.deepEqual(await visibleQueueRows(page), [
+      { id: firstId, kind: "steering", text: "QZ_E2E_STEER_MULTI_ONE" },
+      { id: thirdId, kind: "steering", text: "QZ_E2E_STEER_MULTI_THREE" },
+    ], "switching back must restore the exact steering queue from runtime state");
+
+    await observeSteeringBatchMotion(page);
+    providerServer.release("QZ_E2E_STEER_MULTI_ACTIVE");
+    await waitEvent(page, { type: "agent_end", sessionId: multiSessionId, runId: multiRun.runId }, multiAfter, 20_000);
+    await page.waitForFunction(text => document.querySelector("#messages")?.innerText?.includes(text), "QZ_E2E_STEER_MULTI_OK", {
+      timeout: 20_000,
+    });
+    await page.waitForFunction(() => window.__qzSteeringBatchMotion?.maxBatchGhostCount >= 1, null, { timeout: 10_000 });
+    const batchMotion = await finishSteeringBatchMotion(page);
+    assert.deepEqual(batchMotion, {
+      maxBatchGhostCount: 1,
+      maxBatchRowCount: 2,
+      maxIndividualGhostCount: 0,
+      batchSizes: ["2"],
+    }, "two steering messages must leave through one batch capsule, never two individual capsules");
+
+    const multiHistory = await historyMessages(page, multiSessionId);
+    assert.deepEqual(
+      multiHistory
+        .filter(message => message.role === "user" && /QZ_E2E_STEER_MULTI_(?:ONE|THREE)/u.test(messageText(message)))
+        .map(message => messageText(message)),
+      ["QZ_E2E_STEER_MULTI_ONE", "QZ_E2E_STEER_MULTI_THREE"],
+      "surviving steering messages must enter the transcript once and in order",
+    );
+    assert.equal(
+      multiHistory.filter(message => message?._contextCapsule?.reason === "queued_user_message").length,
+      1,
+      "one multi-message steering handoff must share one runtime-context capsule",
+    );
+    assert.equal(
+      multiHistory.some(message => /QZ_E2E_STEER_MULTI_DELETE_(?:STEERING|FOLLOWUP)/u.test(messageText(message))),
+      false,
+      "deleted queue entries must never enter the transcript",
+    );
+    assertGaplessSteeringHandoff(
+      await sessionEvents(page, multiSessionId, multiAfter),
+      [firstId, thirdId],
+    );
+    assert.deepEqual(await visibleQueueRows(page), [], "multi steering queue must be empty after handoff");
+    assertRuntimeQueuesEmpty(await readRuntime(page, multiSessionId));
+
+    const multiRequest = [...providerServer.requests].reverse()
+      .find(item => item.marker === "QZ_E2E_STEER_MULTI_THREE");
+    assert.ok(multiRequest, "provider must receive the multi steering continuation");
+    assert.deepEqual(
+      multiRequest.userTexts.filter(text => /QZ_E2E_STEER_MULTI_(?:ONE|THREE)/u.test(text)),
+      ["QZ_E2E_STEER_MULTI_ONE", "QZ_E2E_STEER_MULTI_THREE"],
+      "all surviving steering messages must share one provider request in FIFO order",
+    );
+    assert.equal(
+      multiRequest.userTexts.some(text => /QZ_E2E_STEER_MULTI_DELETE_(?:STEERING|FOLLOWUP)/u.test(text)),
+      false,
+      "deleted queue entries must never reach the provider",
+    );
+  } finally {
+    await finishSteeringBatchMotion(page).catch(() => undefined);
+    providerServer.release("QZ_E2E_STEER_SINGLE_ACTIVE");
+    providerServer.release("QZ_E2E_STEER_MULTI_ACTIVE");
+    await Promise.all([
+      deleteSession(page, singleSessionId),
+      deleteSession(page, otherSessionId),
+      deleteSession(page, multiSessionId),
+    ]).catch(() => undefined);
+  }
+}
+
+async function manageExistingSession(page, provider) {
+  const parent = await createSession(page, "manage existing task");
+  const child = await createSession(page, "managed task");
+  try {
+    for (const mode of ["follow_up", "steer"]) {
+      const after = await eventCount(page);
+      await runPrompt(page, parent, "QZ_E2E_MANAGE " + JSON.stringify({ action: "send_message", sessionId: child, message: "QZ_E2E_RECOVER", mode }));
+      await waitEvent(page, { type: "agent_end", sessionId: child }, after, 20_000);
+    }
+    const after = await eventCount(page);
+    await send(page, "prompt", { sessionId: child, text: "QZ_E2E_MANAGED_CHILD", clientMessageId: id("managed") });
+    await waitEvent(page, { type: "agent_start", sessionId: child }, after, 20_000);
+    await runPrompt(page, parent, "QZ_E2E_MANAGE " + JSON.stringify({ action: "stop", sessionId: child }));
+    const state = await request(page, "get_state", { sessionId: child }, "state");
+    assert.equal(state.status, "aborted");
+  } finally {
+    provider.release("QZ_E2E_MANAGED_CHILD");
+    await deleteSession(page, parent);
+    await deleteSession(page, child);
+  }
+}
+
+async function providerFailureReleasesTheSession(page) {
+  for (const [marker, expected] of [
+    ["QZ_E2E_HTTP_ERROR", /401|injected auth failure/i],
+    ["QZ_E2E_UNSUPPORTED_IMAGE", /当前模型可能不支持图片或截图输入/],
+  ]) {
+    const sessionId = await createSession(page, "provider failure recovery");
+    const after = await eventCount(page);
+    await send(page, "prompt", { sessionId, text: marker, clientMessageId: id("error") });
+    await waitEvent(page, { type: "error", sessionId }, after, 20_000);
+    await waitEvent(page, { type: "agent_end", sessionId }, after, 20_000);
+    const failed = await request(page, "get_state", { sessionId }, "state");
+    assert.equal(failed.status, "error");
+    assert.match(failed.runtime?.reason || "", expected);
+    const failedMessages = await request(page, "get_messages", { sessionId }, "messages");
+    const failureTranscript = Array.isArray(failedMessages.transcript) ? failedMessages.transcript : [];
+    assert.equal(failureTranscript.filter(entry => entry.type === "error").length, 0, "visible assistant failure must not duplicate an error card");
+    assert.equal(failureTranscript.filter(entry => entry.type === "assistant" && /LLM 调用失败/.test(entry.content || "")).length, 1);
+
+    if (marker === "QZ_E2E_UNSUPPORTED_IMAGE") {
+      const failure = failureTranscript.find(entry => entry.type === "assistant" && /LLM 调用失败/.test(entry.content || ""));
+      assert.match(failure.content, expected);
+      assert.doesNotMatch(failure.content, /data:|Unexpected|invalid_parameter_error/);
+    }
+
+    const recovered = await runPrompt(page, sessionId, "QZ_E2E_RECOVER");
+    assert.match(recovered, /QZ_E2E_RECOVER_OK/);
+    const state = await request(page, "get_state", { sessionId }, "state");
+    assert.equal(state.status, "completed");
+    await deleteSession(page, sessionId);
+  }
+}
+
+async function providerFaultLifecycleMatrix(page, providerServer) {
+  for (const fault of ["HTTP", "EOF", "SSE", "SOCKET"]) {
+    for (const action of ["FAIL", "STEER", "STOP", "DELETE"]) {
+      const marker = `QZ_E2E_FAULT_${fault}_${action}`;
+      const sessionId = await createSession(page, marker);
+      const after = await eventCount(page);
+      try {
+        await switchUiToSession(page, sessionId);
+        await submitComposerMessage(page, marker);
+        const run = await waitEvent(page, { type: "agent_start", sessionId }, after);
+        if (fault === "HTTP") {
+          const deadline = Date.now() + 10_000;
+          while (!providerServer.count(marker) && Date.now() < deadline) await sleep(20);
+          assert.equal(providerServer.count(marker), 1, "provider must receive the gated request");
+        } else {
+          await waitEvent(page, { type: "message_update", sessionId, runId: run.runId }, after);
+        }
+
+        let queuedId;
+        if (action === "STEER") {
+          queuedId = await enqueueComposerMessage(page, "QZ_E2E_RECOVER");
+          await steerQueuedMessage(page, queuedId);
+          await waitForRuntimeQueues(page, sessionId, { steerings: [queuedId] });
+        } else if (action === "STOP") {
+          const stopped = await request(page, "stop_session", { sessionId }, "state", 5_000);
+          assert.equal(stopped.status, "aborted", "stop must settle before the provider is released");
+        } else if (action === "DELETE") {
+          const deleted = await request(page, "delete_session", { sessionId }, "delete_session_result", 5_000);
+          assert.equal(deleted.sessionId, sessionId, "deletion must finish while the provider is still blocked");
+        }
+
+        const boundary = await eventCount(page);
+        providerServer.release(marker);
+        if (action === "DELETE" || action === "STOP") {
+          // Allow the late network failure to cross the real worker/Port boundary.
+          await page.waitForTimeout(200);
+          assert.equal(await matchingEventCount(page, {
+            type: "message_update", sessionId, runId: run.runId,
+          }, boundary), 0, "late deltas must not cross a terminal boundary");
+          if (action === "DELETE") {
+            const records = await page.evaluate(id => chrome.storage.local.get([
+              `_session_${id}`, `_session_runtime_${id}`, `_active_conversation_${id}`,
+            ]), sessionId);
+            assert.deepEqual(records, {}, "late provider failure must not revive deleted records");
+          } else {
+            const state = await request(page, "get_state", { sessionId }, "state");
+            assert.equal(state.status, "aborted", "late provider failure must not overwrite explicit stop");
+          }
+        } else {
+          await waitEvent(page, { type: "error", sessionId, runId: run.runId }, after);
+          await waitEvent(page, { type: "agent_end", sessionId, runId: run.runId }, after);
+          assert.equal(await matchingEventCount(page, { type: "aborted", sessionId, runId: run.runId }, after), 0);
+          if (action === "STEER") {
+            await page.waitForFunction(() => document.querySelector("#messages")?.innerText?.includes("QZ_E2E_RECOVER_OK"), null, { timeout: 20_000 });
+            await waitForAgentEndCount(page, sessionId, after, 2, 20_000);
+            const history = await historyMessages(page, sessionId);
+            assert.equal(history.filter(message => message.role === "user" && messageText(message) === "QZ_E2E_RECOVER").length, 1);
+            assertRuntimeQueuesEmpty(await readRuntime(page, sessionId));
+            assert.deepEqual(await visibleQueueRows(page), []);
+            assertGaplessSteeringHandoff(await sessionEvents(page, sessionId, after), [queuedId]);
+          }
+          const state = await request(page, "get_state", { sessionId }, "state");
+          assert.equal(state.status, action === "STEER" ? "completed" : "error");
+          if (action === "FAIL") assert.match(await runPrompt(page, sessionId, "QZ_E2E_RECOVER"), /QZ_E2E_RECOVER_OK/);
+        }
+        console.log(JSON.stringify({ providerFault: fault, action, ok: true }));
+      } finally {
+        providerServer.release(marker);
+        await deleteSession(page, sessionId);
+      }
+    }
+  }
+}
+
+async function stopCutsOffLateStreaming(page, providerServer) {
+  const sessionId = await createSession(page, "stream stop");
+  const after = await eventCount(page);
+  await send(page, "prompt", { sessionId, text: "QZ_E2E_STOP", clientMessageId: id("stop") });
+  const stoppedRun = await waitEvent(page, { type: "agent_start", sessionId }, after, 20_000);
+  await waitEvent(page, { type: "message_update", sessionId, runId: stoppedRun.runId }, after, 20_000);
+
+  const queueAfter = await eventCount(page);
+  await send(page, "follow_up", {
+    sessionId,
+    text: "QZ_E2E_AFTER_ABORT_1",
+    clientMessageId: id("queued-1"),
+  });
+  await send(page, "follow_up", {
+    sessionId,
+    text: "QZ_E2E_AFTER_ABORT_2",
+    clientMessageId: id("queued-2"),
+  });
+  const queued = await waitForQueueCount(page, sessionId, 2, queueAfter);
+  assert.deepEqual(
+    queued.pendingFollowUpMessages.map(message => message.clientMessageId),
+    queued.pendingFollowUps.map(item => item.clientMessageId),
+  );
+
+  const afterStop = await eventCount(page);
+  const stopped = await request(page, "stop_session", { sessionId }, "state");
+  assert.equal(stopped.status, "aborted");
+  assert.deepEqual(
+    stopped.runtime?.pendingFollowUpMessages?.map(message => message.clientMessageId),
+    queued.pendingFollowUpMessages.map(message => message.clientMessageId),
+  );
+  const oldRunUpdates = { type: "message_update", sessionId, runId: stoppedRun.runId };
+  const countAtStop = await matchingEventCount(page, oldRunUpdates, after);
+  await page.waitForTimeout(500);
+  assert.equal(
+    await matchingEventCount(page, oldRunUpdates, after),
+    countAtStop,
+    "no stream delta may cross the durable stop boundary",
+  );
+
+  const queuedEnds = await waitForAgentEndCount(page, sessionId, afterStop, 2, 20_000);
+  assert.equal(new Set(queuedEnds.map(event => event.runId)).size, 2, "each queued message must own a distinct run");
+  const history = await historyMessages(page, sessionId);
+  assert.deepEqual(
+    history
+      .filter(message => message.role === "user" && /QZ_E2E_AFTER_ABORT_[12]/.test(messageText(message)))
+      .map(message => messageText(message)),
+    ["QZ_E2E_AFTER_ABORT_1", "QZ_E2E_AFTER_ABORT_2"],
+    "queued user messages must survive abort in FIFO order",
+  );
+  assert.deepEqual(
+    providerServer.requests
+      .filter(item => /^QZ_E2E_AFTER_ABORT_[12]$/u.test(item.marker))
+      .map(item => item.marker),
+    ["QZ_E2E_AFTER_ABORT_1", "QZ_E2E_AFTER_ABORT_2"],
+    "the provider must receive each queued message exactly once and in order",
+  );
+  const checkpoint = await readRuntime(page, sessionId);
+  assert.equal(checkpoint.status, "completed");
+  assert.deepEqual(checkpoint.pendingFollowUpMessages, []);
+  await deleteSession(page, sessionId);
+}
+
+async function concurrentSessionsStayIsolated(page) {
+  const [left, right] = await Promise.all([
+    createSession(page, "concurrent left"),
+    createSession(page, "concurrent right"),
+  ]);
+  const after = await eventCount(page);
+  await Promise.all([
+    send(page, "prompt", { sessionId: left, text: "QZ_E2E_PARALLEL_A", clientMessageId: id("left") }),
+    send(page, "prompt", { sessionId: right, text: "QZ_E2E_PARALLEL_B", clientMessageId: id("right") }),
+  ]);
+  await Promise.all([
+    waitEvent(page, { type: "agent_end", sessionId: left }, after, 20_000),
+    waitEvent(page, { type: "agent_end", sessionId: right }, after, 20_000),
+  ]);
+  assert.match(await latestAssistantText(page, left), /QZ_E2E_PARALLEL_A_OK/);
+  assert.match(await latestAssistantText(page, right), /QZ_E2E_PARALLEL_B_OK/);
+  await Promise.all([deleteSession(page, left), deleteSession(page, right)]);
+}
+
+async function sidepanelReloadKeepsTheBackgroundRun(page) {
+  const sessionId = await createSession(page, "sidepanel reload");
+  const after = await eventCount(page);
+  await send(page, "prompt", { sessionId, text: "QZ_E2E_RECONNECT", clientMessageId: id("reload") });
+  await waitEvent(page, { type: "message_update", sessionId }, after, 20_000);
+
+  await page.reload();
+  await page.waitForSelector("#input", { state: "attached" });
+  await installHarness(page);
+  const terminal = await waitForTerminalState(page, sessionId, 20_000);
+  assert.equal(terminal.status, "completed");
+  assert.match(await latestAssistantText(page, sessionId), /QZ_E2E_RECONNECT_OK/);
+  const history = await historyMessages(page, sessionId);
+  assert.equal(history.filter(message => message.role === "user" && messageText(message).includes("QZ_E2E_RECONNECT")).length, 1);
+  await deleteSession(page, sessionId);
+}
+
+async function serviceWorkerRestartSettlesInterruptedTurn(page, browserContext, extensionId, providerServer) {
+  const sessionId = await createSession(page, "service worker restart");
+  const after = await eventCount(page);
+  await send(page, "prompt", {
+    sessionId,
+    text: "QZ_E2E_WORKER_OLD",
+    clientMessageId: id("worker-old"),
+  });
+  await waitEvent(page, { type: "message_update", sessionId }, after, 20_000);
+  assert.equal((await readRuntime(page, sessionId)).status, "running");
+
+  await terminateExtensionServiceWorker(page, browserContext, extensionId);
+  await page.reload();
+  await page.waitForSelector("#input", { state: "attached" });
+  await installHarness(page);
+  const recovered = await request(page, "get_state", { sessionId }, "state");
+  assert.equal(recovered.status, "interrupted");
+  assert.equal(recovered.runtime?.reason, "service_worker_restarted");
+
+  const response = await runPrompt(page, sessionId, "QZ_E2E_WORKER_NEW");
+  assert.match(response, /QZ_E2E_WORKER_NEW_OK/);
+  const requestRecord = [...providerServer.requests].reverse().find(item => item.marker === "QZ_E2E_WORKER_NEW");
+  assert.equal(requestRecord?.settledInterruptedTurn, true, "the provider must not receive consecutive unresolved user turns");
+  await deleteSession(page, sessionId);
+}
+
+async function saveConfig(page, endpoint, overrides = {}) {
+  const response = await request(page, "save_config", {
+    config: {
+      provider: "custom",
+      customProtocol: "openai",
+      customEndpoint: endpoint,
+      apiKey: "deterministic-test-key",
+      model: "deterministic-model",
+      contextWindow: 128000,
+      trimOldToolResults: true,
+      vision: false,
+      debugMode: false,
+      ...overrides,
+    },
+  }, "config_saved");
+  assert.equal(response.config?.provider, "custom");
+}
+
+async function runPrompt(page, sessionId, text) {
+  const after = await eventCount(page);
+  await send(page, "prompt", { sessionId, text, clientMessageId: id("user") });
+  const started = await waitEvent(page, { type: "agent_start", sessionId }, after, 20_000);
+  await waitEvent(page, { type: "agent_end", sessionId, runId: started.runId }, after, 20_000);
+  return latestAssistantText(page, sessionId);
+}
+
+async function createSession(page, title) {
+  const result = await request(page, "create_ui_session", { title, firstMessage: "" }, "create_ui_session_result");
+  assert.ok(result.session?.id);
+  return result.session.id;
+}
+
+async function deleteSession(page, sessionId) {
+  const result = await request(page, "delete_session", { sessionId }, "delete_session_result");
+  assert.equal(result.sessionId, sessionId);
+}
+
+async function latestAssistantText(page, sessionId) {
+  const messages = await historyMessages(page, sessionId);
+  return messageText([...messages].reverse().find(message => message.role === "assistant"));
+}
+
+async function historyMessages(page, sessionId) {
+  const result = await request(page, "get_history", { sessionId }, "history");
+  return Array.isArray(result.messages) ? result.messages : [];
+}
+
+function messageText(message) {
+  if (typeof message?.content === "string") return message.content;
+  if (!Array.isArray(message?.content)) return "";
+  return message.content.filter(item => item?.type === "text").map(item => item.text || "").join("\n");
+}
+
+async function waitForTerminalState(page, sessionId, timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const state = await request(page, "get_state", { sessionId }, "state", 5_000);
+    if (["completed", "error", "aborted", "interrupted"].includes(state.status)) return state;
+    await page.waitForTimeout(50);
+  }
+  throw new Error(`timed out waiting for terminal state: ${sessionId}`);
+}
+
+function readRuntime(page, sessionId) {
+  return page.evaluate(async id => {
+    const key = `_session_runtime_${id}`;
+    return (await chrome.storage.local.get(key))[key] || null;
+  }, sessionId);
+}
+
+async function switchUiToSession(page, sessionId) {
+  await page.locator('.tab-btn[data-tab="sessions"]').click();
+  await page.waitForFunction(id => (
+    [...document.querySelectorAll(".session-card[data-id]")]
+      .some(card => card.dataset.id === id)
+  ), sessionId, { timeout: 10_000 });
+  await page.locator(`.session-card[data-id="${sessionId}"]`).click();
+  await page.waitForFunction(sessionId => {
+    const chatIsActive = document.querySelector('.tab-btn[data-tab="chat"]')?.classList.contains("active");
+    const currentTitle = document.querySelector("#current-session-title")?.textContent?.trim() || "";
+    const selectedCard = [...document.querySelectorAll(".session-card[data-id]")]
+      .find(card => card.dataset.id === sessionId);
+    const selectedTitle = selectedCard?.querySelector(".session-card-title")?.textContent?.trim() || "";
+    return Boolean(selectedCard && chatIsActive && selectedTitle && currentTitle === selectedTitle);
+  }, sessionId, { timeout: 10_000 });
+}
+
+async function submitComposerMessage(page, text) {
+  const input = page.locator("#input");
+  await input.fill(text);
+  await input.press("Enter");
+  await page.waitForFunction(() => document.querySelector("#input")?.value === "", null, { timeout: 10_000 });
+}
+
+async function enqueueComposerMessage(page, text) {
+  await submitComposerMessage(page, text);
+  await page.waitForFunction(expected => (
+    [...document.querySelectorAll("#queued-followups .queued-followup")]
+      .some(row => row.querySelector(".queued-followup-text")?.textContent?.trim() === expected)
+  ), text, { timeout: 10_000 });
+  return page.evaluate(expected => {
+    const row = [...document.querySelectorAll("#queued-followups .queued-followup")]
+      .find(item => item.querySelector(".queued-followup-text")?.textContent?.trim() === expected);
+    return row?.dataset.clientMessageId || "";
+  }, text).then(clientMessageId => {
+    assert.ok(clientMessageId, `queued composer message must have a clientMessageId: ${text}`);
+    return clientMessageId;
+  });
+}
+
+async function steerQueuedMessage(page, clientMessageId) {
+  await page.locator(`[data-steer-follow-up="${clientMessageId}"]`).click();
+  await page.waitForFunction(id => {
+    const row = [...document.querySelectorAll("#queued-followups .queued-followup")]
+      .find(item => item.dataset.clientMessageId === id);
+    return row?.dataset.queueKind === "steering";
+  }, clientMessageId, { timeout: 10_000 });
+}
+
+async function deleteQueuedMessage(page, clientMessageId) {
+  const row = page.locator(`#queued-followups .queued-followup[data-client-message-id="${clientMessageId}"]`);
+  await row.locator(".queued-followup-delete").click();
+  await row.waitFor({ state: "detached", timeout: 10_000 });
+}
+
+function visibleQueueRows(page) {
+  return page.evaluate(() => (
+    [...document.querySelectorAll("#queued-followups .queued-followup")].map(row => ({
+      id: row.dataset.clientMessageId || "",
+      kind: row.dataset.queueKind || "",
+      text: row.querySelector(".queued-followup-text")?.textContent?.trim() || "",
+    }))
+  ));
+}
+
+async function waitForRuntimeQueues(page, sessionId, { steerings = [], followUps = [] }, timeoutMs = 10_000) {
+  const deadline = Date.now() + timeoutMs;
+  let runtime = null;
+  while (Date.now() < deadline) {
+    runtime = await readRuntime(page, sessionId);
+    const steeringIds = (runtime?.pendingSteeringMessages || []).map(item => item.clientMessageId);
+    const followUpIds = (runtime?.pendingFollowUpMessages || []).map(item => item.clientMessageId);
+    if (
+      JSON.stringify(steeringIds) === JSON.stringify(steerings)
+      && JSON.stringify(followUpIds) === JSON.stringify(followUps)
+    ) return runtime;
+    await page.waitForTimeout(25);
+  }
+  assert.fail(`timed out waiting for runtime queues: ${JSON.stringify({
+    sessionId,
+    expected: { steerings, followUps },
+    actual: {
+      steerings: (runtime?.pendingSteeringMessages || []).map(item => item.clientMessageId),
+      followUps: (runtime?.pendingFollowUpMessages || []).map(item => item.clientMessageId),
+    },
+  })}`);
+}
+
+function assertRuntimeQueuesEmpty(runtime) {
+  assert.ok(runtime, "session runtime must be persisted");
+  assert.deepEqual(runtime.pendingSteeringMessages || [], []);
+  assert.deepEqual(runtime.pendingFollowUpMessages || [], []);
+}
+
+function sessionEvents(page, sessionId, after = 0) {
+  return page.evaluate(({ sessionId, after }) => (
+    window.__qzBackgroundE2E.events().slice(after).filter(event => event?.sessionId === sessionId)
+  ), { sessionId, after });
+}
+
+function assertGaplessSteeringHandoff(events, clientMessageIds) {
+  const acceptedIds = events
+    .filter(event => event.type === "message_start")
+    .map(event => event.clientMessageId || event.message?.clientMessageId || "")
+    .filter(id => clientMessageIds.includes(id));
+  assert.deepEqual(acceptedIds, clientMessageIds, "steering messages must enter the transcript once and in FIFO order");
+  const firstAcceptedIndex = events.findIndex(event => (
+    event.type === "message_start"
+    && (event.clientMessageId || event.message?.clientMessageId) === clientMessageIds[0]
+  ));
+  let dequeueIndex = -1;
+  for (let index = 0; index < firstAcceptedIndex; index += 1) {
+    const event = events[index];
+    if (
+      event.type === "queue_update"
+      && event.pendingSteerings?.length === 0
+      && event.pendingFollowUps?.length === 0
+    ) dequeueIndex = index;
+  }
+  assert.notEqual(dequeueIndex, -1, "steering handoff must publish the empty queue state");
+  assert.equal(
+    firstAcceptedIndex,
+    dequeueIndex + 1,
+    "the first transcript message must immediately follow batch dequeue without a visible gap",
+  );
+}
+
+async function observeSteeringBatchMotion(page) {
+  await page.waitForFunction(() => (
+    document.querySelectorAll(".queued-followup-exit-ghost, .queued-followup-batch-exit-ghost").length === 0
+  ), null, { timeout: 10_000 });
+  await page.evaluate(() => {
+    window.__qzSteeringBatchObserver?.disconnect?.();
+    const state = {
+      maxBatchGhostCount: 0,
+      maxBatchRowCount: 0,
+      maxIndividualGhostCount: 0,
+      batchSizes: [],
+    };
+    const scan = () => {
+      const batchGhosts = [...document.querySelectorAll(".queued-followup-batch-exit-ghost")];
+      const individualGhosts = document.querySelectorAll(".queued-followup-exit-ghost");
+      state.maxBatchGhostCount = Math.max(state.maxBatchGhostCount, batchGhosts.length);
+      state.maxBatchRowCount = Math.max(
+        state.maxBatchRowCount,
+        ...batchGhosts.map(ghost => ghost.querySelectorAll(".queued-followup-batch-exit-row").length),
+      );
+      state.maxIndividualGhostCount = Math.max(state.maxIndividualGhostCount, individualGhosts.length);
+      for (const ghost of batchGhosts) {
+        if (ghost.dataset.batchSize && !state.batchSizes.includes(ghost.dataset.batchSize)) {
+          state.batchSizes.push(ghost.dataset.batchSize);
+        }
+      }
+    };
+    const observer = new MutationObserver(scan);
+    observer.observe(document.body, { childList: true, subtree: true });
+    window.__qzSteeringBatchMotion = state;
+    window.__qzSteeringBatchObserver = observer;
+    scan();
+  });
+}
+
+async function finishSteeringBatchMotion(page) {
+  return page.evaluate(() => {
+    window.__qzSteeringBatchObserver?.disconnect?.();
+    window.__qzSteeringBatchObserver = null;
+    const state = window.__qzSteeringBatchMotion || {
+      maxBatchGhostCount: 0,
+      maxBatchRowCount: 0,
+      maxIndividualGhostCount: 0,
+      batchSizes: [],
+    };
+    window.__qzSteeringBatchMotion = null;
+    return state;
+  });
+}
+
+async function installHarness(page) {
+  await page.evaluate(() => {
+    const events = [];
+    const waiters = new Set();
+    let sequence = 0;
+    const port = chrome.runtime.connect({ name: "sidepanel" });
+    const matches = (message, expected) => Object.entries(expected || {}).every(([key, value]) => message?.[key] === value);
+    port.onMessage.addListener(message => {
+      if (message?.type === "dynamic_context_request") {
+        port.postMessage({ type: "dynamic_context_response", requestId: message.requestId, context: {} });
+      }
+      events.push(message);
+      for (const waiter of [...waiters]) {
+        if (waiter.after > events.length - 1 || !waiter.predicate(message)) continue;
+        waiters.delete(waiter);
+        clearTimeout(waiter.timer);
+        waiter.resolve(message);
+      }
+    });
+    const wait = (expected, after = 0, timeoutMs = 20_000, predicate = null) => {
+      const test = predicate || (message => matches(message, expected));
+      const existing = events.slice(after).find(test);
+      if (existing) return Promise.resolve(existing);
+      return new Promise((resolve, reject) => {
+        const waiter = {
+          after,
+          predicate: test,
+          resolve,
+          timer: setTimeout(() => {
+            waiters.delete(waiter);
+            reject(new Error(`timed out waiting for ${JSON.stringify(expected)}`));
+          }, timeoutMs),
+        };
+        waiters.add(waiter);
+      });
+    };
+    window.__qzBackgroundE2E = {
+      send(type, payload = {}) { port.postMessage({ type, ...payload }); },
+      wait,
+      count: () => events.length,
+      events: () => events.slice(),
+      matchingCount: (expected, after = 0) => events.slice(after).filter(message => matches(message, expected)).length,
+      async request(type, payload, responseType, timeoutMs = 20_000) {
+        const requestId = `e2e_${Date.now().toString(36)}_${++sequence}`;
+        const after = events.length;
+        port.postMessage({ type, ...payload, requestId });
+        return wait({}, after, timeoutMs, message => message?.requestId === requestId && [responseType, "error", "request_failed", "transport_error"].includes(message.type));
+      },
+    };
+  });
+}
+
+async function request(page, type, payload, responseType, timeoutMs = 20_000) {
+  const result = await page.evaluate(({ type, payload, responseType, timeoutMs }) => (
+    window.__qzBackgroundE2E.request(type, payload, responseType, timeoutMs)
+  ), { type, payload, responseType, timeoutMs });
+  if (["error", "request_failed", "transport_error"].includes(result.type)) throw Object.assign(new Error(result.message), { code: result.code, details: result.details });
+  return result;
+}
+
+function send(page, type, payload = {}) {
+  return page.evaluate(({ type, payload }) => window.__qzBackgroundE2E.send(type, payload), { type, payload });
+}
+
+function waitEvent(page, expected, after = 0, timeoutMs = 20_000) {
+  return page.evaluate(({ expected, after, timeoutMs }) => window.__qzBackgroundE2E.wait(expected, after, timeoutMs), {
+    expected, after, timeoutMs,
+  });
+}
+
+function eventCount(page) {
+  return page.evaluate(() => window.__qzBackgroundE2E.count());
+}
+
+function matchingEventCount(page, expected, after = 0) {
+  return page.evaluate(({ expected, after }) => window.__qzBackgroundE2E.matchingCount(expected, after), { expected, after });
+}
+
+function waitForQueueCount(page, sessionId, count, after = 0, timeoutMs = 20_000) {
+  return page.evaluate(({ sessionId, count, after, timeoutMs }) => (
+    window.__qzBackgroundE2E.wait({}, after, timeoutMs, message => (
+      message?.type === "queue_update"
+      && message?.sessionId === sessionId
+      && message?.pendingFollowUpMessages?.length === count
+    ))
+  ), { sessionId, count, after, timeoutMs });
+}
+
+async function waitForAgentEndCount(page, sessionId, after, count, timeoutMs) {
+  await page.waitForFunction(({ sessionId, after, count }) => (
+    window.__qzBackgroundE2E.events()
+      .slice(after)
+      .filter(message => message?.type === "agent_end" && message?.sessionId === sessionId)
+      .length >= count
+  ), { sessionId, after, count }, { timeout: timeoutMs });
+  return page.evaluate(({ sessionId, after }) => (
+    window.__qzBackgroundE2E.events()
+      .slice(after)
+      .filter(message => message?.type === "agent_end" && message?.sessionId === sessionId)
+  ), { sessionId, after });
+}
+
+async function createProviderServer() {
+  const requests = [];
+  const mcpRequests = [];
+  const markerCounts = new Map();
+  const gateWaiters = new Map();
+  const releasedGates = new Set();
+  const screenActionFixture = readFileSync(join(root, "tests/fixtures/screen-action-runtime.html"), "utf8");
+  const screenActionResultFixture = readFileSync(join(root, "tests/fixtures/screen-action-runtime-result.html"), "utf8");
+  const waitForRelease = marker => {
+    if (releasedGates.delete(marker)) return Promise.resolve();
+    return new Promise(resolvePromise => gateWaiters.set(marker, resolvePromise));
+  };
+  const release = marker => {
+    const resolvePromise = gateWaiters.get(marker);
+    if (!resolvePromise) {
+      releasedGates.add(marker);
+      return;
+    }
+    gateWaiters.delete(marker);
+    resolvePromise();
+  };
+  const server = createServer(async (req, res) => {
+    const requestPath = new URL(req.url || "/", "http://127.0.0.1").pathname;
+    if (requestPath === "/mcp-output-schema") {
+      if (req.method !== "POST") { res.writeHead(405); res.end(); return; }
+      const rpc = await readJsonBody(req);
+      mcpRequests.push(rpc.method);
+      if (rpc.method === "notifications/initialized") { res.writeHead(202); res.end(); return; }
+      let result;
+      if (rpc.method === "initialize") {
+        result = { protocolVersion: "2025-06-18", capabilities: { tools: {} }, serverInfo: { name: "schema-fixture", version: "1" } };
+      } else if (rpc.method === "tools/list") {
+        result = { tools: [{ name: "count", inputSchema: { type: "object", properties: { invalid: { type: "boolean" } } },
+          outputSchema: { type: "object", properties: { count: { type: "integer" } }, required: ["count"] } }] };
+      } else if (rpc.method === "tools/call") {
+        if (rpc.params.arguments.invalid && mcpRequests.filter(method => method === "tools/call").length === 2) {
+          res.writeHead(404); res.end("Session not found"); return;
+        }
+        const structuredContent = { count: rpc.params.arguments.invalid ? "invalid" : 1 };
+        result = { content: [{ type: "text", text: JSON.stringify(structuredContent) }], structuredContent };
+      } else { res.writeHead(404); res.end(); return; }
+      res.setHeader("mcp-session-id", "schema-fixture-session");
+      sendJson(res, 200, { jsonrpc: "2.0", id: rpc.id, result });
+      return;
+    }
+    if (req.method === "GET" && requestPath === "/screen-action-target") {
+      res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" });
+      res.end(screenActionFixture);
+      return;
+    }
+    if (req.method === "GET" && requestPath === "/screen-action-runtime-result.html") {
+      res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" });
+      res.end(screenActionResultFixture);
+      return;
+    }
+    const body = await readJsonBody(req);
+    const marker = isTitleGenerationRequest(body) ? "title" : detectMarker(body);
+    const count = (markerCounts.get(marker) || 0) + 1;
+    markerCounts.set(marker, count);
+    const settledInterruptedTurn = hasSettledInterruptedTurn(body);
+    requests.push({
+      marker,
+      count,
+      stream: body.stream === true,
+      settledInterruptedTurn,
+      userTexts: userMessageTexts(body),
+      imageCount: latestUserImageCount(body),
+      ...imageProjectionStats(body.messages),
+      documentCapsuleCount: documentCapsuleCount(body),
+      containsDisplayProjection: JSON.stringify(body?.messages || []).includes("imageWithAction"),
+    });
+
+    if (marker.startsWith("QZ_E2E_FAULT_")) {
+      const fault = marker.split("_")[3];
+      if (fault !== "HTTP") {
+        res.writeHead(200, { "content-type": "text/event-stream; charset=utf-8" });
+        res.write(`data: ${JSON.stringify(streamChunk("QZ partial output before injected failure", true))}\n\n`);
+      }
+      // The recovery attempt must receive the fault too, without a second gate.
+      if (count === 1) await waitForRelease(marker);
+      if (res.destroyed) return;
+      if (fault === "HTTP") sendJson(res, 401, { error: { message: "QZ gated auth failure" } });
+      else if (fault === "SOCKET") res.destroy();
+      else if (fault === "SSE") res.end(`data: ${JSON.stringify({ error: { message: "QZ gated stream failure", type: "invalid_request_error", code: "invalid_request_error" } })}\n\n`);
+      else res.end(); // Clean transport EOF without the protocol's finish marker.
+      return;
+    }
+    if (marker === "QZ_E2E_HTTP_ERROR") {
+      sendJson(res, 401, { error: { message: "QZ injected auth failure" } });
+      return;
+    }
+    if (marker === "QZ_E2E_UNSUPPORTED_IMAGE") {
+      const content = `data: ${JSON.stringify({ error: {
+        code: "invalid_parameter_error",
+        type: "invalid_request_error",
+        message: "The provided messages input is invalid. The error info is [Unexpected item type in content.].",
+      } })}`;
+      res.writeHead(200, { "content-type": "text/event-stream; charset=utf-8" });
+      res.end(`data: ${JSON.stringify({ choices: [{ index: 0, delta: { content }, finish_reason: "error_finish" }] })}\n\ndata: [DONE]\n\n`);
+      return;
+    }
+    if (marker === "QZ_E2E_RETRY" && count === 1) {
+      sendJson(res, 503, { error: { message: "QZ injected overloaded" } });
+      return;
+    }
+    if (body.stream !== true) {
+      sendJson(res, 200, completion("QZ validation OK"));
+      return;
+    }
+
+    if (marker === "QZ_E2E_MCP_OUTPUT_SCHEMA" && count <= 5) {
+      const serverArgs = { url: `http://127.0.0.1:${server.address().port}/mcp-output-schema`, name: "schema-fixture", timeout: 10 };
+      const steps = [
+        ["mcp_schema_load", "load_skill", { name: "qingzhou-mcp" }],
+        ["mcp_schema_inspect", getMcpSkillToolName("mcp_inspect_server"), { ...serverArgs, refresh: true }],
+        ["mcp_schema_valid", getMcpSkillToolName("mcp_call_tool"), { ...serverArgs, tool: "count", args: {} }],
+        ["mcp_schema_invalid", getMcpSkillToolName("mcp_call_tool"), { ...serverArgs, tool: "count", args: { invalid: true } }],
+        ["mcp_schema_recovered", getMcpSkillToolName("mcp_call_tool"), { ...serverArgs, tool: "count", args: {} }],
+      ];
+      const [toolCallId, name, args] = steps[count - 1];
+      res.writeHead(200, { "content-type": "text/event-stream" });
+      res.write(`data: ${JSON.stringify(streamToolCall(toolCallId, name, JSON.stringify(args)))}\n\n`);
+      res.write(`data: ${JSON.stringify(streamToolCallsDone())}\n\n`);
+      res.end("data: [DONE]\n\n");
+      return;
+    }
+
+    if (marker === "QZ_E2E_MANAGED_CHILD") {
+      res.writeHead(200, { "content-type": "text/event-stream" });
+      await waitForRelease(marker);
+      if (!res.destroyed) res.end("data: [DONE]\n\n");
+      return;
+    }
+    if (marker === "QZ_E2E_MANAGE" && count % 2 === 1) {
+      const text = userMessageTexts(body).findLast(value => value.startsWith("QZ_E2E_MANAGE "));
+      const args = text.slice("QZ_E2E_MANAGE ".length);
+      res.writeHead(200, { "content-type": "text/event-stream" });
+      res.write(`data: ${JSON.stringify(streamToolCall(`manage_${count}`, "manage_sessions", args))}\n\n`);
+      res.write(`data: ${JSON.stringify(streamToolCallsDone())}\n\n`);
+      res.end("data: [DONE]\n\n");
+      return;
+    }
+    if (marker === "QZ_E2E_STEER_ACTIVE" && count === 1) {
+      res.writeHead(200, {
+        "content-type": "text/event-stream; charset=utf-8",
+        "cache-control": "no-cache",
+        connection: "keep-alive",
+      });
+      res.write(`data: ${JSON.stringify(streamToolCall("call_steering_list_tabs", "list_tabs", "{}"))}\n\n`);
+      await sleep(1200);
+      if (res.destroyed || req.aborted) return;
+      res.write(`data: ${JSON.stringify(streamToolCallsDone())}\n\n`);
+      res.write("data: [DONE]\n\n");
+      res.end();
+      return;
+    }
+
+    if (["QZ_E2E_STEER_SINGLE_ACTIVE", "QZ_E2E_STEER_MULTI_ACTIVE"].includes(marker) && count === 1) {
+      res.writeHead(200, {
+        "content-type": "text/event-stream; charset=utf-8",
+        "cache-control": "no-cache",
+        connection: "keep-alive",
+      });
+      const suffix = marker === "QZ_E2E_STEER_SINGLE_ACTIVE" ? "single" : "multi";
+      res.write(`data: ${JSON.stringify(streamToolCall(`call_steering_matrix_${suffix}`, "list_tabs", "{}"))}\n\n`);
+      await waitForRelease(marker);
+      if (res.destroyed || req.aborted) return;
+      res.write(`data: ${JSON.stringify(streamToolCallsDone())}\n\n`);
+      res.write("data: [DONE]\n\n");
+      res.end();
+      return;
+    }
+
+    if (marker === "QZ_E2E_DELETE_RUNNING_AUTOMATION" && count === 1) {
+      res.writeHead(200, {
+        "content-type": "text/event-stream; charset=utf-8",
+        "cache-control": "no-cache",
+        connection: "keep-alive",
+      });
+      await waitForRelease(marker);
+      if (res.destroyed || req.aborted) return;
+      res.write(`data: ${JSON.stringify(streamDone())}\n\n`);
+      res.write("data: [DONE]\n\n");
+      res.end();
+      return;
+    }
+
+    if (marker === "QZ_E2E_SCREEN_ACTION" && count <= 10) {
+      res.writeHead(200, {
+        "content-type": "text/event-stream; charset=utf-8",
+        "cache-control": "no-cache",
+        connection: "keep-alive",
+      });
+      const call = count === 1
+        ? streamToolCall("call_screen_open", "open_tab", JSON.stringify({ url: `http://127.0.0.1:${server.address().port}/screen-action-target` }))
+        : count === 2
+          ? streamToolCall("call_screen_capture", "screenshot", JSON.stringify({ actionable: true }))
+          : count > 3
+            ? streamToolCall(`call_screen_observation_${count}`, "screenshot", "{}")
+          : streamToolCall("call_screen_macro", "run_script", JSON.stringify({
+            timeout: 30,
+            mutatesPage: true,
+            code: `async () => {
+  // Run page actions sequentially in a fixed layout, then capture the result for the model.
+  const dpr = window.devicePixelRatio || 1;
+  const point = selector => {
+    const rect = document.querySelector(selector).getBoundingClientRect();
+    return {
+      x: (rect.left + rect.width / 2) * dpr,
+      y: (rect.top + rect.height / 2) * dpr,
+    };
+  };
+  const actionResults = [];
+  await tools.screenshot({});
+  const perform = async (action, args = {}) => {
+    const result = await tools.act_on_screen({
+      action,
+      returnScreenshot: false,
+      ...args,
+    });
+    if (result.feedbackAvailable !== false || result.coordinateBasisReady !== true) {
+      throw new Error(action + " broke stable visual coordinate continuation");
+    }
+    if (result.viewportChange?.scrolled !== false || result.viewportChange?.resized !== false) {
+      throw new Error(action + " unexpectedly changed the browser viewport");
+    }
+    actionResults.push({
+      action: result.action,
+      coordinateBound: Number.isFinite(args.x) && Number.isFinite(args.y),
+      sourceScreenshotId: result.sourceScreenshotId,
+      marker: result.marker,
+      durationMs: result.durationMs,
+      repeat: result.repeat,
+      viewportChange: result.viewportChange,
+      feedbackAvailable: result.feedbackAvailable,
+      coordinateBasisReady: result.coordinateBasisReady,
+    });
+    return result;
+  };
+
+  await perform("click", point("#click-target"));
+  await perform("double_click", point("#double-click-target"));
+  await perform("hover", point("#hover-target"));
+  await perform("long_press", { ...point("#long-press-target"), durationMs: 300 });
+  await perform("type", { ...point("#text-target"), text: "扩展替换值", replace: true });
+  const primaryModifier = /Mac/i.test(navigator.platform) ? "Meta" : "Control";
+  await perform("press", { key: primaryModifier + "+A" });
+  await perform("type", { text: "扩展最终值", replace: false });
+  await perform("press", { key: "Enter" });
+  await perform("scroll", { ...point("#wheel-target"), deltaX: 10, deltaY: 120, repeat: 3 });
+  const dragStart = point("#drag-source");
+  const dragEnd = point("#drop-target");
+  await perform("drag", {
+    x: dragStart.x,
+    y: dragStart.y,
+    endX: dragEnd.x,
+    endY: dragEnd.y,
+  });
+
+  const state = window.__readScreenActionState();
+  if (state.clickCount !== 1
+    || state.doubleClickClicks !== 2
+    || state.doubleClickCount !== 1
+    || state.hoverEnterCount < 1
+    || state.hoverMoveCount < 1
+    || state.longPressActive !== false
+    || state.longPressMs < 260
+    || state.inputValue !== "扩展最终值"
+    || state.keyEvents.at(-1)?.key !== "Enter"
+    || state.wheelEvents !== 3
+    || state.wheelDeltaX !== 30
+    || state.wheelDeltaY !== 360
+    || state.scrollY !== 0
+    || state.dragMoves < 8
+    || state.dragReleased !== true
+    || state.dropped !== true) {
+    throw new Error("screen action HTML state did not match the expected sequence: " + JSON.stringify(state));
+  }
+  await tools.screenshot({});
+  return {
+    ok: true,
+    filled: actionResults.length,
+    batch: {
+      actions: actionResults,
+      state,
+    },
+  };
+}`,
+          }));
+      res.write(`data: ${JSON.stringify(call)}\n\n`);
+      res.write(`data: ${JSON.stringify(streamToolCallsDone())}\n\n`);
+      res.write("data: [DONE]\n\n");
+      res.end();
+      return;
+    }
+
+    const output = outputForMarker(marker);
+    const delayMs = [
+      "QZ_E2E_STOP",
+      "QZ_QUEUE_ACTIVE",
+      "QZ_E2E_RECONNECT",
+      "QZ_E2E_PARALLEL_A",
+      "QZ_E2E_PARALLEL_B",
+      "QZ_E2E_WORKER_OLD",
+    ].includes(marker) ? 90 : 0;
+    res.writeHead(200, {
+      "content-type": "text/event-stream; charset=utf-8",
+      "cache-control": "no-cache",
+      connection: "keep-alive",
+    });
+    const chunks = splitOutput(output, delayMs ? 8 : 2);
+    for (let index = 0; index < chunks.length; index += 1) {
+      if (res.destroyed || req.aborted) return;
+      res.write(`data: ${JSON.stringify(streamChunk(chunks[index], index === 0))}\n\n`);
+      if (delayMs) await sleep(delayMs);
+    }
+    if (res.destroyed || req.aborted) return;
+    res.write(`data: ${JSON.stringify(streamDone())}\n\n`);
+    res.write("data: [DONE]\n\n");
+    res.end();
+  });
+  await new Promise((resolvePromise, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolvePromise);
+  });
+  const address = server.address();
+  return {
+    endpoint: `http://127.0.0.1:${address.port}/v1/chat/completions`,
+    screenActionUrl: `http://127.0.0.1:${address.port}/screen-action-target`,
+    requests,
+    mcpRequests,
+    count: marker => markerCounts.get(marker) || 0,
+    release,
+    close: () => {
+      for (const resolvePromise of gateWaiters.values()) resolvePromise();
+      gateWaiters.clear();
+      releasedGates.clear();
+      return new Promise(resolvePromise => server.close(() => resolvePromise()));
+    },
+  };
+}
+
+async function createGitRepositoryServer() {
+  const skill = normalizeModernSkill({
+    name: "git-auth-e2e-skill",
+    description: "Private repository authenticated archive fixture",
+    content: "# Git authenticated archive fixture\n\nLoaded from the repository Zip.",
+    scope: "global",
+    metadata: {
+      qingzhou: {
+        origin: { type: "local-draft", note: "legacy publish metadata" },
+      },
+    },
+  });
+  const zip = await createZip([{
+    path: "private-skill-repository-main/skills/git-auth-e2e-skill/SKILL.md",
+    content: skillToSkillMarkdown(skill),
+  }, {
+    path: "private-skill-repository-main/examples/git-auth-outside-skill/SKILL.md",
+    content: skillToSkillMarkdown(normalizeModernSkill({
+      name: "git-auth-outside-skill",
+      description: "Out-of-scope repository Skill fixture",
+      content: "# Must not be imported",
+      scope: "global",
+    })),
+  }]);
+  const zipBytes = Buffer.from(await zip.arrayBuffer());
+  let archiveRequests = 0;
+  let authenticatedArchiveRequests = 0;
+  const server = createServer((req, res) => {
+    const base = `http://127.0.0.1:${server.address()?.port || 80}`;
+    const url = new URL(req.url || "/", base);
+    if (url.pathname === "/group/private-skill-repository" || url.pathname === "/group/private-skill-repository/tree/main/skills") {
+      res.writeHead(200, {
+        "content-type": "text/html; charset=utf-8",
+        "set-cookie": "qz_git_auth=1; Path=/; SameSite=Lax",
+      });
+      res.end(`<!doctype html><html><head><meta name="project:default_branch" content="main"><title>private-skill-repository</title></head><body data-project-id="77"><a href="/group/private-skill-repository/commit/${"a".repeat(40)}">commit</a></body></html>`);
+      return;
+    }
+    if (url.pathname === "/api/v3/projects/77/repository/archive.zip") {
+      archiveRequests += 1;
+      const authenticated = /(?:^|;\s*)qz_git_auth=1(?:;|$)/u.test(String(req.headers.cookie || ""));
+      if (!authenticated) {
+        sendJson(res, 401, { error: "authentication required" });
+        return;
+      }
+      authenticatedArchiveRequests += 1;
+      res.writeHead(200, {
+        "content-type": "application/zip",
+        "content-length": String(zipBytes.byteLength),
+        "cache-control": "no-store",
+      });
+      res.end(zipBytes);
+      return;
+    }
+    res.writeHead(404, { "content-type": "text/plain" });
+    res.end("not found");
+  });
+  await new Promise((resolvePromise, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolvePromise);
+  });
+  const port = server.address().port;
+  const rootUrl = `http://127.0.0.1:${port}/group/private-skill-repository`;
+  return {
+    rootUrl,
+    repositoryUrl: `${rootUrl}/tree/main/skills`,
+    get archiveRequests() { return archiveRequests; },
+    get authenticatedArchiveRequests() { return authenticatedArchiveRequests; },
+    close: () => new Promise(resolvePromise => server.close(() => resolvePromise())),
+  };
+}
+
+function outputForMarker(marker) {
+  return {
+    QZ_E2E_BASIC: "QZ_E2E_BASIC_OK",
+    QZ_E2E_UI: "QZ_E2E_UI_OK",
+    QZ_E2E_ATTACHMENT_HISTORY_SEED: "QZ_E2E_ATTACHMENT_HISTORY_SEED_OK",
+    QZ_E2E_ATTACHMENT_HISTORY: "QZ_E2E_ATTACHMENT_HISTORY_OK",
+    QZ_E2E_ATTACHMENT_NEW: "QZ_E2E_ATTACHMENT_NEW_OK",
+    QZ_E2E_AUTOMATION: "QZ_E2E_AUTOMATION_OK",
+    QZ_E2E_DELETE_RUNNING_AUTOMATION: "QZ_E2E_DELETE_RUNNING_AUTOMATION_OK",
+    QZ_E2E_SCREEN_ACTION: "QZ_E2E_SCREEN_ACTION_OK",
+    QZ_E2E_MCP_OUTPUT_SCHEMA: "QZ_E2E_MCP_OUTPUT_SCHEMA_OK",
+    QZ_E2E_RETRY: "QZ_E2E_RETRY_OK",
+    QZ_E2E_STEER_TWO: "QZ_E2E_STEER_OK",
+    QZ_E2E_STEER_SINGLE_MESSAGE: "QZ_E2E_STEER_SINGLE_OK",
+    QZ_E2E_STEER_MULTI_THREE: "QZ_E2E_STEER_MULTI_OK",
+    QZ_E2E_RECOVER: "QZ_E2E_RECOVER_OK",
+    QZ_E2E_STOP: "QZ_E2E_STOP_SHOULD_BE_CUT_OFF_AFTER_THE_FIRST_CHUNK",
+    QZ_QUEUE_ACTIVE: "QZ_QUEUE_ACTIVE_STREAM_MUST_STAY_OPEN_LONG_ENOUGH_TO_QUEUE",
+    QZ_QUEUE_NEXT: "QZ_QUEUE_NEXT_OK",
+    QZ_E2E_AFTER_ABORT_1: "QZ_E2E_AFTER_ABORT_1_OK",
+    QZ_E2E_AFTER_ABORT_2: "QZ_E2E_AFTER_ABORT_2_OK",
+    QZ_E2E_PARALLEL_A: "QZ_E2E_PARALLEL_A_OK",
+    QZ_E2E_PARALLEL_B: "QZ_E2E_PARALLEL_B_OK",
+    QZ_E2E_RECONNECT: "QZ_E2E_RECONNECT_OK",
+    QZ_E2E_WORKER_OLD: "QZ_E2E_WORKER_OLD_STREAM_MUST_BE_INTERRUPTED",
+    QZ_E2E_WORKER_NEW: "QZ_E2E_WORKER_NEW_OK",
+  }[marker] || "QZ_DEFAULT_OK";
+}
+
+function detectMarker(body) {
+  const messages = Array.isArray(body?.messages) ? body.messages : [];
+  const markers = [
+    "QZ_E2E_MANAGED_CHILD", "QZ_E2E_MANAGE", "QZ_E2E_HTTP_ERROR", "QZ_E2E_UNSUPPORTED_IMAGE", "QZ_E2E_RETRY", "QZ_E2E_BASIC", "QZ_E2E_UI",
+    "QZ_E2E_ATTACHMENT_HISTORY_SEED", "QZ_E2E_ATTACHMENT_HISTORY", "QZ_E2E_ATTACHMENT_NEW",
+    "QZ_E2E_AUTOMATION", "QZ_E2E_DELETE_RUNNING_AUTOMATION", "QZ_E2E_SCREEN_ACTION", "QZ_E2E_MCP_OUTPUT_SCHEMA", "QZ_E2E_RECOVER",
+    "QZ_E2E_STEER_ACTIVE", "QZ_E2E_STEER_ONE", "QZ_E2E_STEER_TWO",
+    "QZ_E2E_STEER_SINGLE_ACTIVE", "QZ_E2E_STEER_SINGLE_MESSAGE",
+    "QZ_E2E_STEER_MULTI_ACTIVE", "QZ_E2E_STEER_MULTI_ONE", "QZ_E2E_STEER_MULTI_THREE",
+    "QZ_E2E_STEER_MULTI_DELETE_STEERING", "QZ_E2E_STEER_MULTI_DELETE_FOLLOWUP",
+    "QZ_E2E_STOP", "QZ_E2E_AFTER_ABORT_1", "QZ_E2E_AFTER_ABORT_2", "QZ_QUEUE_ACTIVE", "QZ_QUEUE_NEXT",
+    "QZ_E2E_PARALLEL_A", "QZ_E2E_PARALLEL_B", "QZ_E2E_RECONNECT",
+    "QZ_E2E_WORKER_OLD", "QZ_E2E_WORKER_NEW",
+  ];
+  for (const message of [...messages].reverse()) {
+    if (message?.role !== "user") continue;
+    const text = JSON.stringify(message.content ?? "");
+    const faultMarker = text.match(/QZ_E2E_FAULT_[A-Z_]+/u)?.[0];
+    if (faultMarker) return faultMarker;
+    const marker = markers.find(candidate => text.includes(candidate));
+    if (marker) return marker;
+  }
+  const fallbackText = JSON.stringify(body?.input ?? body ?? {});
+  return markers.find(marker => fallbackText.includes(marker)) || "validation";
+}
+
+function isTitleGenerationRequest(body = {}) {
+  const messages = Array.isArray(body?.messages) ? body.messages : [];
+  return messages.some(message => (
+    message?.role === "system"
+    && String(message.content || "").includes("会话标题生成器")
+  ));
+}
+
+function hasSettledInterruptedTurn(body) {
+  const messages = Array.isArray(body?.messages) ? body.messages : [];
+  const oldIndex = messages.findIndex(message => JSON.stringify(message?.content || "").includes("QZ_E2E_WORKER_OLD"));
+  const newIndex = messages.findIndex(message => JSON.stringify(message?.content || "").includes("QZ_E2E_WORKER_NEW"));
+  if (oldIndex < 0 || newIndex <= oldIndex) return false;
+  return messages.slice(oldIndex + 1, newIndex).some(message => (
+    message?.role === "assistant" && String(message?.content || "").includes("上一轮运行中断")
+  ));
+}
+
+function completion(content) {
+  return { id: id("completion"), object: "chat.completion", choices: [{ index: 0, message: { role: "assistant", content }, finish_reason: "stop" }] };
+}
+
+function streamChunk(content, first) {
+  return { id: id("chunk"), object: "chat.completion.chunk", choices: [{ index: 0, delta: { ...(first ? { role: "assistant" } : {}), content }, finish_reason: null }] };
+}
+
+function streamDone() {
+  return { id: id("done"), object: "chat.completion.chunk", choices: [{ index: 0, delta: {}, finish_reason: "stop" }] };
+}
+
+function streamToolCall(toolCallId, name, args) {
+  return {
+    id: id("tool-call"),
+    object: "chat.completion.chunk",
+    choices: [{
+      index: 0,
+      delta: {
+        role: "assistant",
+        tool_calls: [{
+          index: 0,
+          id: toolCallId,
+          type: "function",
+          function: { name, arguments: args },
+        }],
+      },
+      finish_reason: null,
+    }],
+  };
+}
+
+function streamToolCallsDone() {
+  return {
+    id: id("tool-done"),
+    object: "chat.completion.chunk",
+    choices: [{ index: 0, delta: {}, finish_reason: "tool_calls" }],
+  };
+}
+
+function userMessageTexts(body = {}) {
+  const messages = Array.isArray(body?.messages) ? body.messages : [];
+  return messages
+    .filter(message => message?.role === "user")
+    .map(message => {
+      if (typeof message.content === "string") return message.content;
+      if (!Array.isArray(message.content)) return "";
+      return message.content
+        .filter(part => part?.type === "text")
+        .map(part => String(part.text || ""))
+        .join("\n");
+    })
+    .filter(Boolean);
+}
+
+function latestUserImageCount(body = {}) {
+  const messages = Array.isArray(body?.messages) ? body.messages : [];
+  const latest = [...messages].reverse().find(message => message?.role === "user");
+  return Array.isArray(latest?.content)
+    ? latest.content.filter(part => part?.type === "image_url").length
+    : 0;
+}
+
+function imageProjectionStats(messages) {
+  let imageMessageCount = 0, totalImageCount = 0, imagePlaceholderCount = 0;
+  for (const message of Array.isArray(messages) ? messages : []) {
+    if (message?.role !== "user") continue;
+    const parts = Array.isArray(message.content) ? message.content : [];
+    const images = parts.filter(part => part?.type === "image_url").length;
+    if (images) imageMessageCount += 1;
+    totalImageCount += images;
+    imagePlaceholderCount += parts.filter(part => (
+      part?.type === "text" && String(part.text || "").includes("[image omitted for context saving]")
+    )).length;
+  }
+  return { imageMessageCount, totalImageCount, imagePlaceholderCount };
+}
+
+function documentCapsuleCount(body = {}) {
+  const messages = Array.isArray(body?.messages) ? body.messages : [];
+  return messages.filter(message => (
+    message?.role === "user"
+    && String(message.content || "").startsWith("[文档附件 capsule]")
+  )).length;
+}
+
+function splitOutput(text, count) {
+  const size = Math.max(1, Math.ceil(text.length / count));
+  const chunks = [];
+  for (let index = 0; index < text.length; index += size) chunks.push(text.slice(index, index + size));
+  return chunks;
+}
+
+async function readJsonBody(request) {
+  const chunks = [];
+  for await (const chunk of request) chunks.push(chunk);
+  const text = Buffer.concat(chunks).toString("utf8");
+  return text ? JSON.parse(text) : {};
+}
+
+function sendJson(response, status, body) {
+  response.writeHead(status, { "content-type": "application/json" });
+  response.end(JSON.stringify(body));
+}
+
+async function getExtensionId(browserContext, userDataDir) {
+  const existing = browserContext.serviceWorkers().find(worker => worker.url().startsWith("chrome-extension://"));
+  if (existing) return new URL(existing.url()).host;
+  try {
+    const worker = await browserContext.waitForEvent("serviceworker", {
+      predicate: item => item.url().startsWith("chrome-extension://"),
+      timeout: 5_000,
+    });
+    return new URL(worker.url()).host;
+  } catch (_error) {
+    for (let attempt = 0; attempt < 40; attempt += 1) {
+      for (const candidate of [join(userDataDir, "Default", "Preferences"), join(userDataDir, "Preferences")]) {
+        if (!existsSync(candidate)) continue;
+        const settings = JSON.parse(readFileSync(candidate, "utf8"))?.extensions?.settings || {};
+        const found = Object.entries(settings).find(([, record]) => {
+          const path = String(record?.path || record?.manifest?.path || "");
+          return path && resolve(path) === resolve(extensionPath);
+        });
+        if (found?.[0]) return found[0];
+      }
+      await sleep(250);
+    }
+    throw new Error("Unable to resolve loaded extension id");
+  }
+}
+
+function findChromeExecutable(bundled = "") {
+  return [
+    process.env.CHROME_EXECUTABLE,
+    bundled,
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "/Applications/Chromium.app/Contents/MacOS/Chromium",
+    "/usr/bin/google-chrome",
+    "/usr/bin/chromium",
+  ].filter(Boolean).find(existsSync) || "";
+}
+
+async function terminateExtensionServiceWorker(page, browserContext, extensionId) {
+  const cdp = await browserContext.newCDPSession(page);
+  try {
+    const { targetInfos = [] } = await cdp.send("Target.getTargets");
+    const worker = targetInfos.find(target => (
+      target.type === "service_worker"
+      && target.url === `chrome-extension://${extensionId}/background/service-worker.js`
+    ));
+    assert.ok(worker?.targetId, "extension service worker target should be discoverable");
+    const closed = await cdp.send("Target.closeTarget", { targetId: worker.targetId });
+    assert.equal(closed?.success, true);
+  } finally {
+    await cdp.detach().catch(() => undefined);
+  }
+}
+
+function sleep(ms) {
+  return new Promise(resolvePromise => setTimeout(resolvePromise, ms));
+}
+
+function id(prefix) {
+  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+}

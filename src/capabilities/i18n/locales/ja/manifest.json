@@ -1,0 +1,5 @@
+{
+  "manifest.extensionName": "軽舟",
+  "manifest.extensionDescription": "軽舟はブラウザーで使えるAIエージェントのワークスペースです。",
+  "manifest.switchModel": "モデルのプリセットをすばやく切り替える"
+}

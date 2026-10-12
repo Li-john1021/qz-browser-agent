@@ -1,0 +1,13 @@
+{
+  "language-settings.title": "言語",
+  "language-settings.interfaceLanguage": "表示言語",
+  "language-settings.followBrowser": "ブラウザーに合わせる",
+  "language-settings.loading": "言語設定を読み込み中…",
+  "language-settings.unsavedChanges": "未保存の変更があります",
+  "language-settings.saveFailed": "言語設定を保存できませんでした。もう一度お試しください。",
+  "language-settings.loadFailed": "保存済みの言語設定を読み込めませんでした。設定を開き直してください。",
+  "language-settings.save": "保存",
+  "language-settings.saved": "保存済み",
+  "language-settings.saving": "保存中…",
+  "language-settings.advanced": "詳細設定"
+}

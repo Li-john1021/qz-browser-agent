@@ -1,0 +1,5 @@
+{
+  "product-public.thisProductHasNoGitPublishingAdapterExportThe": "In dieser Version ist keine direkte Git-Veröffentlichung möglich. Exportiere den Skill und committe ihn in dein Repository.",
+  "product-public.configureModelEndpoint": "Modell verbinden",
+  "product-public.connectingToGpt": "Verbindung zum Modell wird hergestellt…"
+}

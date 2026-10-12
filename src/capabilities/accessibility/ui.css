@@ -1,0 +1,35 @@
+@layer components {
+/* Tool presentation owned by this capability. */
+.tool-details-get_ax_tree .tool-tree-body,
+.tool-timeline-slot-body.tool-details-get_ax_tree .tool-tree-body {
+  max-height: min(38vh, 340px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding-right: 4px;
+  scrollbar-gutter: stable;
+}
+
+.tool-tree-panel > .tool-ax-actions-table {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.tool-ax-actions-table .tool-data-table-head {
+  margin-bottom: 5px;
+}
+
+.tool-ax-actions-table .tool-data-table-wrap {
+  max-height: min(24vh, 190px);
+}
+
+.tool-ax-actions-table .tool-data-table {
+  font-size: calc(10.5px * var(--chat-text-scale, 1));
+}
+
+.tool-ax-actions-table .tool-data-table th,
+.tool-ax-actions-table .tool-data-table td {
+  max-width: 180px;
+  padding: 4px 6px;
+}
+}

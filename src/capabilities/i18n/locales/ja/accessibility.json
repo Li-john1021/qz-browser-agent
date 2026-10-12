@@ -1,0 +1,15 @@
+{
+  "accessibility.inspectPageTree": "ページ構造を調べる",
+  "accessibility.pageInspection": "ページの検査",
+  "accessibility.pageStructure": "ページ構造",
+  "accessibility.element": "要素",
+  "accessibility.editable": "編集可能",
+  "accessibility.outsideViewport": "表示範囲外",
+  "accessibility.interactiveElements": "操作できる要素",
+  "accessibility.attributes": "属性",
+  "accessibility.cannotResolveAxRoot": "ページ構造のルートが見つかりません：{selector}",
+  "accessibility.pageOverviewResponseIsInvalid": "ページの概要が無効な応答を返しました。",
+  "accessibility.items": "件",
+  "accessibility.showingTheFirst": "先頭から表示中：",
+  "accessibility.inspectPageTreeShort": "ページを調査"
+}

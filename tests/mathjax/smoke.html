@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MathJax Markdown Smoke Test</title>
+  <script src="/extension/shared/mathjax-config.js"></script>
+  <script src="/extension/vendor/mathjax/tex-svg-full.js"></script>
+  <script src="/tests/mathjax/cases.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg-primary: #151515;
+      --bg-secondary: #1f1f1f;
+      --text-primary: #eeeeee;
+      --text-secondary: #cfcfcf;
+      --text-muted: #8e8e8e;
+      --border: #353535;
+      --code-bg: #191d22;
+      --code-border: #31506f;
+      --code-accent: #78b7ff;
+      --code-inline-bg: #20242a;
+      --radius-md: 8px;
+      --radius-sm: 6px;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+    }
+
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+
+    .summary {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      padding: 14px 0 18px;
+      background: color-mix(in srgb, var(--bg-primary) 88%, transparent);
+      backdrop-filter: blur(12px);
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--bg-secondary);
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    .status.pass { border-color: #2f855a; color: #9ae6b4; }
+    .status.fail { border-color: #c53030; color: #feb2b2; }
+
+    .case {
+      margin: 12px 0;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--bg-secondary);
+    }
+
+    .case h2 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .msg-content {
+      line-height: 1.7;
+      word-break: break-word;
+    }
+
+    .msg-content code {
+      background: var(--code-inline-bg);
+      border: 1px solid color-mix(in srgb, var(--code-border) 68%, var(--border));
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: color-mix(in srgb, var(--text-primary) 88%, var(--code-accent));
+    }
+
+    .msg-content pre {
+      background: color-mix(in srgb, var(--code-bg) 88%, var(--bg-primary));
+      border: 1px solid color-mix(in srgb, var(--code-border) 76%, var(--border));
+      border-left: 3px solid color-mix(in srgb, var(--code-accent) 52%, transparent);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      margin: 8px 0;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      line-height: 1.5;
+    }
+
+    .copyable-code-block {
+      position: relative;
+      margin: 8px 0;
+    }
+
+    .math-formula {
+      color: color-mix(in srgb, var(--text-primary) 92%, var(--code-accent));
+    }
+
+    .math-inline {
+      display: inline;
+      white-space: nowrap;
+    }
+
+    .math-display {
+      display: block;
+      max-width: 100%;
+      margin: 10px 0;
+      padding: 10px 12px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      border: 1px solid color-mix(in srgb, var(--code-border) 72%, var(--border));
+      border-left: 3px solid color-mix(in srgb, var(--code-accent) 46%, transparent);
+      border-radius: var(--radius-md);
+      background: color-mix(in srgb, var(--code-bg) 88%, var(--bg-primary));
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .math-code-block .math-display {
+      min-height: 42px;
+      margin: 0;
+      padding-right: 44px;
+    }
+
+    .math-code-block .math-code-like {
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .math-code-lines {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .math-code-line {
+      display: block;
+      min-width: max-content;
+      padding-left: var(--math-code-indent, 0);
+      white-space: nowrap;
+    }
+
+    .math-display mjx-container[display="true"] {
+      min-width: max-content;
+      margin: 0 !important;
+      text-align: left !important;
+    }
+
+    .code-copy-btn {
+      position: absolute;
+      top: 7px;
+      right: 7px;
+      width: 25px;
+      height: 24px;
+      opacity: .45;
+    }
+
+    .raw {
+      margin-top: 8px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="summary">
+      <h1>MathJax Markdown Smoke Test</h1>
+      <div id="status" class="status">running...</div>
+    </section>
+    <section id="cases"></section>
+  </main>
+  <script>
+    const caseHost = document.querySelector("#cases");
+    const statusEl = document.querySelector("#status");
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, ch => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[ch]);
+    }
+
+    function highlightJsonValue(value) {
+      return escapeHtml(JSON.stringify(value, null, 2));
+    }
+
+    function highlightJavaScriptCode(value) {
+      return escapeHtml(value);
+    }
+
+    function normalizeCodeLanguage(value) {
+      return String(value || "").trim().toLowerCase();
+    }
+
+    function highlightCode(value, requestedLanguage = "") {
+      return {
+        html: escapeHtml(value),
+        language: normalizeCodeLanguage(requestedLanguage),
+        vendor: "smoke-plain",
+      };
+    }
+
+    async function installProductionRenderer() {
+      const module = await import("/extension/sidepanel/features/chat/markdown-feature.js");
+      window.__mathSmokeRenderer = { renderMarkdown: module.renderMarkdown };
+      return window.__mathSmokeRenderer;
+    }
+
+    async function installProductionMorph() {
+      const mod = await import("/extension/sidepanel/ui/dom-morph.js");
+      return mod.morphChildren;
+    }
+
+    function mathTargets(roots) {
+      return roots.flatMap(root => Array.from(root.querySelectorAll('.math-formula:not([data-math-pending="true"])')));
+    }
+
+    function pendingTypesetTargets(roots) {
+      return roots.flatMap(root => Array.from(root.querySelectorAll('.math-formula:not([data-math-pending="true"]):not([data-math-rendered="true"]):not([data-math-rendering="true"])')));
+    }
+
+    function preserveRenderedMathSubtree(current, next) {
+      if (!(current instanceof Element) || !(next instanceof Element)) return false;
+      if (!current.classList.contains("math-formula") || !next.classList.contains("math-formula")) return false;
+      const key = current.dataset.mathKey || "";
+      return Boolean(key && key === next.dataset.mathKey && (
+        current.dataset.mathRendered === "true" || current.dataset.mathRendering === "true"
+      ));
+    }
+
+    function clearMathTypesetForRemovedNode(node) {
+      if (!(node instanceof Element)) return;
+      if (!node.classList.contains("math-formula") && !node.querySelector?.(".math-formula")) return;
+      try {
+        MathJax.typesetClear([node]);
+      } catch (_err) {}
+      const formulas = node.classList.contains("math-formula")
+        ? [node, ...Array.from(node.querySelectorAll?.(".math-formula") || [])]
+        : Array.from(node.querySelectorAll?.(".math-formula") || []);
+      for (const formula of formulas) {
+        delete formula.dataset.mathRendered;
+        delete formula.dataset.mathRendering;
+      }
+    }
+
+    function patchMathContent(root, html, morphChildren) {
+      const template = document.createElement("template");
+      template.innerHTML = String(html || "");
+      morphChildren(root, template.content, {
+        preserveSubtree: preserveRenderedMathSubtree,
+        beforeReplace: clearMathTypesetForRemovedNode,
+        beforeRemove: clearMathTypesetForRemovedNode,
+      });
+    }
+
+    function rectsForMath(root) {
+      return Array.from(root.querySelectorAll(".math-formula")).map(node => {
+        const rect = node.getBoundingClientRect();
+        return {
+          width: Math.round(rect.width * 10) / 10,
+          height: Math.round(rect.height * 10) / 10,
+        };
+      });
+    }
+
+    function maxRectDelta(before, after) {
+      let delta = 0;
+      const length = Math.min(before.length, after.length);
+      for (let index = 0; index < length; index += 1) {
+        delta = Math.max(
+          delta,
+          Math.abs((before[index]?.width || 0) - (after[index]?.width || 0)),
+          Math.abs((before[index]?.height || 0) - (after[index]?.height || 0)),
+        );
+      }
+      return Math.round(delta * 10) / 10;
+    }
+
+    async function run() {
+      const renderer = await installProductionRenderer();
+      const morphChildren = await installProductionMorph();
+      const cases = window.QingzhouMathjaxCases.buildMathjaxCases();
+      const results = [];
+      const roots = [];
+      for (const [name, markdown, expectedMath, expectedIndents] of cases) {
+        const card = document.createElement("article");
+        card.className = "case";
+        card.innerHTML = `<h2>${escapeHtml(name)}</h2><div class="msg-content"></div><details><summary>markdown</summary><div class="raw"></div></details>`;
+        const content = card.querySelector(".msg-content");
+        content.innerHTML = renderer.renderMarkdown(markdown);
+        card.querySelector(".raw").textContent = markdown;
+        caseHost.append(card);
+        roots.push(content);
+        results.push({
+          name,
+          expectedMath,
+          expectedMarkdownCode: expectedMath === 0 && /(?:^|\n)(?:```|~~~)/.test(markdown),
+          expectedIndents: expectedIndents || null,
+          placeholderCount: content.querySelectorAll(".math-formula").length,
+          formulaSourceBeforeTypeset: Array.from(content.querySelectorAll(".math-formula"), item => item.textContent || "").join("\n"),
+          codeLikeSourceBeforeTypeset: Array.from(content.querySelectorAll(".math-code-like"), item => item.textContent || "").join("\n"),
+          indentValues: Array.from(content.querySelectorAll(".math-code-line"), item => Number(item.dataset.indent || "0")),
+          content,
+        });
+      }
+
+      await MathJax.startup.promise;
+      await MathJax.typesetPromise(mathTargets(roots));
+
+      for (const result of results) {
+        result.renderedCount = result.content.querySelectorAll("mjx-container").length;
+        result.errorCount = result.content.querySelectorAll("mjx-merror").length;
+        result.markdownCodeCount = result.content.querySelectorAll(".markdown-code-block").length;
+        result.mathCodeCount = result.content.querySelectorAll(".math-code-block").length;
+        result.codeLikeMathCount = result.content.querySelectorAll(".math-code-like").length;
+        result.mathCodeLineCount = result.content.querySelectorAll(".math-code-line").length;
+        result.indentPaddingValues = Array.from(result.content.querySelectorAll(".math-code-line"), item => getComputedStyle(item).paddingLeft);
+      }
+
+      await MathJax.typesetPromise(mathTargets(roots));
+      for (const result of results) {
+        result.renderedCountAfterRepeat = result.content.querySelectorAll("mjx-container").length;
+      }
+
+      const streamHost = document.createElement("article");
+      streamHost.className = "case";
+      streamHost.innerHTML = "<h2>streaming-simulation</h2><div class=\"msg-content\"></div>";
+      caseHost.prepend(streamHost);
+      const streamContent = streamHost.querySelector(".msg-content");
+      const streamScenario = window.QingzhouMathjaxCases.buildMathjaxStreamScenario();
+      const streamMarkdown = streamScenario.markdown;
+      const checkpoints = streamScenario.checkpoints;
+      const expectedStreamCounts = streamScenario.expectedCounts;
+      const streamCounts = [];
+      const streamPlaceholderCounts = [];
+      const streamPendingCounts = [];
+      for (const size of checkpoints) {
+        MathJax.typesetClear([streamContent]);
+        streamContent.innerHTML = renderer.renderMarkdown(streamMarkdown.slice(0, size), { math: "stream" });
+        const targets = mathTargets([streamContent]);
+        await MathJax.typesetPromise(targets);
+        for (const target of targets) target.dataset.mathRendered = "true";
+        streamPendingCounts.push(streamContent.querySelectorAll(".math-pending").length);
+        streamPlaceholderCounts.push(targets.length);
+        streamCounts.push(streamContent.querySelectorAll("mjx-container").length);
+      }
+      MathJax.typesetClear([streamContent]);
+      streamContent.innerHTML = renderer.renderMarkdown(streamMarkdown, { math: true });
+      await MathJax.typesetPromise(mathTargets([streamContent]));
+      const streamFinalCount = streamContent.querySelectorAll("mjx-container").length;
+
+      const streamCodeHost = document.createElement("article");
+      streamCodeHost.className = "case";
+      streamCodeHost.innerHTML = "<h2>streaming-code-math-simulation</h2><div class=\"msg-content\"></div>";
+      caseHost.prepend(streamCodeHost);
+      const streamCodeContent = streamCodeHost.querySelector(".msg-content");
+      const streamCodeScenario = window.QingzhouMathjaxCases.buildMathjaxStreamCodeBlockScenario();
+      const streamCodeCounts = [];
+      const streamCodePendingCounts = [];
+      const streamCodeErrorCounts = [];
+      const streamCodeLineKeys = [];
+      for (const size of streamCodeScenario.checkpoints) {
+        MathJax.typesetClear([streamCodeContent]);
+        streamCodeContent.innerHTML = renderer.renderMarkdown(streamCodeScenario.markdown.slice(0, size), { math: "stream" });
+        const targets = mathTargets([streamCodeContent]);
+        await MathJax.typesetPromise(targets);
+        for (const target of targets) target.dataset.mathRendered = "true";
+        streamCodeCounts.push(streamCodeContent.querySelectorAll("mjx-container").length);
+        streamCodePendingCounts.push(streamCodeContent.querySelectorAll(".math-pending").length);
+        streamCodeErrorCounts.push(streamCodeContent.querySelectorAll("mjx-merror").length);
+        streamCodeLineKeys.push(Array.from(streamCodeContent.querySelectorAll(".math-code-line"), item => item.dataset.mathKey || ""));
+      }
+      const stableLineKeys = streamCodeScenario.stableLineKeyFrames
+        .map(frame => streamCodeLineKeys[frame]?.[streamCodeScenario.stableLineKeyIndex] || "")
+        .filter(Boolean);
+      const streamCodeStableKeyOk = stableLineKeys.length === streamCodeScenario.stableLineKeyFrames.length
+        && new Set(stableLineKeys).size === 1;
+
+      const finalPatchHost = document.createElement("article");
+      finalPatchHost.className = "case";
+      finalPatchHost.innerHTML = "<h2>stream-final-math-patch</h2><div class=\"msg-content\"></div>";
+      caseHost.prepend(finalPatchHost);
+      const finalPatchContent = finalPatchHost.querySelector(".msg-content");
+      const finalPatchMarkdown = [
+        "Inline $X$ and $x_i$.\n\n",
+        "$$\n\\mathcal{J}_{GRPO}(\\theta)=\\frac{1}{G}\\sum_{i=1}^{G} \\mathcal{L}_i\n$$",
+        "\n\n```\n",
+        "\\(1.\\;\\text{对每个问题}\\;q，\\text{从}\\;π_θ_\\mathsf{old}\\;\\text{采样}\\;G\\;\\text{个输出}\\;{o_{1},...,o_{G}}\\)\n",
+        "\\(2.\\;\\text{更新}\\;π_θ_\\mathsf{old}\\;←\\;π_θ\\;(\\text{每}\\;N\\;\\text{步})\\)\n",
+        "```",
+      ].join("");
+      finalPatchContent.innerHTML = renderer.renderMarkdown(finalPatchMarkdown, { math: "stream" });
+      const finalPatchInitialTargets = mathTargets([finalPatchContent]);
+      await MathJax.typesetPromise(finalPatchInitialTargets);
+      for (const target of finalPatchInitialTargets) target.dataset.mathRendered = "true";
+      const finalPatchBeforeNodes = Array.from(finalPatchContent.querySelectorAll(".math-formula"));
+      const finalPatchBeforeRects = rectsForMath(finalPatchContent);
+      const finalPatchBeforeContainers = finalPatchContent.querySelectorAll("mjx-container").length;
+      patchMathContent(finalPatchContent, renderer.renderMarkdown(finalPatchMarkdown, { math: true }), morphChildren);
+      const finalPatchAfterNodes = Array.from(finalPatchContent.querySelectorAll(".math-formula"));
+      const finalPatchAfterRects = rectsForMath(finalPatchContent);
+      const finalPatchPendingTargets = pendingTypesetTargets([finalPatchContent]).length;
+      const finalPatchAfterContainers = finalPatchContent.querySelectorAll("mjx-container").length;
+      const finalPatchNodeReuseOk = finalPatchBeforeNodes.length === finalPatchAfterNodes.length
+        && finalPatchBeforeNodes.every((node, index) => node === finalPatchAfterNodes[index] && node.isConnected);
+      const finalPatchRectDelta = maxRectDelta(finalPatchBeforeRects, finalPatchAfterRects);
+      await MathJax.typesetPromise(pendingTypesetTargets([finalPatchContent]));
+      const finalPatchErrorCount = finalPatchContent.querySelectorAll("mjx-merror").length;
+
+      const failures = results.filter(result => (
+        result.placeholderCount !== result.expectedMath ||
+        result.renderedCount !== result.expectedMath ||
+        result.renderedCountAfterRepeat !== result.renderedCount ||
+        result.errorCount !== 0 ||
+        (result.expectedMarkdownCode && result.markdownCodeCount !== 1)
+      ));
+      const romanizedCodeLikeFailures = results.filter(result => (
+        result.codeLikeMathCount > 0 &&
+        /(student|teacher|prefix|argmax|log|question|context|rollout|caption|title)/.test(result.codeLikeSourceBeforeTypeset) &&
+        !/\\(?:mathsf|operatorname)/.test(result.codeLikeSourceBeforeTypeset)
+      ));
+      const chainedSubscriptFailures = results.filter(result => (
+        /\\mathsf\{question\}_\\mathsf\{only\}_\\mathsf\{context\}/.test(result.codeLikeSourceBeforeTypeset)
+      ));
+      const nestedMathsfFailures = results.filter(result => (
+        /\\mathsf\{\\mathsf/.test(result.codeLikeSourceBeforeTypeset)
+      ));
+      const escapedCompactSubscriptFailures = results.filter(result => (
+        /\\mathsf\{[A-Za-z]\\_[A-Za-z0-9]+\}/.test(result.codeLikeSourceBeforeTypeset)
+      ));
+      const fragmentedMultilineFailures = results.filter(result => (
+        /multiline|state-object|action-object|input-object/.test(result.name) &&
+        (result.mathCodeCount !== 1 || result.mathCodeLineCount !== result.expectedMath)
+      ));
+      const outerBoxWrapperFailures = results.filter(result => (
+        /(?:boxed|fbox|bbox)-/.test(result.name) &&
+        /\\(?:boxed|fbox|bbox)(?![A-Za-z])/.test(result.formulaSourceBeforeTypeset)
+      ));
+      const indentationFailures = results.filter(result => (
+        result.expectedIndents &&
+        (
+          JSON.stringify(result.indentValues) !== JSON.stringify(result.expectedIndents) ||
+          result.indentPaddingValues.some((value, index) => result.expectedIndents[index] > 0 && parseFloat(value) <= 0)
+        )
+      ));
+      window.__mathSmoke = {
+        total: results.length,
+        failures: failures.map(({ content, ...failure }) => failure),
+        romanizedCodeLikeFailures: romanizedCodeLikeFailures.map(({ content, ...failure }) => failure),
+        chainedSubscriptFailures: chainedSubscriptFailures.map(({ content, ...failure }) => failure),
+        nestedMathsfFailures: nestedMathsfFailures.map(({ content, ...failure }) => failure),
+        escapedCompactSubscriptFailures: escapedCompactSubscriptFailures.map(({ content, ...failure }) => failure),
+        fragmentedMultilineFailures: fragmentedMultilineFailures.map(({ content, ...failure }) => failure),
+        outerBoxWrapperFailures: outerBoxWrapperFailures.map(({ content, ...failure }) => failure),
+        indentationFailures: indentationFailures.map(({ content, ...failure }) => failure),
+        streamCounts,
+        streamPlaceholderCounts,
+        streamPendingCounts,
+        expectedStreamCounts,
+        expectedStreamPendingCounts: streamScenario.expectedPendingCounts || [],
+        streamFinalCount,
+        streamCodeCounts,
+        streamCodePendingCounts,
+        streamCodeErrorCounts,
+        expectedStreamCodeCounts: streamCodeScenario.expectedRenderedCounts,
+        expectedStreamCodePendingCounts: streamCodeScenario.expectedPendingCounts,
+        streamCodeStableKeyOk,
+        finalPatchBeforeContainers,
+        finalPatchAfterContainers,
+        finalPatchPendingTargets,
+        finalPatchNodeReuseOk,
+        finalPatchRectDelta,
+        finalPatchErrorCount,
+        renderedTotal: results.reduce((sum, result) => sum + result.renderedCount, 0),
+        mathCodeBlocks: results.reduce((sum, result) => sum + result.mathCodeCount, 0),
+        codeLikeMathBlocks: results.reduce((sum, result) => sum + result.codeLikeMathCount, 0),
+        markdownCodeBlocks: results.reduce((sum, result) => sum + result.markdownCodeCount, 0),
+      };
+      statusEl.dataset.result = JSON.stringify(window.__mathSmoke);
+      const streamOk = JSON.stringify(streamCounts) === JSON.stringify(expectedStreamCounts)
+        && JSON.stringify(streamPendingCounts) === JSON.stringify(streamScenario.expectedPendingCounts || [])
+        && streamFinalCount === expectedStreamCounts[expectedStreamCounts.length - 1];
+      const streamCodeOk = JSON.stringify(streamCodeCounts) === JSON.stringify(streamCodeScenario.expectedRenderedCounts)
+        && JSON.stringify(streamCodePendingCounts) === JSON.stringify(streamCodeScenario.expectedPendingCounts)
+        && streamCodeErrorCounts.every(count => count === 0)
+        && streamCodeStableKeyOk;
+      const finalPatchOk = finalPatchBeforeContainers === finalPatchAfterContainers
+        && finalPatchPendingTargets === 0
+        && finalPatchNodeReuseOk
+        && finalPatchRectDelta <= 0.5
+        && finalPatchErrorCount === 0;
+      const ok = failures.length === 0 &&
+        romanizedCodeLikeFailures.length === 0 &&
+        chainedSubscriptFailures.length === 0 &&
+        nestedMathsfFailures.length === 0 &&
+        escapedCompactSubscriptFailures.length === 0 &&
+        fragmentedMultilineFailures.length === 0 &&
+        outerBoxWrapperFailures.length === 0 &&
+        indentationFailures.length === 0 &&
+        streamOk &&
+        streamCodeOk &&
+        finalPatchOk;
+      statusEl.className = `status ${ok ? "pass" : "fail"}`;
+      statusEl.textContent = `${ok ? "PASS" : "FAIL"} total=${window.__mathSmoke.total} rendered=${window.__mathSmoke.renderedTotal} failures=${failures.length} stream=${streamCounts.join("/")}->${streamFinalCount} codeStream=${streamCodeCounts.join("/")}`;
+    }
+
+    run().catch(error => {
+      window.__mathSmoke = { fatal: String(error?.stack || error) };
+      statusEl.dataset.result = JSON.stringify(window.__mathSmoke);
+      statusEl.className = "status fail";
+      statusEl.textContent = `FATAL ${String(error?.message || error)}`;
+      console.error(error);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Act on screen behavior fixture</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f5f7;
+      color: #17191c;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 1800px;
+    }
+
+    main {
+      width: min(900px, calc(100vw - 40px));
+      margin: 20px auto;
+      padding: 20px;
+      border: 1px solid #dfe2e7;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 8px 28px rgb(20 24 31 / 8%);
+    }
+
+    h1 {
+      margin: 0 0 16px;
+      font-size: 20px;
+    }
+
+    .button-row,
+    .input-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    button,
+    input,
+    .action-box {
+      min-height: 54px;
+      border: 1px solid #cfd4dc;
+      border-radius: 10px;
+      background: #fafbfc;
+      color: inherit;
+      font: inherit;
+    }
+
+    button { cursor: pointer; }
+
+    input {
+      grid-column: span 2;
+      width: 100%;
+      padding: 0 14px;
+    }
+
+    .action-box {
+      display: grid;
+      place-items: center;
+      user-select: none;
+    }
+
+    #hover-target[data-active="true"] { background: #e9f6ef; }
+
+    #wheel-target,
+    #page-scroll-target {
+      min-height: 72px;
+      padding: 8px;
+      text-align: center;
+    }
+
+    #drag-stage {
+      position: relative;
+      height: 132px;
+      margin: 12px 0;
+      overflow: hidden;
+      border: 1px dashed #bcc2cc;
+      border-radius: 12px;
+      background: #f8f9fb;
+    }
+
+    #drag-source,
+    #drop-target {
+      position: absolute;
+      top: 28px;
+      display: grid;
+      place-items: center;
+      height: 74px;
+      border-radius: 12px;
+      user-select: none;
+    }
+
+    #drag-source {
+      left: 28px;
+      width: 108px;
+      background: #e7edf7;
+      cursor: grab;
+    }
+
+    #drop-target {
+      right: 28px;
+      width: 190px;
+      border: 2px dashed #8f99a8;
+      background: #fff;
+    }
+
+    #drop-target[data-dropped="true"] {
+      border-color: #278763;
+      background: #e9f6ef;
+    }
+
+    #state-output {
+      margin: 12px 0 0;
+      min-height: 42px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: #f5f6f8;
+      color: #5b626d;
+      font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    #scroll-end {
+      position: absolute;
+      top: 1500px;
+      left: 20px;
+      width: 1px;
+      height: 1px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Act on screen behavior fixture</h1>
+
+    <div class="button-row">
+      <button id="click-target" type="button">Click</button>
+      <button id="double-click-target" type="button">Double click</button>
+      <button id="long-press-target" type="button">Long press</button>
+      <button id="navigation-target" type="button">Navigate</button>
+    </div>
+
+    <div class="input-row">
+      <div id="hover-target" class="action-box">Hover</div>
+      <input id="text-target" aria-label="Text target" value="原内容">
+      <button id="key-target" type="button">Key target</button>
+    </div>
+
+    <div class="input-row">
+      <div id="wheel-target" class="action-box">Handled wheel</div>
+      <div id="page-scroll-target" class="action-box">Viewport scroll</div>
+      <div class="action-box">Stable coordinates</div>
+    </div>
+
+    <div id="drag-stage">
+      <div id="drag-source">Drag source</div>
+      <div id="drop-target">Drop target</div>
+    </div>
+
+    <pre id="state-output" aria-live="polite">ready</pre>
+  </main>
+  <div id="scroll-end"></div>
+
+  <script>
+    (() => {
+      const state = {
+        clickCount: 0,
+        doubleClickClicks: 0,
+        doubleClickCount: 0,
+        hoverEnterCount: 0,
+        hoverMoveCount: 0,
+        longPressMs: 0,
+        longPressActive: false,
+        inputEvents: 0,
+        keyEvents: [],
+        wheelEvents: 0,
+        wheelDeltaX: 0,
+        wheelDeltaY: 0,
+        viewportScrollEvents: 0,
+        dragStarted: false,
+        dragMoves: 0,
+        dragReleased: false,
+        dropped: false,
+        navigationCount: 0,
+      };
+      const output = document.querySelector("#state-output");
+      const render = () => {
+        output.textContent = JSON.stringify({
+          clickCount: state.clickCount,
+          doubleClickCount: state.doubleClickCount,
+          longPressMs: Math.round(state.longPressMs),
+          inputValue: document.querySelector("#text-target").value,
+          wheelEvents: state.wheelEvents,
+          dragMoves: state.dragMoves,
+          dropped: state.dropped,
+        });
+      };
+
+      document.querySelector("#click-target").addEventListener("click", () => {
+        state.clickCount += 1;
+        render();
+      });
+
+      const doubleTarget = document.querySelector("#double-click-target");
+      doubleTarget.addEventListener("click", () => {
+        state.doubleClickClicks += 1;
+        render();
+      });
+      doubleTarget.addEventListener("dblclick", () => {
+        state.doubleClickCount += 1;
+        render();
+      });
+
+      const hoverTarget = document.querySelector("#hover-target");
+      hoverTarget.addEventListener("mouseenter", () => {
+        state.hoverEnterCount += 1;
+        hoverTarget.dataset.active = "true";
+        render();
+      });
+      hoverTarget.addEventListener("mousemove", () => {
+        state.hoverMoveCount += 1;
+        render();
+      });
+
+      const longPressTarget = document.querySelector("#long-press-target");
+      let longPressStartedAt = 0;
+      longPressTarget.addEventListener("mousedown", () => {
+        longPressStartedAt = performance.now();
+        state.longPressActive = true;
+        render();
+      });
+      longPressTarget.addEventListener("mouseup", () => {
+        state.longPressMs = performance.now() - longPressStartedAt;
+        state.longPressActive = false;
+        render();
+      });
+
+      const textTarget = document.querySelector("#text-target");
+      textTarget.addEventListener("input", () => {
+        state.inputEvents += 1;
+        render();
+      });
+      for (const target of [textTarget, document.querySelector("#key-target")]) {
+        target.addEventListener("keydown", event => {
+          state.keyEvents.push({
+            key: event.key,
+            code: event.code,
+            altKey: event.altKey,
+            ctrlKey: event.ctrlKey,
+            metaKey: event.metaKey,
+            shiftKey: event.shiftKey,
+          });
+          render();
+        });
+      }
+
+      document.querySelector("#wheel-target").addEventListener("wheel", event => {
+        event.preventDefault();
+        state.wheelEvents += 1;
+        state.wheelDeltaX += event.deltaX;
+        state.wheelDeltaY += event.deltaY;
+        render();
+      }, { passive: false });
+
+      document.querySelector("#page-scroll-target").addEventListener("wheel", event => {
+        event.preventDefault();
+        state.viewportScrollEvents += 1;
+        window.scrollBy(event.deltaX, event.deltaY);
+        render();
+      }, { passive: false });
+
+      const dragSource = document.querySelector("#drag-source");
+      const dropTarget = document.querySelector("#drop-target");
+      let dragging = false;
+      dragSource.addEventListener("mousedown", () => {
+        dragging = true;
+        state.dragStarted = true;
+        state.dragReleased = false;
+        state.dropped = false;
+        render();
+      });
+      document.addEventListener("mousemove", () => {
+        if (!dragging) return;
+        state.dragMoves += 1;
+        render();
+      });
+      document.addEventListener("mouseup", event => {
+        if (!dragging) return;
+        dragging = false;
+        state.dragReleased = true;
+        const rect = dropTarget.getBoundingClientRect();
+        state.dropped = event.clientX >= rect.left
+          && event.clientX <= rect.right
+          && event.clientY >= rect.top
+          && event.clientY <= rect.bottom;
+        dropTarget.dataset.dropped = String(state.dropped);
+        render();
+      });
+
+      document.querySelector("#navigation-target").addEventListener("click", () => {
+        state.navigationCount += 1;
+        render();
+        location.href = new URL(
+          `screen-action-runtime-result.html?count=${state.navigationCount}`,
+          location.href,
+        ).href;
+      });
+
+      window.__readScreenActionState = () => ({
+        ...JSON.parse(JSON.stringify(state)),
+        activeElementId: document.activeElement?.id || "",
+        inputValue: textTarget.value,
+        selectionStart: textTarget.selectionStart,
+        selectionEnd: textTarget.selectionEnd,
+        scrollX: window.scrollX,
+        scrollY: window.scrollY,
+        url: location.href,
+      });
+      render();
+    })();
+  </script>
+</body>
+</html>

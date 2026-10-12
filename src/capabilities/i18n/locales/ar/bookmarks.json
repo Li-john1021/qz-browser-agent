@@ -1,0 +1,21 @@
+{
+  "bookmarks.bookmarks": "الإشارات المرجعية",
+  "bookmarks.history": "السجل",
+  "bookmarks.visits": "الزيارات: {count}",
+  "bookmarks.deleted": "تم حذف {count}",
+  "bookmarks.manageBookmarks": "إدارة الإشارات المرجعية",
+  "bookmarks.browsingHistory": "سجل التصفح",
+  "bookmarks.manageBookmarksSearchRequiresANonEmptyQuery": "يتطلب البحث في الإشارات المرجعية قيمة query غير فارغة.",
+  "bookmarks.manageBookmarksCreateRequiresTitleOrUrl": "يتطلب إنشاء إشارة مرجعية title أو url.",
+  "bookmarks.manageBookmarksUpdateRequiresId": "يتطلب تحديث إشارة مرجعية id.",
+  "bookmarks.manageBookmarksUpdateRequiresTitleOrUrlToMove": "يتطلب تحديث إشارة مرجعية title أو url. لنقل إشارة مرجعية أو مجلد، استخدم action=move مع parentId أو index.",
+  "bookmarks.manageBookmarksMoveRequiresId": "يتطلب نقل إشارة مرجعية id.",
+  "bookmarks.manageBookmarksMoveRequiresParentidOrIndex": "يتطلب نقل إشارة مرجعية parentId أو index.",
+  "bookmarks.manageBookmarksDeleteRequiresId": "يتطلب حذف إشارة مرجعية id.",
+  "bookmarks.unsupportedManageBookmarksAction": "إجراء manage_bookmarks غير مدعوم: {action}",
+  "bookmarks.browseHistorySearchRequiresANonEmptyQuery": "يتطلب البحث في سجل التصفح قيمة query غير فارغة.",
+  "bookmarks.unsupportedBrowseHistoryAction": "إجراء browse_history غير مدعوم: {action}",
+  "bookmarks.items": "العناصر",
+  "bookmarks.manageBookmarksShort": "إدارة المفضلة",
+  "bookmarks.browsingHistoryShort": "السجل"
+}

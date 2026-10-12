@@ -1,0 +1,20 @@
+.DS_Store
+/.env.local
+/src/local/
+__pycache__/
+.pytest_cache/
+.venv/
+node_modules/
+tests/results/
+/test-results/
+*.pyc
+dist/
+~$*
+src/_metadata/
+tests/benchmarks/conversation-render/fixtures/*
+!tests/benchmarks/conversation-render/fixtures/smoke.json
+
+# Private rendering corpus: only the instructions and synthetic stub are public.
+/tests/benchmarks/conversation-render/real_examples/*
+!/tests/benchmarks/conversation-render/real_examples/README.md
+!/tests/benchmarks/conversation-render/real_examples/stub.json

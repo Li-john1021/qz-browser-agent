@@ -1,0 +1,5 @@
+{
+  "model-payload.images": "O tamanho total das imagens na solicitação ao modelo excede o limite. Remova imagens ou compacte o contexto e tente novamente.",
+  "model-payload.request": "A solicitação ao modelo é grande demais. Compacte o contexto ou inicie uma nova tarefa.",
+  "model-payload.remote": "Carregue esta imagem com uma ferramenta de leitura de imagens antes de enviá-la ao modelo."
+}

@@ -1,0 +1,13 @@
+{
+  "language-settings.title": "Idioma",
+  "language-settings.interfaceLanguage": "Idioma de la interfaz",
+  "language-settings.followBrowser": "Idioma del navegador",
+  "language-settings.loading": "Cargando el idioma guardado…",
+  "language-settings.unsavedChanges": "Cambios sin guardar",
+  "language-settings.saveFailed": "No se pudo guardar el idioma. Inténtalo de nuevo.",
+  "language-settings.loadFailed": "No se pudo cargar el idioma guardado. Vuelve a abrir los ajustes para intentarlo de nuevo.",
+  "language-settings.save": "Guardar",
+  "language-settings.saved": "Guardado",
+  "language-settings.saving": "Guardando…",
+  "language-settings.advanced": "Avanzado"
+}

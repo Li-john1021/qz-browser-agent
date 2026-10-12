@@ -1,0 +1,776 @@
+/* ============================================================================
+   Controls
+
+   Public primitives:
+   - .qz-btn + .qz-btn--{primary|secondary|ghost|danger}
+   - .qz-btn--{xs|sm|md|lg}
+   - .qz-icon-btn + .qz-icon-btn--{secondary|danger|xs|sm|md}
+
+   Chipheads, pills, tabs, segmented controls, menu rows and media cards keep
+   their own component language. Command buttons use these primitives directly.
+   ============================================================================ */
+
+.qz-btn {
+  --qz-control-height: var(--control-height-md);
+  --qz-control-padding: var(--control-padding-md);
+  --qz-control-gap: var(--control-gap-sm);
+  --qz-control-font-size: var(--control-font-md);
+  --qz-control-font-weight: var(--control-font-weight);
+  --qz-control-border: var(--control-border);
+  --qz-control-border-hover: var(--control-border-hover);
+  --qz-control-border-focus: var(--control-border-hover);
+  --qz-control-bg: var(--control-surface);
+  --qz-control-bg-hover: var(--control-surface-hover);
+  --qz-control-bg-pressed: var(--control-surface-pressed);
+  --qz-control-color: var(--control-text);
+  --qz-control-color-hover: var(--control-text-hover);
+  min-width: 0;
+  height: var(--qz-control-height);
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--qz-control-gap);
+  padding: 0 var(--qz-control-padding);
+  border: 1px solid var(--qz-control-border);
+  border-radius: var(--control-radius);
+  background: var(--qz-control-bg);
+  color: var(--qz-control-color);
+  font: var(--qz-control-font-weight) var(--qz-control-font-size)/1 var(--font-sans);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--transition), border-color var(--transition), color var(--transition), opacity var(--transition), box-shadow var(--transition);
+
+  &:not(:disabled):hover {
+    border-color: var(--qz-control-border-hover);
+    background: var(--qz-control-bg-hover);
+    color: var(--qz-control-color-hover);
+  }
+
+  &:not(:disabled):active {
+    background: var(--qz-control-bg-pressed);
+  }
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--qz-control-border-focus);
+    box-shadow: var(--control-focus-ring);
+  }
+
+  &:disabled {
+    opacity: var(--control-disabled-opacity);
+    cursor: default;
+  }
+}
+
+.qz-btn--primary {
+  --qz-control-border: transparent;
+  --qz-control-border-hover: transparent;
+  --qz-control-border-focus: transparent;
+  --qz-control-bg: var(--control-primary-surface);
+  --qz-control-bg-hover: var(--control-primary-surface-hover);
+  --qz-control-bg-pressed: var(--control-primary-surface);
+  --qz-control-color: var(--control-primary-text);
+  --qz-control-color-hover: var(--control-primary-text);
+}
+
+.qz-btn--secondary {
+  --qz-control-border: var(--control-border);
+  --qz-control-border-hover: var(--control-border-hover);
+  --qz-control-border-focus: var(--control-border-hover);
+}
+
+.qz-btn--ghost {
+  --qz-control-border: transparent;
+  --qz-control-border-hover: transparent;
+  --qz-control-border-focus: transparent;
+}
+
+.qz-btn--danger {
+  --qz-control-color: var(--control-danger-text);
+  --qz-control-color-hover: var(--control-danger-text);
+  --qz-control-border-hover: var(--control-danger-border-hover);
+  --qz-control-bg-hover: var(--control-danger-surface-hover);
+  --qz-control-bg-pressed: var(--control-danger-surface-hover);
+}
+
+.qz-btn--xs {
+  --qz-control-height: var(--control-height-xs);
+  --qz-control-padding: var(--control-padding-xs);
+  --qz-control-gap: var(--control-gap-xs);
+  --qz-control-font-size: var(--control-font-xs);
+}
+
+.qz-btn--sm {
+  --qz-control-height: var(--control-height-sm);
+  --qz-control-padding: var(--control-padding-sm);
+  --qz-control-font-size: var(--control-font-sm);
+}
+
+.qz-btn--lg {
+  --qz-control-height: var(--control-height-lg);
+  --qz-control-padding: var(--control-padding-lg);
+  --qz-control-font-size: var(--control-font-lg);
+}
+
+.qz-btn--inline {
+  --qz-control-height: auto;
+  --qz-control-padding: 0;
+  --qz-control-gap: var(--control-gap-xs);
+  --qz-control-border: transparent;
+  --qz-control-border-hover: transparent;
+  --qz-control-border-focus: transparent;
+  --qz-control-bg: transparent;
+  --qz-control-bg-hover: transparent;
+  --qz-control-bg-pressed: transparent;
+  min-height: 0;
+  line-height: inherit;
+}
+
+.qz-icon-btn {
+  --qz-control-size: var(--control-height-xs);
+  --qz-control-icon-size: var(--control-icon-xs);
+  --qz-control-border: transparent;
+  --qz-control-border-hover: transparent;
+  --qz-control-border-focus: transparent;
+  --qz-control-bg: var(--control-surface);
+  --qz-control-bg-hover: var(--control-surface-hover);
+  --qz-control-bg-pressed: var(--control-surface-pressed);
+  --qz-control-color: var(--control-text);
+  --qz-control-color-hover: var(--control-text-hover);
+  position: relative;
+  appearance: none;
+  flex: 0 0 auto;
+  width: var(--qz-control-size);
+  height: var(--qz-control-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--qz-control-border);
+  border-radius: var(--control-radius);
+  background: var(--qz-control-bg);
+  color: var(--qz-control-color);
+  cursor: pointer;
+  transition: background-color var(--transition), border-color var(--transition), color var(--transition), opacity var(--transition), box-shadow var(--transition);
+
+  & svg {
+    width: var(--qz-control-icon-size);
+    height: var(--qz-control-icon-size);
+  }
+
+  &:not(:disabled):hover {
+    border-color: var(--qz-control-border-hover);
+    background: var(--qz-control-bg-hover);
+    color: var(--qz-control-color-hover);
+  }
+
+  &:not(:disabled):active {
+    background: var(--qz-control-bg-pressed);
+  }
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--qz-control-border-focus);
+    box-shadow: var(--control-focus-ring);
+  }
+
+  &:disabled {
+    opacity: var(--control-disabled-opacity);
+    cursor: default;
+  }
+}
+
+.qz-icon-btn--sm {
+  --qz-control-size: var(--control-height-sm);
+  --qz-control-icon-size: var(--control-icon-sm);
+}
+
+.qz-icon-btn--xs {
+  --qz-control-size: var(--control-height-xs);
+  --qz-control-icon-size: var(--control-icon-xs);
+}
+
+.qz-icon-btn--md {
+  --qz-control-size: var(--control-height-md);
+  --qz-control-icon-size: var(--control-icon-md);
+}
+
+.qz-icon-btn--secondary {
+  --qz-control-border: var(--control-border);
+  --qz-control-border-hover: var(--control-border-hover);
+  --qz-control-border-focus: var(--control-border-hover);
+}
+
+.qz-icon-btn--danger {
+  --qz-control-color-hover: var(--control-danger-text);
+  --qz-control-border-hover: var(--control-danger-border-hover);
+  --qz-control-bg-hover: var(--control-danger-surface-hover);
+  --qz-control-bg-pressed: var(--control-danger-surface-hover);
+}
+
+/* Shared form primitives --------------------------------------------------- */
+
+.qz-field {
+  --qz-field-height: var(--field-height-md);
+  --qz-field-padding: var(--field-padding-md);
+  --qz-field-font-size: var(--field-font-md);
+  width: 100%;
+  min-width: 0;
+  min-height: var(--qz-field-height);
+  padding: 6px var(--qz-field-padding);
+  border: 1px solid var(--field-border);
+  border-radius: var(--control-radius);
+  outline: none;
+  background-color: var(--field-surface);
+  color: var(--field-text);
+  font: 400 var(--qz-field-font-size)/1.45 var(--font-sans);
+  transition: background-color var(--transition), border-color var(--transition), box-shadow var(--transition), color var(--transition), opacity var(--transition);
+}
+
+.qz-field:hover:not(:disabled):not(:focus) {
+  border-color: var(--field-border-hover);
+}
+
+.qz-field:focus,
+.qz-field:focus-visible {
+  border-color: var(--field-border-focus);
+  box-shadow: var(--field-focus-ring);
+}
+
+.qz-field::placeholder {
+  color: var(--field-placeholder);
+}
+
+.qz-field[type="search"]::-webkit-search-cancel-button {
+  width: var(--control-icon-md);
+  height: var(--control-icon-md);
+  margin-inline-start: var(--control-gap-xs);
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: var(--control-text);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M5%205l6%206m0-6-6%206%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E") center / var(--control-icon-xs) var(--control-icon-xs) no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M5%205l6%206m0-6-6%206%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.4%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E") center / var(--control-icon-xs) var(--control-icon-xs) no-repeat;
+  cursor: pointer;
+  opacity: 0.72;
+  transition: background-color var(--transition), opacity var(--transition);
+}
+
+.qz-field[type="search"]::-webkit-search-cancel-button:hover {
+  background-color: var(--control-text-hover);
+  opacity: 1;
+}
+
+.qz-field[type="search"]::-webkit-search-cancel-button:active {
+  opacity: 0.64;
+}
+
+.qz-field:disabled,
+.qz-field[readonly] {
+  background-color: var(--field-surface-disabled);
+  color: var(--text-muted);
+  cursor: default;
+  opacity: 0.82;
+}
+
+.qz-field--sm {
+  --qz-field-height: var(--field-height-sm);
+  --qz-field-padding: var(--field-padding-sm);
+  --qz-field-font-size: var(--field-font-sm);
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.qz-field--lg {
+  --qz-field-height: var(--field-height-lg);
+}
+
+.qz-field--mono {
+  font-family: var(--font-mono);
+}
+
+.qz-field--bare,
+.qz-field--bare:hover:not(:disabled):not(:focus),
+.qz-field--bare:focus,
+.qz-field--bare:focus-visible {
+  border-color: transparent;
+  background-color: transparent;
+  box-shadow: none;
+}
+
+textarea.qz-field {
+  height: auto;
+  resize: vertical;
+}
+
+.qz-field-label {
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0;
+}
+
+.qz-field-hint {
+  min-height: 15px;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.qz-select {
+  appearance: none;
+  padding-inline-end: 34px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
+    linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 16px) calc(50% - 1px),
+    calc(100% - 12px) calc(50% - 1px);
+  background-repeat: no-repeat;
+  background-size: 4px 4px, 4px 4px;
+}
+
+/* Keep select affordances at the reading direction’s trailing edge. */
+:dir(rtl).qz-select {
+  background-position: 12px calc(50% - 1px), 16px calc(50% - 1px);
+}
+
+.qz-checkbox,
+.qz-radio {
+  position: relative;
+  flex: 0 0 auto;
+  width: var(--choice-size-md);
+  height: var(--choice-size-md);
+  margin: 0;
+  appearance: none;
+  display: inline-grid;
+  place-content: center;
+  border: 1px solid var(--qz-choice-border, var(--choice-border));
+  border-radius: var(--choice-radius);
+  background: var(--qz-choice-surface, var(--field-surface));
+  color: var(--qz-choice-mark, var(--bg-primary));
+  cursor: pointer;
+  transition: background-color var(--transition), border-color var(--transition), box-shadow var(--transition), opacity var(--transition);
+}
+
+.qz-checkbox:not(:disabled):not(:checked):not(:indeterminate):hover,
+.qz-radio:not(:disabled):not(:checked):hover {
+  border-color: var(--qz-choice-border-hover, var(--choice-border-hover));
+}
+
+.qz-checkbox::before {
+  content: "";
+  width: 7px;
+  height: 4px;
+  border: solid currentColor;
+  border-width: 0 0 1.5px 1.5px;
+  transform: translateY(-1px) rotate(-45deg) scale(0);
+  transform-origin: center;
+  transition: transform var(--transition);
+}
+
+.qz-radio {
+  border-radius: 50%;
+}
+
+.qz-radio::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  transform: scale(0);
+  transition: transform var(--transition);
+}
+
+.qz-checkbox:checked,
+.qz-checkbox:indeterminate,
+.qz-radio:checked {
+  border-color: var(--qz-choice-checked-surface, var(--text-primary));
+  background: var(--qz-choice-checked-surface, var(--text-primary));
+}
+
+.qz-checkbox:checked::before,
+.qz-radio:checked::before {
+  transform: translateY(-1px) rotate(-45deg) scale(1);
+}
+
+.qz-radio:checked::before {
+  transform: scale(1);
+}
+
+.qz-checkbox:indeterminate::before {
+  width: 7px;
+  height: 1.5px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: currentColor;
+  transform: none;
+}
+
+.qz-checkbox:focus-visible,
+.qz-radio:focus-visible,
+.qz-switch:focus-visible {
+  outline: none;
+  box-shadow: var(--field-focus-ring);
+}
+
+.qz-checkbox:not(:disabled):not(:checked):not(:indeterminate):focus-visible,
+.qz-radio:not(:disabled):not(:checked):focus-visible {
+  border-color: var(--qz-choice-border-hover, var(--choice-border-hover));
+}
+
+.qz-checkbox:disabled,
+.qz-radio:disabled,
+.qz-switch:disabled {
+  opacity: var(--control-disabled-opacity);
+  cursor: default;
+}
+
+.qz-switch {
+  position: relative;
+  width: var(--switch-width);
+  height: var(--switch-height);
+  flex: 0 0 auto;
+  margin: 0;
+  appearance: none;
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius-pill);
+  background: var(--bg-elevated);
+  cursor: pointer;
+  transition: background-color var(--transition), border-color var(--transition), box-shadow var(--transition);
+}
+
+.qz-switch::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: var(--switch-thumb-size);
+  height: var(--switch-thumb-size);
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: background-color var(--transition), transform var(--transition);
+}
+
+.qz-switch:checked {
+  border-color: var(--text-primary);
+  background: var(--text-primary);
+}
+
+.qz-switch:checked::before {
+  background: var(--bg-primary);
+  transform: translateX(calc(var(--switch-width) - var(--switch-thumb-size) - 6px));
+}
+
+/* Shared floating-surface primitives -------------------------------------- */
+
+.qz-popover {
+  border: 1px solid var(--qz-popover-border, var(--popover-border));
+  border-radius: var(--qz-popover-radius, var(--popover-radius));
+  background: var(--qz-popover-surface, var(--popover-surface));
+  box-shadow: var(--qz-popover-shadow, var(--popover-shadow));
+  animation: popover-in var(--qz-popover-motion, var(--motion-base)) var(--ease-emphasized);
+}
+
+.qz-menu {
+  --qz-menu-padding: var(--popover-padding);
+  padding: var(--qz-menu-padding);
+  overflow: auto;
+}
+
+.qz-menu-item {
+  min-width: 0;
+  min-height: var(--menu-item-min-height);
+  padding: var(--menu-item-padding);
+  border: 0;
+  border-radius: var(--control-radius);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  text-align: start;
+  transition: var(--transition-surface);
+}
+
+.qz-menu-item:hover,
+.qz-menu-item.active,
+.qz-menu-item[aria-selected="true"] {
+  background: var(--control-hover-fill);
+  color: var(--text-primary);
+}
+
+/* Shared two-level toolbar for searchable/filterable resource lists. */
+.qz-list-toolbar {
+  flex: 0 0 auto;
+  padding: 7px 12px 8px;
+  background: var(--bg-primary);
+}
+
+.qz-list-toolbar-tabs-row,
+.qz-list-toolbar-search-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  align-items: center;
+  gap: 8px;
+}
+
+.qz-list-toolbar-tabs-row {
+  min-height: 35px;
+  padding-bottom: 4px;
+}
+
+.qz-list-toolbar-search-row {
+  padding-top: 2px;
+}
+
+.qz-list-toolbar-tabs {
+  display: inline-flex;
+  width: max-content;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  gap: 4px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.qz-list-toolbar-tab {
+  height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 560;
+  line-height: 1;
+  cursor: pointer;
+  transition: var(--transition-surface);
+}
+
+.qz-list-toolbar-tab:hover {
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.qz-list-toolbar-tab.active {
+  background: color-mix(in srgb, var(--text-primary) 3.8%, transparent);
+  color: var(--text-primary);
+  transform: none;
+}
+
+.qz-list-toolbar-search {
+  width: 100%;
+  height: 34px;
+  padding: 0 12px;
+  border-color: color-mix(in srgb, var(--border) 82%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--bg-primary) 72%, transparent);
+  font-size: 13px;
+}
+
+.qz-list-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.qz-list-toolbar-action {
+  --qz-control-height: 34px;
+  --qz-control-padding: 11px;
+  --qz-control-border: color-mix(in srgb, var(--border) 82%, transparent);
+  --qz-control-bg: color-mix(in srgb, var(--bg-primary) 72%, transparent);
+  --qz-control-font-size: 12px;
+  border-radius: var(--radius-lg);
+}
+
+/* Shared short-decision overlay. Complex workflows keep their own panels. */
+.qz-decision-dialog {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 12px 12px clamp(36px, 7vh, 64px);
+  border: 0;
+  outline: none;
+  overflow: hidden;
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.qz-decision-dialog[open] {
+  display: grid;
+  place-items: center;
+}
+
+.qz-decision-dialog::backdrop {
+  background: var(--modal-backdrop);
+  animation: modal-fade-in var(--motion-slow) var(--ease-standard);
+}
+
+.qz-decision-panel {
+  width: min(360px, 100%);
+  max-height: min(520px, calc(100vh - 48px));
+  padding: 14px;
+  overflow: auto;
+  border: 1px solid var(--modal-card-border);
+  border-radius: var(--radius-lg);
+  background: var(--modal-card-surface);
+  box-shadow: var(--modal-card-shadow);
+  animation: modal-card-in var(--motion-slow) var(--ease-emphasized);
+}
+
+.qz-decision-dialog.is-closing {
+  pointer-events: none;
+}
+
+.qz-decision-dialog.is-closing::backdrop {
+  animation: modal-fade-in var(--motion-base) var(--ease-standard) reverse both;
+}
+
+.qz-decision-dialog.is-closing .qz-decision-panel {
+  animation: modal-card-in var(--motion-base) var(--ease-standard) reverse both;
+}
+
+.qz-decision-copy h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 680;
+  line-height: 1.35;
+}
+
+.qz-decision-copy p {
+  margin: 5px 0 0;
+  color: var(--text-secondary);
+  font-size: 11.5px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.qz-decision-options {
+  margin-top: 12px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.qz-decision-option {
+  --qz-control-height: auto;
+  width: 100%;
+  min-height: 48px;
+  display: block;
+  padding: 8px 6px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  text-align: start;
+  white-space: normal;
+}
+
+.qz-decision-option:last-child {
+  border-bottom: 0;
+}
+
+.qz-decision-option strong {
+  display: block;
+  color: inherit;
+  font-size: 11.5px;
+  font-weight: 620;
+  line-height: 1.4;
+}
+
+.qz-decision-option small {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.qz-decision-input {
+  display: grid;
+  gap: 5px;
+  margin-top: 12px;
+}
+
+.qz-decision-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qz-decision-dialog::backdrop,
+  .qz-decision-panel,
+  .qz-decision-dialog.is-closing::backdrop,
+  .qz-decision-dialog.is-closing .qz-decision-panel {
+    animation: none;
+  }
+}
+
+/* Independent identities. Their component CSS owns the visual language. */
+.qz-chiphead,
+.qz-pill,
+.qz-tree-toggle,
+.qz-segment,
+.qz-segment-item {
+  min-width: 0;
+}
+
+.qz-pill {
+  border-radius: var(--radius-pill);
+}
+
+/* Opt-in resource scrollbars share Chat's quiet treatment. Native mode leaves
+   specialized scroll surfaces in control of their own geometry. */
+.qz-scroll:not(.qz-scroll--native) {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.qz-scroll:not(.qz-scroll--native):is(:hover, :focus-within) {
+  scrollbar-color: var(--qz-scrollbar-thumb) transparent;
+}
+
+.qz-scroll:not(.qz-scroll--native)::-webkit-scrollbar {
+  width: var(--qz-scrollbar-size);
+  height: var(--qz-scrollbar-size);
+}
+
+.qz-scroll:not(.qz-scroll--native)::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.qz-scroll:not(.qz-scroll--native)::-webkit-scrollbar-thumb {
+  border-radius: var(--qz-scrollbar-radius);
+  background: transparent;
+}
+
+.qz-scroll:not(.qz-scroll--native):is(:hover, :focus-within)::-webkit-scrollbar-thumb {
+  background: var(--qz-scrollbar-thumb);
+}
+
+@keyframes popover-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-card-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+

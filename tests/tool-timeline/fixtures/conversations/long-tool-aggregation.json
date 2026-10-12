@@ -1,0 +1,24 @@
+{
+  "name": "long-tool-aggregation",
+  "scenario": "long",
+  "widths": [360, 420],
+  "steps": [
+    { "action": "assert", "expect": "selectorCount", "selector": ".msg-tool-timeline", "equals": 1 },
+    { "action": "assert", "expect": "collapsedLane", "lane": "tool" },
+    { "action": "expandGroup", "group": 0, "label": "展开长流程工具组" },
+    { "action": "assert", "expect": "expandedLane", "lane": "tool" },
+    { "action": "assert", "expect": "selectorCount", "selector": ".tool-family-trace", "equals": 1 },
+    { "action": "assert", "expect": "selectorCount", "selector": ".tool-family-row", "min": 4 },
+    { "action": "assert", "expect": "selectorCount", "selector": ".tool-timeline-step", "max": 0 },
+    { "action": "click", "selector": ".tool-family-row[data-tool-family-id=\"collect\"]", "label": "切到采集信息工具族" },
+    { "action": "assert", "expect": "activeText", "selector": ".tool-family-row.active", "includes": "采集" },
+    { "action": "clickText", "selector": ".tool-family-batch[data-tool-family-id=\"collect\"]", "text": "采集正文", "label": "切到采集正文批次" },
+    { "action": "assert", "expect": "articleBodyBounded", "selector": ".tool-timeline-slot-body .tool-article-body" },
+    { "action": "assert", "expect": "footerEqualHeights", "selector": ".tool-timeline-footer-row" },
+    { "action": "click", "selector": ".tool-timeline-raw-btn:not(.hidden)", "label": "展开原始数据" },
+    { "action": "assert", "expect": "rawPanelScrollable", "selector": ".tool-timeline-raw-panel .copyable-code-block pre" },
+    { "action": "assert", "expect": "noHorizontalOverflow" },
+    { "action": "collapseGroup", "group": 0, "label": "收起长流程工具组" },
+    { "action": "assert", "expect": "collapsedLane", "lane": "tool" }
+  ]
+}

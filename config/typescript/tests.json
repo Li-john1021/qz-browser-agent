@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "types": []
+  },
+  "include": [
+    "../../tests/types/**/*.ts"
+  ],
+  "files": [
+    "../../src/shared/vendor-apis.d.ts"
+  ]
+}

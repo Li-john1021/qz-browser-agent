@@ -1,0 +1,11 @@
+{
+  "extensionName": {
+    "message": "qz"
+  },
+  "extensionDescription": {
+    "message": "qz is an AI agent workspace in your browser."
+  },
+  "switchModel": {
+    "message": "Quickly switch model presets"
+  }
+}

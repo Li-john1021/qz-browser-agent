@@ -1,0 +1,8 @@
+{
+  "image-limits.invalid": "圖片資料無效，請重新選擇圖片。",
+  "image-limits.inputTooLarge": "原始圖片超過讀取上限（{maxBytes} 位元組），請先縮小圖片。",
+  "image-limits.tooLarge": "圖片超過大小上限（{maxBytes} 位元組），請縮小圖片後重試。",
+  "image-limits.dimensions": "原始圖片尺寸過大，無法安全解碼，請先縮小圖片。",
+  "image-limits.decode": "無法解碼圖片，請選擇其他圖片或使用螢幕截圖。",
+  "image-limits.encode": "無法將圖片壓縮至大小上限，請選擇較小的圖片。"
+}

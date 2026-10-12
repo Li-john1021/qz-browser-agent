@@ -1,0 +1,4 @@
+{
+  "skills.siteAuthorName": "Créateur de compétences de site",
+  "skills.siteAuthorDescription": "Crée des capacités pour un site, une page ou un domaine précis. Utilisez cette compétence pour apprendre à qz à utiliser un site ou pour créer ses compétences, outils, collectes de données ou interactions. Contrairement à skill-workbench, elle part des besoins du site pour concevoir des capacités spécifiques. Utilisez skill-workbench pour créer, mettre à jour, supprimer ou modifier une compétence déjà définie, son contenu, plugin.json, ses scripts ou ses ressources."
+}

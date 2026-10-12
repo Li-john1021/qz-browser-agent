@@ -1,0 +1,11 @@
+{
+  "transport.tooLarge": "Le message est trop volumineux pour être transféré. Réduisez les pièces jointes ou lisez le résultat par parties.",
+  "transport.invalid": "Le message n’a pas pu être encodé. Vérifiez les données envoyées et réessayez.",
+  "transport.disconnected": "La connexion a été fermée avant la fin du transfert. Rouvrez la tâche et vérifiez son état avant de réessayer.",
+  "transport.upgrade": "Rouvrez le panneau latéral pour transférer ce message volumineux avec l’extension mise à jour.",
+  "transport.busy": "Un autre transfert volumineux utilise le tampon disponible. Attendez qu’il se termine et réessayez.",
+  "transport.timeout": "Le transfert du message a expiré. Vérifiez l’état de la tâche avant de réessayer.",
+  "transport.cancelled": "Le transfert du message a été annulé.",
+  "transport.protocol": "Le transfert du message est incomplet ou invalide. Rouvrez la tâche et réessayez.",
+  "transport.failed": "Le message n’a pas pu être envoyé. Vérifiez la connexion et l’état de la tâche avant de réessayer."
+}

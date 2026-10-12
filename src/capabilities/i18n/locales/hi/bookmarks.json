@@ -1,0 +1,21 @@
+{
+  "bookmarks.bookmarks": "बुकमार्क",
+  "bookmarks.history": "इतिहास",
+  "bookmarks.visits": "विज़िट: {count}",
+  "bookmarks.deleted": "{count} मिटाए गए",
+  "bookmarks.manageBookmarks": "बुकमार्क प्रबंधित करें",
+  "bookmarks.browsingHistory": "ब्राउज़िंग इतिहास",
+  "bookmarks.manageBookmarksSearchRequiresANonEmptyQuery": "बुकमार्क खोजने के लिए query खाली नहीं होना चाहिए।",
+  "bookmarks.manageBookmarksCreateRequiresTitleOrUrl": "बुकमार्क बनाने के लिए title या url आवश्यक है।",
+  "bookmarks.manageBookmarksUpdateRequiresId": "बुकमार्क अपडेट करने के लिए id आवश्यक है।",
+  "bookmarks.manageBookmarksUpdateRequiresTitleOrUrlToMove": "बुकमार्क अपडेट करने के लिए title या url आवश्यक है। बुकमार्क या फ़ोल्डर ले जाने के लिए action=move के साथ parentId या index इस्तेमाल करें।",
+  "bookmarks.manageBookmarksMoveRequiresId": "बुकमार्क ले जाने के लिए id आवश्यक है।",
+  "bookmarks.manageBookmarksMoveRequiresParentidOrIndex": "बुकमार्क ले जाने के लिए parentId या index आवश्यक है।",
+  "bookmarks.manageBookmarksDeleteRequiresId": "बुकमार्क मिटाने के लिए id आवश्यक है।",
+  "bookmarks.unsupportedManageBookmarksAction": "manage_bookmarks की कार्रवाई समर्थित नहीं है: {action}",
+  "bookmarks.browseHistorySearchRequiresANonEmptyQuery": "ब्राउज़िंग इतिहास खोजने के लिए query खाली नहीं होना चाहिए।",
+  "bookmarks.unsupportedBrowseHistoryAction": "browse_history की कार्रवाई समर्थित नहीं है: {action}",
+  "bookmarks.items": "आइटम",
+  "bookmarks.manageBookmarksShort": "बुकमार्क प्रबंधन",
+  "bookmarks.browsingHistoryShort": "इतिहास"
+}

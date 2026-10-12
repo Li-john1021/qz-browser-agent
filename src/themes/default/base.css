@@ -1,0 +1,36 @@
+/* Existing document defaults; no third-party reset or typography is applied. */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  border-radius: 0;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0ms !important;
+  }
+}
+
+/* UI direction follows the language; code and technical tokens keep their own order. */
+pre, code, kbd, input[type="url"], input[type="email"] {
+  direction: ltr;
+  unicode-bidi: isolate;
+}

@@ -1,0 +1,5 @@
+{
+  "product-public.thisProductHasNoGitPublishingAdapterExportThe": "이 버전에서는 Git에 직접 게시할 수 없습니다. 스킬을 내보낸 후 저장소에 커밋하세요.",
+  "product-public.configureModelEndpoint": "모델 연결",
+  "product-public.connectingToGpt": "모델에 연결 중…"
+}

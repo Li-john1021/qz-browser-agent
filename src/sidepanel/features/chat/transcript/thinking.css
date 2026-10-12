@@ -1,0 +1,224 @@
+/* ============================================================================
+   Thinking Block
+   ============================================================================ */
+
+.msg-thinking-group {
+  margin-left: 0;
+  align-self: flex-start;
+  animation: none;
+}
+
+.msg-thinking-group.thinking-group-expanded {
+  overflow: visible;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 70%, var(--bg-primary));
+  box-shadow: 0 0 0 1px var(--border);
+}
+
+.thinking-group-summary {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  max-width: 100%;
+  min-height: var(--lane-header-height);
+  padding: 0 9px;
+  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-primary) 72%, transparent);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: calc(11px * var(--chat-meta-text-scale, 1));
+  text-align: start;
+  overflow: hidden;
+  cursor: pointer;
+  transition: var(--transition-surface);
+}
+
+.msg-thinking-group.thinking-group-expanded > .thinking-group-summary {
+  width: 100%;
+  max-width: 100%;
+  min-height: var(--lane-header-height);
+  padding: 0 9px;
+  border: 0;
+  border-bottom: 0;
+  border-radius: calc(var(--radius-sm) - 1px) calc(var(--radius-sm) - 1px) 0 0;
+  background: color-mix(in srgb, var(--bg-secondary) 88%, var(--bg-primary));
+  box-shadow: none;
+  backdrop-filter: blur(10px);
+  font-family: var(--font-sans);
+}
+
+.msg-thinking-group.thinking-group-expanded > .thinking-group-summary:hover,
+.msg-thinking-group.thinking-group-expanded > .thinking-group-summary:focus-visible {
+  border-color: color-mix(in srgb, var(--border) 72%, transparent);
+  background: color-mix(in srgb, var(--bg-secondary) 92%, var(--accent-subtle));
+}
+
+.msg-thinking-group.thinking-group-expanded > .thinking-group-summary .thinking-group-preview {
+  display: none;
+}
+
+.thinking-group-summary:hover,
+.thinking-group-summary:focus-visible {
+  border-color: var(--border-focus);
+  background: var(--accent-subtle);
+  outline: none;
+}
+
+.thinking-group-title {
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: calc(11px * var(--chat-meta-text-scale, 1));
+  font-weight: 500;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.thinking-group-preview {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: none;
+  width: 100%;
+  height: max(16px, 1.35em);
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: calc(11.5px * var(--chat-meta-text-scale, 1));
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thinking-group-preview-track {
+  display: block;
+  width: 100%;
+  min-width: 100%;
+  max-width: none;
+  overflow: hidden;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+
+.thinking-group-preview-track::-webkit-scrollbar {
+  display: none;
+}
+
+.thinking-group-preview-text {
+  display: inline-block;
+  min-width: max-content;
+  /* The JS tail follower already updates each frame. Keep idle previews in the
+     normal paint layer instead of promoting every historical summary to GPU. */
+  transform: translateX(var(--thinking-preview-offset, 0px));
+  white-space: nowrap;
+}
+
+.thinking-group-details {
+  width: 100%;
+  margin-top: 6px;
+  padding: 8px 10px 9px;
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-secondary) 62%, var(--bg-primary));
+  animation: panel-in var(--motion-base) var(--ease-emphasized);
+}
+
+.msg-thinking-group.thinking-group-expanded > .thinking-group-details {
+  width: 100%;
+  margin-top: 0;
+  padding: 8px 10px 9px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  animation: none;
+}
+
+.thinking-group-slot-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.thinking-group-slot-title {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  min-width: 0;
+}
+
+.thinking-group-slot-title b {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: calc(11.5px * var(--chat-text-scale, 1));
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thinking-group-slot-title span {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: calc(10px * var(--chat-text-scale, 1));
+  white-space: nowrap;
+}
+
+.thinking-group-body {
+  width: 100%;
+  max-height: 220px;
+  margin: 0;
+  overflow-y: auto;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: calc(11px * var(--chat-text-scale, 1));
+  line-height: 1.62;
+  white-space: pre-wrap;
+  word-break: break-word;
+  scrollbar-gutter: stable;
+}
+
+.image-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  background: var(--lightbox-backdrop);
+  cursor: zoom-out;
+  animation: modal-fade-in var(--motion-slow) var(--ease-standard);
+}
+
+.image-lightbox img {
+  max-width: min(100%, 1200px);
+  max-height: 100%;
+  object-fit: contain;
+  border: 1px solid var(--lightbox-border);
+  border-radius: var(--radius-sm);
+  background: var(--lightbox-surface);
+  box-shadow: var(--lightbox-shadow);
+  cursor: default;
+  animation: modal-card-in var(--motion-slow) var(--ease-emphasized);
+}
+
+.image-lightbox-close {
+  --qz-control-size: 34px;
+  --qz-control-border: var(--lightbox-border);
+  --qz-control-border-hover: var(--lightbox-border);
+  --qz-control-border-focus: var(--lightbox-border);
+  --qz-control-bg: var(--lightbox-control-surface);
+  --qz-control-bg-hover: var(--lightbox-control-surface-hover);
+  --qz-control-bg-pressed: var(--lightbox-control-surface-hover);
+  --qz-control-color: var(--lightbox-control-text);
+  --qz-control-color-hover: var(--lightbox-control-text);
+  position: fixed;
+  top: 14px;
+  right: 14px;
+}

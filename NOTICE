@@ -1,0 +1,6 @@
+qz (轻舟)
+
+This distribution includes third-party components whose copyright and license
+notices are retained in vendor/ in the built extension. See THIRD_PARTY_NOTICES.md.
+Apache-2.0 applies to the project code; third-party components retain their own
+licenses. No trademark permission is granted by the project license.

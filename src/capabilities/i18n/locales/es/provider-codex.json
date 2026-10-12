@@ -1,0 +1,12 @@
+{
+  "provider-codex.signInWithYourChatgptAccountToUseCodex": "Inicia sesión con tu cuenta de ChatGPT para usar los modelos de Codex.",
+  "provider-codex.openaiCodexModelsApiReturnedAnEmptyModelList": "La API de modelos de OpenAI Codex devolvió una lista vacía",
+  "provider-codex.theLoginSessionExpiredStartCodexLoginAgain": "Tu sesión ha caducado. Vuelve a iniciar sesión en Codex.",
+  "provider-codex.theCodexLoginCodeExpiredStartLoginAgain": "Tu código de acceso a Codex ha caducado. Empieza de nuevo.",
+  "provider-codex.signInToOpenaiCodexInSettingsFirst": "Primero inicia sesión en OpenAI Codex desde Ajustes.",
+  "provider-codex.openaiCodexLoginIsMissingAnAccessTokenSign": "No se recibió ningún token de acceso de OpenAI Codex. Inicia sesión de nuevo.",
+  "provider-codex.openaiCodexLoginExpiredOrLacksPermissionSignIn": "Tu sesión de OpenAI Codex ha caducado o no tiene los permisos necesarios ({status}). Inicia sesión de nuevo. {detail}",
+  "provider-codex.couldNotReadTheChatgptAccountIdFromThe": "No se pudo leer el ID de cuenta de ChatGPT del token de OpenAI Codex",
+  "provider-codex.loginCanceledStartAgain": "Inicio de sesión cancelado. Empieza de nuevo.",
+  "provider-codex.allProviders": "Todos los proveedores"
+}

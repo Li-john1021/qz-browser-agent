@@ -1,0 +1,5 @@
+@layer components {
+  .capability-example-page output {
+    @apply qz:block qz:mt-3 qz:text-secondary;
+  }
+}

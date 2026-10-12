@@ -1,0 +1,66 @@
+{
+  "name": "running-patch-preservation",
+  "widths": [360, 420],
+  "conversation": {
+    "title": "运行中 patch 状态保持",
+    "entries": [
+      { "type": "user", "_uiKey": "rpp-u1", "text": "运行脚本后，需要我批准再提交。" },
+      {
+        "type": "tool",
+        "_uiKey": "rpp-t1",
+        "toolCallId": "rpp-t1",
+        "name": "open_tab",
+        "args": { "url": "https://example.com/publish" },
+        "result": { "title": "发布页", "url": "https://example.com/publish", "tabId": 1001 }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "rpp-t2",
+        "toolCallId": "rpp-t2",
+        "name": "run_script",
+        "args": { "code": "const title = document.querySelector('input[placeholder=\"标题\"]')?.value || ''; return { title };" },
+        "argsText": "const title = document.querySelector('input[placeholder=\"标题\"]')?.value || ''; return { title };",
+        "result": null,
+        "isRunning": true,
+        "argsIncomplete": true,
+        "phase": "preparing",
+        "endedAt": ""
+      },
+      {
+        "type": "tool",
+        "_uiKey": "rpp-t3",
+        "toolCallId": "rpp-t3",
+        "name": "ask_user",
+        "args": {
+          "title": "提交确认",
+          "message": "即将提交外部页面，请确认是否继续。",
+          "submitLabel": "批准提交",
+          "fields": [
+            { "id": "decision", "label": "是否继续", "type": "choice", "required": true, "options": [{ "label": "继续", "value": "yes" }, { "label": "停止", "value": "no" }] }
+          ]
+        },
+        "result": null,
+        "isRunning": true,
+        "phase": "preparing",
+        "endedAt": ""
+      }
+    ]
+  },
+  "steps": [
+    { "action": "assert", "expect": "collapsedLane", "lane": "tool" },
+    { "action": "expandGroup", "group": 0, "label": "展开运行中工具组" },
+    { "action": "assert", "expect": "expandedLane", "lane": "tool" },
+    { "action": "assert", "expect": "navText", "equals": "3/3" },
+    { "action": "assert", "expect": "activeText", "includes": "向用户提问" },
+    { "action": "assert", "expect": "selectorCount", "selector": ".tool-timeline-step.running, .tool-timeline-step.waiting", "min": 1 },
+    { "action": "clickStep", "group": 0, "step": "执行脚本", "label": "切到运行中脚本" },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "const title" },
+    { "action": "patch", "group": 0, "label": "模拟工具完成和用户批准" },
+    { "action": "assert", "expect": "expandedAfterPatch" },
+    { "action": "assert", "expect": "selectorCount", "selector": ".tool-timeline-step.running, .tool-timeline-step.waiting", "equals": 0 },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "patched" },
+    { "action": "collapseGroup", "group": 0, "label": "收起 patch 后工具组" },
+    { "action": "assert", "expect": "collapsedLane", "lane": "tool" },
+    { "action": "assert", "expect": "noHorizontalOverflow" }
+  ]
+}

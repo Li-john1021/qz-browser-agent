@@ -1,0 +1,143 @@
+/* ============================================================================
+   Human-in-the-Loop: Waiting Card
+   ============================================================================ */
+
+.msg-waiting {
+  margin-bottom: 12px;
+  animation: none;
+}
+
+.waiting-card {
+  background: color-mix(in srgb, var(--bg-secondary) 72%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 68%, transparent);
+  border-radius: var(--radius-md);
+  transition: opacity var(--transition), border-color var(--transition), background-color var(--transition);
+}
+
+.waiting-card.resolved {
+  opacity: 0.6;
+  border-color: var(--success-border);
+  background: var(--bg-secondary);
+}
+
+.waiting-pulse {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: color-mix(in srgb, var(--text-secondary) 58%, transparent);
+  animation: waiting-scan 2s ease-in-out infinite;
+}
+
+.waiting-card.resolved .waiting-pulse {
+  display: none;
+}
+
+@keyframes waiting-scan {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.waiting-title {
+  font-size: calc(12px * var(--chat-text-scale, 1));
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.waiting-message {
+  font-size: calc(12px * var(--chat-text-scale, 1));
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.waiting-field-label {
+  color: var(--text-secondary);
+  font-size: calc(11px * var(--chat-text-scale, 1));
+  font-weight: 600;
+}
+
+.waiting-field-required {
+  color: var(--red);
+  margin-left: 3px;
+}
+
+.waiting-field-control {
+  --qz-field-font-size: calc(12px * var(--chat-text-scale, 1));
+  background-color: color-mix(in srgb, var(--field-surface) 82%, transparent);
+}
+
+textarea.waiting-field-control {
+  min-height: 56px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.waiting-field.invalid .waiting-field-control,
+.waiting-field.invalid .waiting-option {
+  border-color: var(--red);
+}
+
+.waiting-field-help {
+  color: var(--text-muted);
+  font-size: calc(10px * var(--chat-text-scale, 1));
+  line-height: 1.45;
+}
+
+.waiting-field-error {
+  min-height: 14px;
+  color: var(--red);
+  font-size: calc(10px * var(--chat-text-scale, 1));
+  line-height: 1.4;
+}
+
+.waiting-field:not(.invalid) .waiting-field-error {
+  display: none;
+}
+
+.waiting-option {
+  border: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--bg-primary) 72%, transparent);
+  transition: var(--transition-surface);
+}
+
+.waiting-option:hover {
+  border-color: var(--border-focus);
+  background: var(--accent-subtle);
+  transform: translateX(1px);
+}
+
+.waiting-option input {
+  margin-top: 2px;
+  width: 13px;
+  height: 13px;
+}
+
+.waiting-option strong {
+  display: block;
+  color: var(--text-primary);
+  font-size: calc(11px * var(--chat-text-scale, 1));
+  font-weight: 600;
+}
+
+.waiting-option small {
+  display: block;
+  margin-top: 1px;
+  color: var(--text-muted);
+  font-size: calc(10px * var(--chat-text-scale, 1));
+  line-height: 1.4;
+}
+
+.waiting-hint {
+  font-size: calc(10px * var(--chat-text-scale, 1));
+  color: var(--text-muted);
+}
+
+.waiting-continue-btn {
+  --qz-control-font-weight: 600;
+}
+
+.waiting-cancel-btn {
+  --qz-control-padding: var(--control-padding-sm);
+}

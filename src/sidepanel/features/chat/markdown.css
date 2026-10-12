@@ -1,0 +1,310 @@
+.json-block-text {
+  color: var(--text-secondary);
+}
+
+.code-block,
+.hljs {
+  color: var(--syntax-plain);
+  background: transparent;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-built_in,
+.hljs-type,
+.hljs-template-tag,
+.hljs-title.class_,
+.hljs-title.class_.inherited__ {
+  color: var(--syntax-keyword);
+}
+
+.hljs-title,
+.hljs-section,
+.hljs-name,
+.hljs-title.function_,
+.hljs-function .hljs-title,
+.hljs-selector-id,
+.hljs-selector-class {
+  color: var(--syntax-title);
+}
+
+.hljs-attr,
+.hljs-attribute,
+.hljs-property,
+.hljs-variable,
+.hljs-params {
+  color: var(--syntax-meta);
+}
+
+.hljs-string,
+.hljs-symbol,
+.hljs-code,
+.hljs-variable.language_ {
+  color: var(--syntax-string);
+}
+
+.hljs-comment,
+.hljs-quote,
+.hljs-doctag {
+  color: var(--syntax-comment);
+  font-style: italic;
+}
+
+.hljs-literal,
+.hljs-variable.constant_ {
+  color: var(--syntax-literal);
+}
+
+.hljs-number {
+  color: var(--syntax-number);
+}
+
+.hljs-meta,
+.hljs-meta .hljs-keyword,
+.hljs-bullet {
+  color: var(--syntax-meta);
+}
+
+.hljs-regexp,
+.hljs-link,
+.hljs-selector-attr,
+.hljs-selector-pseudo {
+  color: var(--syntax-literal);
+}
+
+.hljs-addition {
+  color: var(--syntax-addition);
+}
+
+.hljs-deletion {
+  color: var(--syntax-deletion);
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: 650;
+}
+
+.markdown-editor :is(.hljs-comment, .hljs-quote, .hljs-emphasis, .hljs-strong) {
+  font-style: normal;
+  font-weight: inherit;
+}
+
+/* Keep the overlay geometry neutral while giving Markdown source a clear hierarchy. */
+.markdown-editor .hljs-strong {
+  color: var(--text-primary);
+}
+
+.markdown-editor .hljs-emphasis,
+.markdown-editor .hljs-bullet {
+  color: var(--syntax-keyword);
+}
+
+.markdown-editor .hljs-link {
+  color: var(--syntax-title);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 42%, transparent);
+  text-underline-offset: 2px;
+}
+
+.markdown-editor .hljs-quote {
+  color: var(--syntax-meta);
+}
+
+.copyable-code-block {
+  position: relative;
+  margin: 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.math-formula {
+  color: color-mix(in srgb, var(--text-primary) 92%, var(--code-accent));
+}
+
+.math-pending {
+  user-select: none;
+  color: color-mix(in srgb, var(--text-muted) 78%, var(--code-accent));
+}
+
+.math-pending-inline {
+  display: inline-flex;
+  align-items: center;
+  max-width: min(260px, 100%);
+  padding: 1px 6px;
+  border: 1px solid color-mix(in srgb, var(--code-accent) 18%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--code-inline-bg) 72%, transparent);
+  font-family: var(--font-mono);
+  font-size: calc(11px * var(--chat-text-scale, 1));
+  line-height: 1.45;
+  vertical-align: baseline;
+  white-space: nowrap;
+}
+
+.math-pending-display {
+  color: color-mix(in srgb, var(--text-muted) 82%, var(--code-accent));
+  font-family: var(--font-mono);
+  animation: math-pending-breathe 1.35s var(--ease-standard) infinite;
+}
+
+.math-inline {
+  display: inline;
+  white-space: nowrap;
+}
+
+.math-inline mjx-container {
+  margin: 0 1px;
+  vertical-align: baseline;
+}
+
+.math-display {
+  --math-display-padding-y: 10px;
+  --math-display-padding-x: 12px;
+  display: block;
+  max-width: 100%;
+  margin: 10px 0;
+  padding: var(--math-display-padding-y) var(--math-display-padding-x);
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 0;
+  border-radius: var(--block-radius);
+  background: var(--block-fill);
+  box-shadow: none;
+  font-size: calc(13px * var(--chat-text-scale, 1));
+  line-height: 1.55;
+}
+
+.copyable-code-block.math-code-block {
+  margin: 10px 0;
+}
+
+.math-code-block .math-display {
+  min-height: 0;
+  margin: 0;
+  padding: var(--math-display-padding-y) 44px var(--math-display-padding-y) var(--math-display-padding-x);
+}
+
+.math-code-block .math-code-like {
+  font-size: calc(12px * var(--chat-text-scale, 1));
+  line-height: 1.45;
+}
+
+.math-code-lines {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.math-code-line {
+  display: block;
+  min-width: max-content;
+  padding-left: var(--math-code-indent, 0);
+  white-space: nowrap;
+}
+
+.math-code-line-pending,
+.math-code-block-pending {
+  font-family: var(--font-mono);
+  color: color-mix(in srgb, var(--text-muted) 84%, var(--code-accent));
+}
+
+.math-formula mjx-container {
+  max-width: 100%;
+  color: inherit;
+  outline: none;
+}
+
+.math-display mjx-container[display="true"] {
+  min-width: max-content;
+  margin: 0 !important;
+  text-align: left !important;
+}
+
+.math-formula mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+.code-copy-btn {
+  --qz-control-size: 24px;
+  --qz-control-icon-size: 14px;
+  --qz-control-border: color-mix(in srgb, var(--border) 58%, transparent);
+  --qz-control-border-hover: color-mix(in srgb, var(--code-accent) 22%, var(--border));
+  --qz-control-border-focus: var(--qz-control-border-hover);
+  --qz-control-bg: color-mix(in srgb, var(--bg-primary) 80%, transparent);
+  --qz-control-bg-hover: color-mix(in srgb, var(--bg-primary) 92%, var(--accent-subtle));
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 25px;
+  opacity: 0.44;
+  backdrop-filter: blur(8px);
+}
+
+.code-copy-btn svg {
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.copyable-code-block:hover .code-copy-btn,
+.code-copy-btn:focus-visible {
+  opacity: 0.94;
+}
+
+.code-copy-btn.is-confirmed {
+  opacity: 1;
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--green) 42%, var(--border));
+  background: color-mix(in srgb, var(--green) 9%, var(--bg-primary));
+}
+
+.copyable-code-block.copy-confirmed::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: var(--block-radius);
+  border: 1px solid color-mix(in srgb, var(--green) 44%, transparent);
+  opacity: 0;
+  animation: copy-confirm-flash 620ms var(--ease-emphasized) 1;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes tool-complete-dot-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--green) 30%, transparent);
+    transform: scale(1);
+  }
+  36% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--green) 18%, transparent);
+    transform: scale(1.08);
+  }
+  100% {
+    box-shadow: 0 0 0 7px transparent;
+    transform: scale(1);
+  }
+}
+
+@keyframes math-pending-breathe {
+  0%, 100% { opacity: 0.72; }
+  50% { opacity: 1; }
+}
+
+@keyframes copy-confirm-flash {
+  0% { opacity: 0; }
+  18% { opacity: 0.9; }
+  100% { opacity: 0; }
+}

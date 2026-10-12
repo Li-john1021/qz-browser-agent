@@ -1,0 +1,39 @@
+/* Utility-first layout vocabulary; candidates come from the enabled UI dependency graph. */
+@import "tailwindcss/utilities.css" layer(utilities) prefix(qz) source(none);
+
+/* Inline aliases keep the existing skin variables authoritative at the element. */
+@theme inline prefix(qz) {
+  --color-surface: var(--bg-primary);
+  --color-surface-secondary: var(--bg-secondary);
+  --color-surface-muted: var(--bg-tertiary);
+  --color-surface-elevated: var(--bg-elevated);
+  --color-foreground: var(--text-primary);
+  --color-secondary: var(--text-secondary);
+  --color-muted: var(--text-muted);
+  --color-faint: var(--text-faint);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-border: var(--border);
+  --color-focus: var(--border-focus);
+  --color-danger: var(--red);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-success: var(--green);
+  --color-warning: var(--orange);
+
+  --spacing: var(--control-gap-xs);
+  --font-ui: var(--font-sans);
+  --font-code: var(--font-mono);
+  --text-control-xs: var(--control-font-xs);
+  --text-control-sm: var(--control-font-sm);
+  --text-control-md: var(--control-font-md);
+  --text-control-lg: var(--control-font-lg);
+  --text-body: var(--field-font-md);
+  --font-weight-control: var(--control-font-weight);
+  --radius-control: var(--control-radius);
+  --radius-panel: var(--radius-lg);
+  --radius-full: var(--radius-pill);
+  --shadow-control: var(--shadow-sm);
+  --shadow-surface: var(--shadow-md);
+  --shadow-popover: var(--shadow-lg);
+  --ease-ui: var(--ease-standard);
+}

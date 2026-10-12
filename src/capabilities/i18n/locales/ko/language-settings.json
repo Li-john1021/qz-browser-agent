@@ -1,0 +1,13 @@
+{
+  "language-settings.title": "언어",
+  "language-settings.interfaceLanguage": "화면 언어",
+  "language-settings.followBrowser": "브라우저 설정 따르기",
+  "language-settings.loading": "언어 설정을 불러오는 중…",
+  "language-settings.unsavedChanges": "저장하지 않은 변경 사항이 있습니다",
+  "language-settings.saveFailed": "언어 설정을 저장하지 못했습니다. 다시 시도해 주세요.",
+  "language-settings.loadFailed": "저장된 언어 설정을 불러오지 못했습니다. 설정을 다시 열어 주세요.",
+  "language-settings.save": "저장",
+  "language-settings.saved": "저장됨",
+  "language-settings.saving": "저장 중…",
+  "language-settings.advanced": "고급"
+}

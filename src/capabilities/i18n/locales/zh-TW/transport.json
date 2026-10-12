@@ -1,0 +1,11 @@
+{
+  "transport.tooLarge": "這則訊息過大，無法傳輸。請減少附件或分段讀取結果。",
+  "transport.invalid": "無法編碼這則訊息。請檢查提交的資料後重試。",
+  "transport.disconnected": "傳輸完成前連線已關閉。請重新開啟任務，確認狀態後重試。",
+  "transport.upgrade": "請重新開啟側欄，使用更新後的擴充功能傳輸這則大訊息。",
+  "transport.busy": "其他大訊息傳輸正在占用緩衝空間，請等待完成後重試。",
+  "transport.timeout": "訊息傳輸逾時，請確認任務狀態後重試。",
+  "transport.cancelled": "訊息傳輸已取消。",
+  "transport.protocol": "訊息傳輸不完整或格式無效，請重新開啟任務後重試。",
+  "transport.failed": "訊息傳送失敗，請檢查連線和任務狀態後重試。"
+}

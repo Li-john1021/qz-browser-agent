@@ -1,0 +1,499 @@
+{
+  "schema": "qingzhou.article-extraction-sites.v1",
+  "sampleTarget": 200,
+  "sites": [
+    {
+      "id": "caixin", "name": "财新网", "vertical": "财经商业", "quota": 5,
+      "hosts": ["caixin.com"],
+      "seeds": [
+        {"type": "home", "url": "https://www.caixin.com/"},
+        {"type": "channel", "url": "https://economy.caixin.com/"},
+        {"type": "channel", "url": "https://finance.caixin.com/"},
+        {"type": "topic", "url": "https://topics.caixin.com/"}
+      ],
+      "detailPatterns": ["/\\d{4}-\\d{2}-\\d{2}/\\d+\\.html"]
+    },
+    {
+      "id": "ftchinese", "name": "FT中文网", "vertical": "财经商业", "quota": 5,
+      "hosts": ["ftchinese.com"],
+      "seeds": [
+        {"type": "home", "url": "https://www.ftchinese.com/"},
+        {"type": "channel", "url": "https://www.ftchinese.com/channel/china.html"},
+        {"type": "channel", "url": "https://www.ftchinese.com/channel/economy.html"},
+        {"type": "channel", "url": "https://www.ftchinese.com/channel/technology.html"}
+      ],
+      "detailPatterns": ["/story/\\d+", "/interactive/\\d+"]
+    },
+    {
+      "id": "wallstreetcn", "name": "华尔街见闻", "vertical": "财经商业", "quota": 5,
+      "hosts": ["wallstreetcn.com"],
+      "seeds": [
+        {"type": "home", "url": "https://wallstreetcn.com/"},
+        {"type": "channel", "url": "https://wallstreetcn.com/news/global"},
+        {"type": "feed", "url": "https://wallstreetcn.com/live"},
+        {"type": "channel", "url": "https://wallstreetcn.com/news/shares"}
+      ],
+      "detailPatterns": ["/articles/\\d+"]
+    },
+    {
+      "id": "eastmoney", "name": "东方财富", "vertical": "财经商业", "quota": 6,
+      "hosts": ["eastmoney.com"],
+      "seeds": [
+        {"type": "home", "url": "https://www.eastmoney.com/"},
+        {"type": "channel", "url": "https://finance.eastmoney.com/"},
+        {"type": "data", "url": "https://quote.eastmoney.com/center/"},
+        {"type": "search", "url": "https://so.eastmoney.com/web/s?keyword=%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD"}
+      ],
+      "detailPatterns": ["/a/\\d+\\.html", "/news/\\d+,"]
+    },
+    {
+      "id": "xueqiu", "name": "雪球", "vertical": "财经社区", "quota": 3,
+      "hosts": ["xueqiu.com"],
+      "seeds": [
+        {"type": "feed", "url": "https://xueqiu.com/today"},
+        {"type": "search", "url": "https://xueqiu.com/k?q=%E8%B4%B5%E5%B7%9E%E8%8C%85%E5%8F%B0"}
+      ],
+      "detailPatterns": ["/\\d+/\\d+", "/S/[A-Z0-9]+"]
+    },
+    {
+      "id": "21jingji", "name": "21世纪经济报道", "vertical": "财经商业", "quota": 4,
+      "hosts": ["21jingji.com"],
+      "seeds": [
+        {"type": "home", "url": "https://www.21jingji.com/"},
+        {"type": "channel", "url": "https://www.21jingji.com/channel/finance/"},
+        {"type": "channel", "url": "https://www.21jingji.com/channel/business/"}
+      ],
+      "detailPatterns": ["/article/\\d+\\.html"]
+    },
+    {
+      "id": "eeo", "name": "经济观察网", "vertical": "财经商业", "quota": 4,
+      "hosts": ["eeo.com.cn"],
+      "seeds": [
+        {"type": "home", "url": "https://www.eeo.com.cn/"},
+        {"type": "channel", "url": "https://www.eeo.com.cn/finance/"},
+        {"type": "channel", "url": "https://www.eeo.com.cn/industry/"}
+      ],
+      "detailPatterns": ["/\\d{4}/\\d{2}/\\d{2}/\\d+\\.shtml"]
+    },
+    {
+      "id": "caijing", "name": "财经网", "vertical": "财经商业", "quota": 3,
+      "hosts": ["caijing.com.cn"],
+      "seeds": [
+        {"type": "home", "url": "https://www.caijing.com.cn/"},
+        {"type": "channel", "url": "https://finance.caijing.com.cn/"}
+      ],
+      "detailPatterns": ["/\\d{8}/\\d+\\.shtml", "/\\d{4}/\\d{2}/\\d{2}/\\d+\\.shtml"]
+    },
+    {
+      "id": "huxiu", "name": "虎嗅", "vertical": "科技产业", "quota": 5,
+      "hosts": ["huxiu.com"],
+      "seeds": [
+        {"type": "home", "url": "https://www.huxiu.com/"},
+        {"type": "channel", "url": "https://www.huxiu.com/channel/105.html"},
+        {"type": "channel", "url": "https://www.huxiu.com/channel/103.html"},
+        {"type": "feed", "url": "https://www.huxiu.com/moment/"}
+      ],
+      "detailPatterns": ["/article/\\d+\\.html", "/brief/\\d+\\.html"]
+    },
+    {
+      "id": "tmtpost", "name": "钛媒体", "vertical": "科技产业", "quota": 5,
+      "hosts": ["tmtpost.com"],
+      "seeds": [
+        {"type": "home", "url": "https://www.tmtpost.com/"},
+        {"type": "feed", "url": "https://www.tmtpost.com/nictation"},
+        {"type": "search", "url": "https://www.tmtpost.com/so"},
+        {"type": "topic", "url": "https://www.tmtpost.com/column/4275402"}
+      ],
+      "detailPatterns": ["/\\d+\\.html", "/video/\\d+"]
+    },
+    {
+      "id": "ifanr", "name": "爱范儿", "vertical": "科技产业", "quota": 4,
+      "hosts": ["ifanr.com"],
+      "seeds": [
+        {"type": "home", "url": "https://www.ifanr.com/"},
+        {"type": "channel", "url": "https://www.ifanr.com/category/business"},
+        {"type": "channel", "url": "https://www.ifanr.com/category/product"}
+      ],
+      "detailPatterns": ["/\\d{5,}"]
+    },
+    {
+      "id": "pingwest", "name": "品玩", "vertical": "科技产业", "quota": 4,
+      "hosts": ["pingwest.com"],
+      "seeds": [
+        {"type": "home", "url": "https://www.pingwest.com/"},
+        {"type": "feed", "url": "https://www.pingwest.com/status"},
+        {"type": "topic", "url": "https://www.pingwest.com/subject/"}
+      ],
+      "detailPatterns": ["/a/\\d+"]
+    },
+    {
+      "id": "infoq-cn", "name": "InfoQ中文", "vertical": "科技产业", "quota": 4,
+      "hosts": ["infoq.cn"],
+      "seeds": [
+        {"type": "home", "url": "https://www.infoq.cn/"},
+        {"type": "topic", "url": "https://www.infoq.cn/topic/AI"},
+        {"type": "topic", "url": "https://www.infoq.cn/topic/architecture"}
+      ],
+      "detailPatterns": ["/article/[A-Za-z0-9_-]+"]
+    },
+    {
+      "id": "csdn", "name": "CSDN", "vertical": "技术社区", "quota": 5,
+      "hosts": ["csdn.net"],
+      "seeds": [
+        {"type": "home", "url": "https://www.csdn.net/"},
+        {"type": "channel", "url": "https://blog.csdn.net/nav/ai"},
+        {"type": "search", "url": "https://so.csdn.net/so/search?q=AI"},
+        {"type": "channel", "url": "https://blog.csdn.net/nav/python"}
+      ],
+      "detailPatterns": ["/article/details/\\d+"]
+    },
+    {
+      "id": "oschina", "name": "开源中国", "vertical": "技术社区", "quota": 5,
+      "hosts": ["oschina.net"],
+      "seeds": [
+        {"type": "home", "url": "https://www.oschina.net/"},
+        {"type": "feed", "url": "https://www.oschina.net/news"},
+        {"type": "catalog", "url": "https://www.oschina.net/project"},
+        {"type": "search", "url": "https://www.oschina.net/search/?scope=blog&q=AI"}
+      ],
+      "detailPatterns": ["/news/\\d+", "/p/[A-Za-z0-9_.-]+"]
+    },
+    {
+      "id": "stats-cn", "name": "国家统计局", "vertical": "政务数据", "quota": 5,
+      "hosts": ["stats.gov.cn"],
+      "seeds": [
+        {"type": "home", "url": "https://www.stats.gov.cn/"},
+        {"type": "channel", "url": "https://www.stats.gov.cn/sj/zxfb/"},
+        {"type": "data", "url": "https://data.stats.gov.cn/"},
+        {"type": "channel", "url": "https://www.stats.gov.cn/sj/tjgb/"}
+      ],
+      "detailPatterns": ["/sj/zxfb/.*\\.html", "/sj/tjgb/.*\\.html"]
+    },
+    {
+      "id": "pbc", "name": "中国人民银行", "vertical": "政务数据", "quota": 5,
+      "hosts": ["pbc.gov.cn"],
+      "seeds": [
+        {"type": "home", "url": "https://www.pbc.gov.cn/"},
+        {"type": "channel", "url": "https://www.pbc.gov.cn/goutongjiaoliu/113456/113469/index.html"},
+        {"type": "policy", "url": "https://www.pbc.gov.cn/zhengcehuobisi/125207/125213/index.html"},
+        {"type": "data", "url": "https://www.pbc.gov.cn/diaochatongjisi/116219/index.html"}
+      ],
+      "detailPatterns": ["/\\d+/index\\.html"]
+    },
+    {
+      "id": "csrc", "name": "中国证监会", "vertical": "政务数据", "quota": 5,
+      "hosts": ["csrc.gov.cn"],
+      "seeds": [
+        {"type": "home", "url": "https://www.csrc.gov.cn/csrc/index.shtml"},
+        {"type": "channel", "url": "https://www.csrc.gov.cn/csrc/c100028/common_list.shtml"},
+        {"type": "policy", "url": "https://www.csrc.gov.cn/csrc/c100027/common_list.shtml"},
+        {"type": "data", "url": "https://www.csrc.gov.cn/csrc/c100030/common_list.shtml"}
+      ],
+      "detailPatterns": ["/csrc/c\\d+/content\\.shtml"]
+    },
+    {
+      "id": "miit", "name": "工业和信息化部", "vertical": "政务政策", "quota": 5,
+      "hosts": ["miit.gov.cn"],
+      "seeds": [
+        {"type": "home", "url": "https://www.miit.gov.cn/"},
+        {"type": "channel", "url": "https://www.miit.gov.cn/jgsj/kjs/gzdt/index.html"},
+        {"type": "policy", "url": "https://www.miit.gov.cn/zwgk/zcwj/index.html"},
+        {"type": "topic", "url": "https://www.miit.gov.cn/zwgk/zcjd/index.html"}
+      ],
+      "detailPatterns": ["/art/\\d{4}/art_[A-Za-z0-9]+\\.html"]
+    },
+    {
+      "id": "ndrc", "name": "国家发展改革委", "vertical": "政务政策", "quota": 4,
+      "hosts": ["ndrc.gov.cn"],
+      "seeds": [
+        {"type": "home", "url": "https://www.ndrc.gov.cn/"},
+        {"type": "channel", "url": "https://www.ndrc.gov.cn/xwdt/xwfb/"},
+        {"type": "policy", "url": "https://www.ndrc.gov.cn/xxgk/zcfb/"}
+      ],
+      "detailPatterns": ["/t\\d+_\\d+\\.html"]
+    },
+    {
+      "id": "samr", "name": "市场监管总局", "vertical": "政务政策", "quota": 4,
+      "hosts": ["samr.gov.cn"],
+      "seeds": [
+        {"type": "home", "url": "https://www.samr.gov.cn/"},
+        {"type": "channel", "url": "https://www.samr.gov.cn/xw/zj/"},
+        {"type": "policy", "url": "https://www.samr.gov.cn/zw/zfxxgk/fdzdgknr/fgs/"}
+      ],
+      "detailPatterns": ["/art/\\d{4}/art_[A-Za-z0-9]+\\.html"]
+    },
+    {
+      "id": "mof", "name": "财政部", "vertical": "政务政策", "quota": 4,
+      "hosts": ["mof.gov.cn"],
+      "seeds": [
+        {"type": "home", "url": "https://www.mof.gov.cn/index.htm"},
+        {"type": "channel", "url": "https://www.mof.gov.cn/zhengwuxinxi/caizhengxinwen/"},
+        {"type": "policy", "url": "https://www.mof.gov.cn/zhengwuxinxi/zhengcefabu/"}
+      ],
+      "detailPatterns": ["/t\\d+_\\d+\\.htm"]
+    },
+    {
+      "id": "zhihu", "name": "知乎", "vertical": "社区知识", "quota": 4,
+      "hosts": ["zhihu.com"],
+      "seeds": [
+        {"type": "feed", "url": "https://www.zhihu.com/explore"},
+        {"type": "search", "url": "https://www.zhihu.com/search?type=content&q=%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD"},
+        {"type": "topic", "url": "https://www.zhihu.com/topic/19551275/hot"}
+      ],
+      "detailPatterns": ["/question/\\d+", "/p/\\d+"]
+    },
+    {
+      "id": "weibo", "name": "微博", "vertical": "社区内容", "quota": 3,
+      "hosts": ["weibo.com"],
+      "seeds": [
+        {"type": "feed", "url": "https://s.weibo.com/top/summary"},
+        {"type": "search", "url": "https://s.weibo.com/weibo?q=%23%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%23"}
+      ],
+      "detailPatterns": ["/\\d+/[A-Za-z0-9]+"]
+    },
+    {
+      "id": "xiaohongshu", "name": "小红书", "vertical": "社区内容", "quota": 3,
+      "hosts": ["xiaohongshu.com"],
+      "seeds": [
+        {"type": "detail", "url": "https://www.xiaohongshu.com/explore/6a66dae20000000011011c9f?xsec_token=ABzPkdIeFtafrs2Kd_9duCnVZ558D-v_EqE7EDUmsdD1o=&xsec_source=pc_search"},
+        {"type": "detail", "url": "https://www.xiaohongshu.com/explore/6a59fb23000000000c015f26?xsec_token=ABz6DQ8ZhYLMZM8j8mZ4A7HPPMOj5CgICVQ_WATh56Rdk=&xsec_source=pc_search"},
+        {"type": "detail", "url": "https://www.xiaohongshu.com/explore/6863dd15000000002001af51?xsec_token=ABcCKcuv7238d7Inph5Okm5uFX6RyX-tcX1JgcrSeqxfM=&xsec_source=pc_search"},
+        {"type": "feed", "url": "https://www.xiaohongshu.com/explore"},
+        {"type": "search", "url": "https://www.xiaohongshu.com/search_result?keyword=%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD&source=web_search_result_notes"}
+      ],
+      "detailPatterns": ["/explore/[A-Za-z0-9]+"]
+    },
+    {
+      "id": "toutiao", "name": "今日头条", "vertical": "社区内容", "quota": 3,
+      "hosts": ["toutiao.com"],
+      "seeds": [
+        {"type": "feed", "url": "https://www.toutiao.com/"},
+        {"type": "search", "url": "https://so.toutiao.com/search?keyword=%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD"}
+      ],
+      "detailPatterns": ["/article/\\d+", "/w/\\d+"]
+    },
+    {
+      "id": "wechat-public", "name": "微信公众号公开页", "vertical": "社区内容", "quota": 2,
+      "hosts": ["mp.weixin.qq.com", "weixin.sogou.com"],
+      "seeds": [
+        {"type": "search", "url": "https://weixin.sogou.com/weixin?type=2&query=%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD"},
+        {"type": "detail", "url": "https://mp.weixin.qq.com/s/1RkWpmZBT11sXJYtv93NHA"}
+      ],
+      "detailPatterns": ["/s/[A-Za-z0-9_-]+"]
+    },
+    {
+      "id": "v2ex", "name": "V2EX", "vertical": "技术社区", "quota": 5,
+      "hosts": ["v2ex.com"],
+      "seeds": [
+        {"type": "feed", "url": "https://www.v2ex.com/recent"},
+        {"type": "ranking", "url": "https://www.v2ex.com/?tab=hot"},
+        {"type": "channel", "url": "https://www.v2ex.com/go/programmer"},
+        {"type": "channel", "url": "https://www.v2ex.com/go/create"}
+      ],
+      "detailPatterns": ["/t/\\d+"]
+    },
+    {
+      "id": "smzdm", "name": "什么值得买", "vertical": "消费内容", "quota": 5,
+      "hosts": ["smzdm.com"],
+      "seeds": [
+        {"type": "home", "url": "https://post.smzdm.com/"},
+        {"type": "channel", "url": "https://post.smzdm.com/fenlei/diannaoshuma/"},
+        {"type": "search", "url": "https://search.smzdm.com/?c=post&s=%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD"},
+        {"type": "feed", "url": "https://www.smzdm.com/jingxuan/"}
+      ],
+      "detailPatterns": ["/p/a[a-z0-9]+/"]
+    },
+    {
+      "id": "segmentfault", "name": "SegmentFault 思否", "vertical": "技术社区", "quota": 5,
+      "hosts": ["segmentfault.com"],
+      "seeds": [
+        {"type": "home", "url": "https://segmentfault.com/"},
+        {"type": "channel", "url": "https://segmentfault.com/questions"},
+        {"type": "channel", "url": "https://segmentfault.com/blogs"},
+        {"type": "topic", "url": "https://segmentfault.com/t/artificial-intelligence"}
+      ],
+      "detailPatterns": ["/q/101000\\d+", "/a/119000\\d+"]
+    },
+    {
+      "id": "juejin", "name": "掘金", "vertical": "技术社区", "quota": 3,
+      "hosts": ["juejin.cn"],
+      "seeds": [
+        {"type": "feed", "url": "https://juejin.cn/"},
+        {"type": "search", "url": "https://juejin.cn/search?query=AI"}
+      ],
+      "detailPatterns": ["/post/\\d+"]
+    },
+    {
+      "id": "guokr", "name": "果壳", "vertical": "社区知识", "quota": 4,
+      "hosts": ["guokr.com"],
+      "seeds": [
+        {"type": "home", "url": "https://www.guokr.com/"},
+        {"type": "channel", "url": "https://www.guokr.com/scientific/"},
+        {"type": "topic", "url": "https://www.guokr.com/online/"}
+      ],
+      "detailPatterns": ["/article/\\d+/", "/question/\\d+/"]
+    },
+    {
+      "id": "bilibili", "name": "哔哩哔哩", "vertical": "视频娱乐", "quota": 5,
+      "hosts": ["bilibili.com"],
+      "seeds": [
+        {"type": "home", "url": "https://www.bilibili.com/"},
+        {"type": "ranking", "url": "https://www.bilibili.com/v/popular/all"},
+        {"type": "search", "url": "https://search.bilibili.com/all?keyword=%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD"},
+        {"type": "channel", "url": "https://www.bilibili.com/v/knowledge/"}
+      ],
+      "detailPatterns": ["/video/BV[A-Za-z0-9]+"]
+    },
+    {
+      "id": "douyin", "name": "抖音", "vertical": "视频娱乐", "quota": 3,
+      "hosts": ["douyin.com"],
+      "seeds": [
+        {"type": "feed", "url": "https://www.douyin.com/"},
+        {"type": "search", "url": "https://www.douyin.com/search/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD"}
+      ],
+      "detailPatterns": ["/video/\\d+"]
+    },
+    {
+      "id": "kuaishou", "name": "快手", "vertical": "视频娱乐", "quota": 2,
+      "hosts": ["kuaishou.com"],
+      "seeds": [
+        {"type": "search", "url": "https://www.kuaishou.com/search/video?searchKey=%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD"}
+      ],
+      "detailPatterns": ["/short-video/[A-Za-z0-9]+"]
+    },
+    {
+      "id": "tencent-video", "name": "腾讯视频", "vertical": "视频娱乐", "quota": 4,
+      "hosts": ["v.qq.com"],
+      "seeds": [
+        {"type": "home", "url": "https://v.qq.com/"},
+        {"type": "search", "url": "https://v.qq.com/x/search/?q=%E7%BA%AA%E5%BD%95%E7%89%87"},
+        {"type": "channel", "url": "https://v.qq.com/channel/doco"}
+      ],
+      "detailPatterns": ["/x/cover/", "/x/page/"]
+    },
+    {
+      "id": "iqiyi", "name": "爱奇艺", "vertical": "视频娱乐", "quota": 4,
+      "hosts": ["iqiyi.com"],
+      "seeds": [
+        {"type": "home", "url": "https://www.iqiyi.com/"},
+        {"type": "channel", "url": "https://www.iqiyi.com/jilupian/"},
+        {"type": "search", "url": "https://so.iqiyi.com/so/q_%E7%BA%AA%E5%BD%95%E7%89%87"}
+      ],
+      "detailPatterns": ["/v_[A-Za-z0-9]+\\.html"]
+    },
+    {
+      "id": "youku", "name": "优酷", "vertical": "视频娱乐", "quota": 5,
+      "hosts": ["youku.com"],
+      "seeds": [
+        {"type": "home", "url": "https://www.youku.com/ku/webhome"},
+        {"type": "channel", "url": "https://www.youku.com/channel/webdocumentary"},
+        {"type": "search", "url": "https://so.youku.com/search_video/q_%E7%BA%AA%E5%BD%95%E7%89%87"},
+        {"type": "channel", "url": "https://www.youku.com/channel/webmovie"}
+      ],
+      "detailPatterns": ["/v_show/id_[A-Za-z0-9=]+\\.html"]
+    },
+    {
+      "id": "mgtv", "name": "芒果TV", "vertical": "视频娱乐", "quota": 3,
+      "hosts": ["mgtv.com"],
+      "seeds": [
+        {"type": "home", "url": "https://www.mgtv.com/"},
+        {"type": "channel", "url": "https://www.mgtv.com/channel/1.html"}
+      ],
+      "detailPatterns": ["/b/\\d+/\\d+\\.html"]
+    },
+    {
+      "id": "maoyan", "name": "猫眼", "vertical": "影视娱乐", "quota": 3,
+      "hosts": ["maoyan.com"],
+      "seeds": [
+        {"type": "catalog", "url": "https://www.maoyan.com/films"},
+        {"type": "ranking", "url": "https://www.maoyan.com/board"},
+        {"type": "data", "url": "https://piaofang.maoyan.com/dashboard"}
+      ],
+      "detailPatterns": ["/films/\\d+"]
+    },
+    {
+      "id": "netease-music", "name": "网易云音乐", "vertical": "音乐娱乐", "quota": 2,
+      "hosts": ["music.163.com"],
+      "seeds": [
+        {"type": "ranking", "url": "https://music.163.com/#/discover/toplist"},
+        {"type": "detail", "url": "https://music.163.com/#/song?id=186016"}
+      ],
+      "detailPatterns": ["/song\\?id=\\d+"]
+    },
+    {
+      "id": "infzm", "name": "南方周末", "vertical": "深度资讯", "quota": 5,
+      "hosts": ["infzm.com"],
+      "seeds": [
+        {"type": "home", "url": "https://www.infzm.com/"},
+        {"type": "channel", "url": "https://www.infzm.com/topics/t202.html"},
+        {"type": "channel", "url": "https://www.infzm.com/topics/t240.html"},
+        {"type": "topic", "url": "https://www.infzm.com/topics/t206.html"}
+      ],
+      "detailPatterns": ["/contents/\\d+"]
+    },
+    {
+      "id": "bjnews", "name": "新京报", "vertical": "深度资讯", "quota": 5,
+      "hosts": ["bjnews.com.cn"],
+      "seeds": [
+        {"type": "home", "url": "https://www.bjnews.com.cn/"},
+        {"type": "channel", "url": "https://www.bjnews.com.cn/news"},
+        {"type": "video", "url": "https://www.bjnews.com.cn/video"},
+        {"type": "topic", "url": "https://www.bjnews.com.cn/topic"}
+      ],
+      "detailPatterns": ["/detail/\\d+\\.html"]
+    },
+    {
+      "id": "gmw", "name": "光明网", "vertical": "文化资讯", "quota": 5,
+      "hosts": ["gmw.cn"],
+      "seeds": [
+        {"type": "home", "url": "https://www.gmw.cn/"},
+        {"type": "channel", "url": "https://culture.gmw.cn/"},
+        {"type": "topic", "url": "https://topics.gmw.cn/"},
+        {"type": "video", "url": "https://v.gmw.cn/"}
+      ],
+      "detailPatterns": ["/\\d{4}-\\d{2}/\\d{2}/content_\\d+\\.htm"]
+    },
+    {
+      "id": "chinadaily-cn", "name": "中国日报中文网", "vertical": "综合资讯", "quota": 4,
+      "hosts": ["chinadaily.com.cn"],
+      "seeds": [
+        {"type": "home", "url": "https://cn.chinadaily.com.cn/"},
+        {"type": "channel", "url": "https://china.chinadaily.com.cn/"},
+        {"type": "channel", "url": "https://world.chinadaily.com.cn/"}
+      ],
+      "detailPatterns": ["/a/\\d{8}/WS[A-Za-z0-9]+\\.html"]
+    },
+    {
+      "id": "hupu", "name": "虎扑", "vertical": "体育社区", "quota": 4,
+      "hosts": ["hupu.com"],
+      "seeds": [
+        {"type": "home", "url": "https://www.hupu.com/"},
+        {"type": "feed", "url": "https://bbs.hupu.com/all-gambia"},
+        {"type": "channel", "url": "https://bbs.hupu.com/basketball"}
+      ],
+      "detailPatterns": ["/\\d+\\.html"]
+    },
+    {
+      "id": "youth-cn", "name": "中国青年网", "vertical": "综合资讯", "quota": 5,
+      "hosts": ["youth.cn"],
+      "seeds": [
+        {"type": "home", "url": "https://www.youth.cn/"},
+        {"type": "channel", "url": "https://news.youth.cn/"},
+        {"type": "channel", "url": "https://tech.youth.cn/"},
+        {"type": "video", "url": "https://v.youth.cn/"}
+      ],
+      "detailPatterns": ["/\\d{4}/\\d{2}/t\\d+_\\d+\\.htm"]
+    },
+    {
+      "id": "ce-cn", "name": "中国经济网", "vertical": "财经资讯", "quota": 5,
+      "hosts": ["ce.cn"],
+      "seeds": [
+        {"type": "home", "url": "http://www.ce.cn/"},
+        {"type": "channel", "url": "http://finance.ce.cn/"},
+        {"type": "channel", "url": "http://www.ce.cn/cysc/"},
+        {"type": "channel", "url": "http://www.ce.cn/macro/"}
+      ],
+      "detailPatterns": ["/t\\d+_\\d+\\.shtml"]
+    }
+  ]
+}

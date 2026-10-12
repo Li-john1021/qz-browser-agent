@@ -1,0 +1,28 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "types": [
+      "chrome"
+    ]
+  },
+  "include": [
+    "../../src/dom/**/*.ts",
+    "../../src/sidepanel/**/*.ts",
+    "../../src/content/**/*.ts",
+    "../../src/offscreen*.ts",
+    "../../src/runner-sandbox.ts",
+    "../../src/products/*/sidepanel/**/*.ts",
+    "../../src/sdk/sidepanel.ts",
+    "../../src/sdk/sidepanel/**/*.ts",
+    "../../dist/generated/capabilities/sidepanel-roots.ts",
+    "../../dist/generated/capabilities/shared-roots.ts"
+  ],
+  "files": [
+    "../../src/shared/vendor-apis.d.ts"
+  ]
+}

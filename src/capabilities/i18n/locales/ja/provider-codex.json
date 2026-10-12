@@ -1,0 +1,12 @@
+{
+  "provider-codex.signInWithYourChatgptAccountToUseCodex": "ChatGPTアカウントでログインすると、Codexモデルを利用できます。",
+  "provider-codex.openaiCodexModelsApiReturnedAnEmptyModelList": "OpenAI CodexのモデルAPIが空のモデル一覧を返しました",
+  "provider-codex.theLoginSessionExpiredStartCodexLoginAgain": "ログインセッションの有効期限が切れました。Codexに再度ログインしてください。",
+  "provider-codex.theCodexLoginCodeExpiredStartLoginAgain": "Codexのログインコードの有効期限が切れました。やり直してください。",
+  "provider-codex.signInToOpenaiCodexInSettingsFirst": "まず設定でOpenAI Codexにログインしてください。",
+  "provider-codex.openaiCodexLoginIsMissingAnAccessTokenSign": "OpenAI Codexからアクセストークンを受信できませんでした。再度ログインしてください。",
+  "provider-codex.openaiCodexLoginExpiredOrLacksPermissionSignIn": "OpenAI Codexのセッションが期限切れか、必要な権限がありません（{status}）。再度ログインしてください。{detail}",
+  "provider-codex.couldNotReadTheChatgptAccountIdFromThe": "OpenAI CodexのトークンからChatGPTアカウントIDを読み取れませんでした",
+  "provider-codex.loginCanceledStartAgain": "ログインをキャンセルしました。やり直してください。",
+  "provider-codex.allProviders": "すべてのプロバイダー"
+}

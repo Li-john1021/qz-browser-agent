@@ -1,0 +1,38 @@
+import { defineMessages } from "#sdk/shared/i18n-definition";
+
+/** Package-owned interface text. Identifiers and user content remain untranslated. */
+export default defineMessages("script", {
+  "currentPage": { "zh-CN": "当前页面", en: "Current page" },
+  "script": { "zh-CN": "脚本", en: "Script" },
+  "executeInternalCode": { "zh-CN": "执行内部代码", en: "Run internal code" },
+  "executeInternalScript": { "zh-CN": "执行内部脚本", en: "Run internal script" },
+  "executeCode": { "zh-CN": "执行代码", en: "Run code" },
+  "executePageScript": { "zh-CN": "执行页面脚本", en: "Run page script" },
+  "executeScript": { "zh-CN": "执行脚本", en: "Run script" },
+  "thePageJavascriptContextIsUnavailableRunScriptRuns": { "zh-CN": "页面 JavaScript 上下文不可用；run_script 只在真实页面上下文执行，脚本没有降级到 isolated world。", en: "The page JavaScript context is unavailable. run_script runs only in the real page context; it did not fall back to an isolated world." },
+  "theScriptClickedSubmittedNavigatedOrClosedTheCurrent": { "zh-CN": "脚本里触发了当前 tab 的点击、提交、导航或关闭，页面可能卸载，run_script 会主动拦截。", en: "The script clicked, submitted, navigated, or closed the current tab and may unload the page. run_script blocks these actions." },
+  "theScriptPageWaitOrNestedToolCallTimed": { "zh-CN": "脚本、页面等待或内部工具调用超时，常见于无界等待、接口未返回或选择器一直不存在。", en: "The script, page wait, or nested tool call timed out. Check for unbounded waits, pending requests, or missing selectors." },
+  "theScriptHasAnUnsupportedShapeOrInvalidSyntax": { "zh-CN": "脚本形态或语法不稳定，常见于函数外 return、IIFE、top-level await/表达式包装边界。", en: "The script has an unsupported shape or invalid syntax. Check for return outside a function, IIFEs, or top-level await/expression boundaries." },
+  "theExecutionEnvironmentDoesNotMatchTheScriptPage": { "zh-CN": "脚本运行环境不匹配：页面模式不是 Node.js 或 DevTools Console，inner 模式是 Worker 且没有 document/window/DOM。", en: "The execution environment does not match the script: page mode is neither Node.js nor DevTools Console; inner mode is a Worker without document, window, or DOM." },
+  "theTargetDomIsEmptyOrThePageHas": { "zh-CN": "目标 DOM 为空或页面还没渲染完成，选择器、虚拟列表、懒加载或时序需要验证。", en: "The target DOM is empty or the page has not finished rendering. Check selectors, virtual lists, lazy loading, and timing." },
+  "aToolsCallInsideRunScriptFailedCheckBridge": { "zh-CN": "run_script 内部调用 tools.* 失败，可能是桥接超时、嵌套深度、工具参数或页面生命周期问题。", en: "A tools.* call inside run_script failed. Check bridge timeouts, nesting depth, arguments, and page lifecycle." },
+  "theBrowserBlocksScriptInjectionOnThisPageThis": { "zh-CN": "浏览器限制当前页面注入脚本，常见于 chrome://、扩展商店、特殊内置页或权限不足页面。", en: "The browser blocks script injection on this page. This can happen on chrome:// pages, the extension store, built-in pages, or pages without the required permissions." },
+  "scriptExecutionFailedUseTheErrorAndTraceTo": { "zh-CN": "脚本运行失败，需要根据 error 和 trace 定位最后成功阶段。", en: "Script execution failed. Use the error and trace to locate the last successful stage." },
+  "useARegularHttpHttpsPageRefreshOrReopen": { "zh-CN": "确认目标是普通 http/https 页面，刷新或重新打开页面并等待加载稳定后重试。", en: "Use a regular HTTP/HTTPS page, refresh or reopen it, and wait for loading to settle before retrying." },
+  "performClicksSubmissionsAndNavigationAsSeparateToolCalls": { "zh-CN": "把点击/提交/导航拆成普通工具步骤，等待页面稳定后再 run_script 读取或批处理。", en: "Perform clicks, submissions, and navigation as separate tool calls. After the page settles, use run_script for reading or batch processing." },
+  "useABoundedTimeoutRecordTheWaitTargetMatch": { "zh-CN": "给等待加上有限 timeout，在 trace 中记录等待目标、命中数量和最后 URL，再缩小脚本范围重试。", en: "Use a bounded timeout. Record the wait target, match count, and last URL in the trace, then retry a smaller script." },
+  "useTargetPageWithAWorkingTabForPage": { "zh-CN": "页面相关脚本改用 target:\"page\" 并先建立工作标签页；纯数据处理用 target:\"inner\"，只使用标准 JS、input/args、tools/tool。", en: "Use target:\"page\" with a working tab for page scripts. Use target:\"inner\" for pure data processing with standard JS, input/args, and tools/tool only." },
+  "returnTheCandidateCountAndASampleFirstOr": { "zh-CN": "先 return 候选元素数量和 sample，或写 waitFor(fn,label,timeout) 有界等待；不要直接链式读取可能为空的元素。", en: "Return the candidate count and a sample first, or use a bounded waitFor(fn,label,timeout). Do not chain property access on potentially missing elements." },
+  "checkToolStartToolErrorInTheTraceIncluding": { "zh-CN": "检查 trace 里的 tool.start/tool.error，确认工具名、参数、tabId 和 timeout；必要时把内部工具调用拆到 run_script 外。", en: "Check tool.start/tool.error in the trace, including the tool name, arguments, tabId, and timeout. If necessary, move the tool call out of run_script." },
+  "runOnARegularHttpHttpsPageOrUse": { "zh-CN": "换到普通 http/https 页面执行，或用浏览器原生工具读取 tab/page 信息。", en: "Run on a regular HTTP/HTTPS page, or use native browser tools to read tab/page information." },
+  "inspectDiagnosticLasttraceAndTheErrorAddStageTrace": { "zh-CN": "先看 diagnostic.lastTrace 和 error，补充 stage/trace 后缩小脚本重试。", en: "Inspect diagnostic.lastTrace and the error, add stage/trace markers, then retry a smaller script." },
+  "callOpenTabForTheTargetUrlFirstThen": { "zh-CN": "先调用 open_tab 打开目标 URL，再用返回的 id 作为 run_script.tabId。", en: "Call open_tab for the target URL first, then pass the returned id as run_script.tabId." },
+  "ifTheTargetPageIsKnownPassTabidTo": { "zh-CN": "已经知道目标页时，在 run_script 参数里传 tabId。", en: "If the target page is known, pass tabId to run_script." },
+  "useListTabsToInspectActiveIsworkingtabUsableThen": { "zh-CN": "用 list_tabs 查看 active/isWorkingTab/usable 状态，再用 use_tab 将可用网页设为工作标签页。", en: "Use list_tabs to inspect active/isWorkingTab/usable, then use use_tab to select an available working page." },
+  "forDataStoreProcessingFileGenerationOrPureJs": { "zh-CN": "只处理 data_store 表、生成文件或做纯 JS 计算时，传 target:\"inner\"，不要为了运行脚本打开空网页。", en: "For data_store processing, file generation, or pure JS computation, use target:\"inner\" without opening a blank page." },
+  "noReturnValue": { "zh-CN": "无返回值", en: "No return value" },
+  "theScriptRanWithoutAReturnValueOrReturned": { "zh-CN": "脚本已执行，但没有 return / 返回 undefined。", en: "The script ran without a return value, or returned undefined." },
+  "runCode": { "zh-CN": "运行代码", en: "Run code" },
+}, { historicalLabels: [
+  "executeScript",
+] });

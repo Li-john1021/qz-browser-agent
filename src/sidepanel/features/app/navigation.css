@@ -1,0 +1,104 @@
+/* ============================================================================
+   Header Tabs
+   ============================================================================ */
+
+.header-tabs {
+  display: flex;
+  gap: 2px;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.header-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-btn {
+  flex: 1 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  white-space: nowrap;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition-surface);
+}
+
+.tab-btn:hover {
+  background: color-mix(in srgb, var(--bg-elevated) 58%, transparent);
+  color: var(--text-primary);
+}
+
+.tab-btn.active {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  box-shadow: none;
+}
+
+.tab-btn:active {
+  background: color-mix(in srgb, var(--bg-elevated) 78%, var(--bg-primary));
+}
+
+@media (max-width: 420px) {
+  #header {
+    gap: 6px;
+    padding: 10px 12px;
+  }
+
+  .header-actions {
+    gap: 2px;
+  }
+
+  .header-tabs {
+    gap: 1px;
+  }
+
+  .tab-btn {
+    min-width: 38px;
+    height: 28px;
+    padding: 0 7px;
+  }
+}
+
+@media (max-width: 340px) {
+  #header {
+    grid-template-columns: minmax(0, 1fr) max-content;
+    row-gap: 6px;
+  }
+
+  .header-left {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .header-actions {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .header-tabs {
+    width: 100%;
+  }
+
+  .tab-btn {
+    flex: 1 1 0;
+  }
+}

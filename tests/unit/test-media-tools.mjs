@@ -1,0 +1,1739 @@
+import assert from "node:assert/strict";
+import { runInNewContext } from "node:vm";
+
+let tabPageUrl = "https://example.test/";
+globalThis.chrome = {
+  scripting: {
+    async executeScript({ func, args }) {
+      if (measurementUnavailable) throw new Error("Cannot inject into this page");
+      return [{ result: runInNewContext(`(${func})(...args)`, { args,
+        innerWidth: viewportState.clientWidth, innerHeight: viewportState.clientHeight,
+        outerWidth: 412, outerHeight: 915, visualViewport: { scale: viewportState.scale },
+      }) }];
+    },
+  },
+  tabs: {
+    async get(tabId) { return { id: tabId, windowId: 2, url: tabPageUrl, title: "Example", width: viewportState.clientWidth, height: viewportState.clientHeight }; },
+    async getZoom() { return 1; },
+    async query() { return [{ id: 9, windowId: 2, active: true }]; },
+    async update(tabId, update) { updates.push([tabId, update]); return { id: tabId, ...update }; },
+    async captureVisibleTab() { return "data:image/jpeg;base64,dmlzaWJsZQ=="; },
+  },
+};
+
+const { registerMediaTools } = await import("../../src/capabilities/media/tools.js");
+const { createScreenActionRuntime } = await import("../../src/capabilities/media/screen-action-runtime.js");
+const { clearTraceLog, getTraceLog } = await import("../../src/background/trace.js");
+await clearTraceLog();
+
+class ToolExecutionError extends Error {
+  constructor(code, message, details = {}) {
+    super(message);
+    this.code = code;
+    this.details = details;
+  }
+}
+
+async function settleWithin(promise, timeoutMs, message) {
+  let timer;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error(message)), timeoutMs);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+const definitions = new Map();
+const updates = [];
+const cdpCalls = [];
+const elementRefs = new Map();
+let cdpFailure = false;
+let mobileMode = false;
+let measurementUnavailable = false;
+let fakeNow = 1000;
+let frameLoaderId = "loader-a";
+let viewportState = { clientWidth: 1000, clientHeight: 800, pageX: 0, pageY: 0, scale: 1 };
+// These transport tests use synthetic encoded strings; browser tests exercise actual decoding.
+globalThis.createImageBitmap = async blob => ({ width: viewportState.clientWidth, height: viewportState.clientHeight, data: await blob.text(), close() {} });
+globalThis.OffscreenCanvas = class {
+  constructor(width, height) { this.width = width; this.height = height; }
+  getContext() { return { drawImage: image => { this.image = image; } }; }
+  async convertToBlob({ type }) { return new Blob([this.image?.data || 'cdp'], { type }); }
+};
+let layoutMetricsSequence = [];
+let onCdpCall = null;
+let guardrailReads = 0;
+let blockImageUrl = false;
+let nextAssetId = 1;
+const storedImageRows = new Map();
+const imageMetadataWrites = [];
+const imageUpserts = [];
+let imageWriteError = null;
+let listedImages = [{
+  index: 4,
+  rank: 0,
+  selector: "#gallery > img.hero",
+  src: "https://example.test/hero-a.png",
+  currentSrc: "https://example.test/hero-a.png",
+  alt: "Hero",
+  title: "",
+  context: {
+    accessibleName: "Featured campus portrait",
+    caption: "Taken during the CMU years",
+    heading: "Research profile",
+    linkText: "Open profile",
+    linkTitle: "View the complete profile",
+    linkUrl: "https://example.test/profile",
+    nearbyText: "Research profile · Taken during the CMU years",
+    privateField: "must not escape the projection",
+  },
+  naturalWidth: 800,
+  naturalHeight: 600,
+  visible: true,
+}];
+const runtime = registerMediaTools({
+  getPageContext: () => ({ pageMode: mobileMode ? "mobile" : "desktop" }),
+  registerTool({ name, description, parameters, execute, validateArgs }) { definitions.set(name, { description, parameters, execute, validateArgs }); },
+  ToolExecutionError,
+  getToolRuntimeDependencies() { return {}; },
+  async queryDataRows({ table }) {
+    const rows = storedImageRows.get(table) || [];
+    return {
+      rows: rows.map((data, index) => ({ id: `${table}:${index + 1}`, data: { ...data } })),
+      totalMatched: rows.length,
+    };
+  },
+  async updateDataTableMetadata(table, metadata) {
+    imageMetadataWrites.push({ table, metadata });
+  },
+  async upsertDataRows(table, rows, { dedupField = "sourceKey" } = {}) {
+    if (imageWriteError) throw imageWriteError;
+    imageUpserts.push({ table, dedupField });
+    const stored = storedImageRows.get(table) || [];
+    let inserted = 0;
+    let updated = 0;
+    for (const row of rows) {
+      const existingIndex = stored.findIndex(item => item[dedupField] === row[dedupField]);
+      if (existingIndex >= 0) {
+        stored[existingIndex] = { ...row };
+        updated += 1;
+      } else {
+        stored.push({ ...row });
+        inserted += 1;
+      }
+    }
+    storedImageRows.set(table, stored);
+    return { inserted, updated, records: [] };
+  },
+  async saveImageAsset(input) {
+    const assetId = `asset-${nextAssetId++}`;
+    return {
+      assetId,
+      sha256: `sha-${assetId}`,
+      mimeType: input.mimeType || "image/png",
+      bytes: String(input.dataUrl || "").length,
+      width: input.width || 1,
+      height: input.height || 1,
+      sourceWidth: input.sourceWidth || input.width || 1,
+      sourceHeight: input.sourceHeight || input.height || 1,
+      deduped: false,
+    };
+  },
+  makeSessionTabTargetError(code, details) { return new ToolExecutionError(code, code, details); },
+  async sendToContent(_tabId, action) {
+    if (action === "listImageElements") {
+      return {
+        ok: true,
+        count: listedImages.length,
+        scanned: listedImages.length + 2,
+        pageUrl: "https://example.test/",
+        pageTitle: "Example",
+        pageContext: {
+          heading: "Example gallery",
+          description: "A curated image gallery",
+          privateField: "must not escape the projection",
+        },
+        images: listedImages.map(item => ({ ...item })),
+      };
+    }
+    if (action === "readImageElement") {
+      return {
+        ...listedImages[0],
+        dataUrl: "data:image/png;base64,aW1hZ2U=",
+        mimeType: "image/png",
+        width: 800,
+        height: 600,
+      };
+    }
+    return {};
+  },
+  async resolveSelectorTarget(tabId, selector) { return { tabId, selector }; },
+  async resolveElementReference(tabId, { target }) {
+    const uid = String(target || "").startsWith("uid:") ? String(target).slice(4) : "";
+    const stored = uid ? elementRefs.get(uid) : null;
+    if (stored) return { tabId: stored.tabId, target, selector: stored.selector, index: 0, uid, ref: stored };
+    return { tabId, target, selector: String(target || "").replace(/^css:/, "") || "img", index: 0 };
+  },
+  makeSnapshotId(tabId) { return `t${tabId}_snapshot`; },
+  registerElementRef(ref) { elementRefs.set(ref.uid, { ...ref }); },
+  elementTargetForUid(uid) { return uid ? `uid:${uid}` : ""; },
+  elementTargetForSelector(selector) { return selector ? `css:${selector}` : ""; },
+  elementTargetForRef(ref) { return ref?.target || ""; },
+  elementTargetGrammar: "target grammar",
+  getElementTargetDescription: () => "target description",
+  async getTabPageState(tabId) { return { tabId, url: tabPageUrl, title: "Example" }; },
+  pageStateDelta(before, after) {
+    return {
+      pageBefore: before,
+      pageAfter: after,
+      urlChanged: before.url !== after.url,
+      titleChanged: before.title !== after.title,
+    };
+  },
+  commitObservedPageNavigation({ pageBefore, pageAfter }) {
+    return pageBefore.url !== pageAfter.url ? { url: pageAfter.url, rateLimitRecorded: false } : null;
+  },
+  async getSecurityGuardrails() { guardrailReads += 1; return { rules: [] }; },
+  async assertTabAllowed() {},
+  assertUrlAllowed(url) {
+    if (blockImageUrl) throw new ToolExecutionError("SECURITY_GUARDRAIL_BLOCKED", "blocked", { url });
+  },
+  clampNumber(value, min, max, fallback) {
+    const number = Number(value);
+    return Number.isFinite(number) ? Math.max(min, Math.min(max, Math.floor(number))) : fallback;
+  },
+  async sendCdp(tabId, method, params) {
+    cdpCalls.push([tabId, method, params]);
+    if (cdpFailure) throw new ToolExecutionError("CDP_COMMAND_FAILED", "failed");
+    const hookResult = onCdpCall?.({ tabId, method, params });
+    if (hookResult !== undefined) return await hookResult;
+    if (method === "Page.captureScreenshot") return { data: "Y2Rw" };
+    if (method === "Page.getLayoutMetrics") {
+      return { cssVisualViewport: { ...(layoutMetricsSequence.shift() || viewportState) } };
+    }
+    if (method === "Page.getFrameTree") {
+      return { frameTree: { frame: { id: "main", loaderId: frameLoaderId, url: tabPageUrl } } };
+    }
+    return {};
+  },
+  async withDebugger(_tabId, callback) { return await callback({ tabId: 1 }); },
+  now: () => fakeNow,
+});
+
+assert.deepEqual([...definitions.keys()], [
+  "screenshot",
+  "act_on_screen",
+  "list_images",
+  "collect_images",
+  "read_image_asset",
+  "read_image",
+]);
+assert.throws(
+  () => definitions.get("screenshot").validateArgs({ target: "css:body", actionable: true }),
+  error => error?.code === "SCREENSHOT_COORDINATES_UNAVAILABLE",
+  "cross-field screenshot validation should live beside the tool definition",
+);
+
+const cdpShot = await runtime.captureTabScreenshot(3, { format: "jpeg", quality: 70 });
+assert.equal(cdpShot.method, "cdp");
+assert.equal(cdpShot.dataUrl, "data:image/jpeg;base64,Y2Rw");
+assert.equal(cdpShot.cssWidth, 1000);
+assert.equal(cdpShot.cssHeight, 800);
+assert.equal(cdpCalls[0][1], "Page.captureScreenshot");
+
+const delayedResizeContext = { sessionId: "delayed-debugger-infobar", runId: "run", source: "run_script" };
+const resizeTimers = [];
+let delayedResizeStarted = false;
+let delayedCaptures = 0;
+onCdpCall = ({ method }) => {
+  if (method === "Page.captureScreenshot") delayedCaptures++;
+  if (method === "Page.captureScreenshot" && !delayedResizeStarted) {
+    delayedResizeStarted = true;
+    const initialHeight = viewportState.clientHeight;
+    for (const [ms, delta] of [[25, 20], [80, 40], [140, 56]]) {
+      resizeTimers.push(setTimeout(() => { viewportState.clientHeight = initialHeight - delta; }, ms));
+    }
+  }
+};
+try {
+  const shot = await definitions.get("screenshot").execute({ tabId: 3, actionable: true }, undefined, delayedResizeContext);
+  assert.equal(shot.coordinateSpace.height, 744, "first capture must wait for the delayed debugger infobar animation to finish");
+  assert.equal(delayedCaptures, 2, "discard the first image and retry exactly once after the delayed resize");
+  const action = await definitions.get("act_on_screen").execute({
+    tabId: 3, action: "type", x: 500, y: 300, text: "whale", returnScreenshot: false,
+  }, undefined, delayedResizeContext);
+  assert.equal(action.status, "completed");
+  delayedCaptures = 0;
+  delayedResizeStarted = false;
+  const observed = await definitions.get("act_on_screen").execute({
+    tabId: 3, action: "type", x: 500, y: 300, text: "whale", returnScreenshot: true,
+  }, undefined, delayedResizeContext);
+  assert.equal(observed.coordinateSpace.height, 688, "automatic post-action screenshots use the same delayed validation");
+  assert.equal(observed.coordinateBasisReady, true);
+  assert.equal(delayedCaptures, 2, "post-action capture also discards a frame changed after capture");
+  delayedCaptures = 0;
+  await definitions.get("screenshot").execute({ tabId: 3, actionable: true }, undefined, delayedResizeContext);
+  assert.equal(delayedCaptures, 1, "a stable subsequent screenshot needs no retry");
+} finally {
+  resizeTimers.forEach(clearTimeout);
+  onCdpCall = null;
+  viewportState.clientHeight = 800;
+}
+
+const captureAbort = new AbortController();
+let abortTimer;
+onCdpCall = ({ method }) => {
+  if (method === "Page.captureScreenshot") abortTimer = setTimeout(() => captureAbort.abort(), 10);
+};
+try {
+  const captureContext = { sessionId: "aborted-first-capture", runId: "run" };
+  await assert.rejects(definitions.get("screenshot").execute({ tabId: 3, actionable: true }, captureAbort.signal, captureContext), { code: "OPERATION_ABORTED" });
+  await assert.rejects(definitions.get("act_on_screen").execute({ tabId: 3, action: "click", x: 500, y: 300, returnScreenshot: false }, undefined, captureContext),
+    error => error.code === "SCREENSHOT_CONTEXT_STALE" && error.details.reason === "latest_missing", "cancelled capture must not publish coordinates");
+} finally {
+  clearTimeout(abortTimer);
+  onCdpCall = null;
+}
+
+const callsBeforeSettlingCapture = cdpCalls.length;
+let captureTransitions = 1;
+onCdpCall = ({ method }) => {
+  if (method === "Page.captureScreenshot" && captureTransitions > 0) {
+    captureTransitions -= 1;
+    frameLoaderId = "loader-b";
+  }
+};
+const settlingCapture = await definitions.get("screenshot").execute({
+  tabId: 3,
+  actionable: true,
+}, undefined, { sessionId: "session-settling", runId: "run-settling" });
+onCdpCall = null;
+assert.equal(settlingCapture.actionable, true);
+assert.equal(
+  cdpCalls.slice(callsBeforeSettlingCapture).filter(([, method]) => method === "Page.captureScreenshot").length,
+  2,
+  "navigation during capture should discard the frame and recapture once",
+);
+
+const resizeContext = { sessionId: "first-screenshot-resize", runId: "run", source: "run_script" };
+for (const delta of [80, 1]) {
+  let captures = 0;
+  onCdpCall = ({ method }) => {
+    if (method === "Page.captureScreenshot" && ++captures === 1) viewportState.clientHeight -= delta;
+  };
+  const shot = await definitions.get("screenshot").execute({ tabId: 3, actionable: true }, undefined, resizeContext);
+  onCdpCall = null;
+  assert.equal(captures, 2, "even a small resize during capture requires one fresh frame");
+  const action = await definitions.get("act_on_screen").execute({
+    tabId: 3, action: "click", x: 500, y: shot.coordinateSpace.height / 2, returnScreenshot: false,
+  }, undefined, resizeContext);
+  assert.equal(action.resolvedPoint.y, viewportState.clientHeight / 2, "first click uses the stabilized screenshot's height");
+  viewportState.clientHeight += delta;
+}
+await definitions.get("screenshot").execute({ tabId: 3, actionable: true }, undefined, resizeContext);
+let unstableCaptures = 0;
+onCdpCall = ({ method }) => {
+  if (method === "Page.captureScreenshot") { unstableCaptures++; viewportState.pageY++; }
+};
+const beforeUnstableAction = cdpCalls.length;
+const feedback = await definitions.get("act_on_screen").execute({
+  tabId: 3, action: "click", x: 500, y: 400, returnScreenshot: true,
+}, undefined, resizeContext);
+onCdpCall = null;
+assert.equal(unstableCaptures, 2, "continued changes stop after the single retry");
+assert.equal(feedback.status, "completed");
+assert.equal(feedback.coordinateBasisReady, false);
+assert.equal(feedback.feedbackError.code, "SCREENSHOT_CONTEXT_STALE");
+assert.equal(cdpCalls.slice(beforeUnstableAction).filter(([, method, params]) => method === "Input.dispatchMouseEvent" && params.type === "mousePressed").length, 1, "capture retries never replay input");
+await assert.rejects(definitions.get("act_on_screen").execute({ tabId: 3, action: "click", x: 500, y: 400, returnScreenshot: false }, undefined, resizeContext), { code: "SCREENSHOT_CONTEXT_STALE" });
+viewportState.pageY = 0;
+await definitions.get("screenshot").execute({ tabId: 3, actionable: true }, undefined, resizeContext);
+assert.equal((await definitions.get("act_on_screen").execute({ tabId: 3, action: "click", x: 500, y: 400, returnScreenshot: false }, undefined, resizeContext)).coordinateBasisReady, true);
+
+const screenContext = {
+  sessionId: "session-screen",
+  runId: "run-screen",
+  runProfile: {
+    platform: { os: "mac", label: "macOS" },
+  },
+};
+const screenshotIndependentPressContext = {
+  sessionId: "session-screen-press-only",
+  runId: "run-screen-press-only",
+  runProfile: screenContext.runProfile,
+};
+const callsBeforeScreenshotIndependentPress = cdpCalls.length;
+const screenshotIndependentPress = await definitions.get("act_on_screen").execute({
+  tabId: 3,
+  action: "press",
+  returnScreenshot: false,
+  key: "Escape",
+}, undefined, screenshotIndependentPressContext);
+const screenshotIndependentPressCalls = cdpCalls.slice(callsBeforeScreenshotIndependentPress);
+assert.equal(screenshotIndependentPress.status, "completed");
+assert.equal(screenshotIndependentPress.sourceScreenshotId, undefined, "a focused key press must not consume an input screenshot");
+assert.equal(screenshotIndependentPress.sourceCoordinateSpace, undefined);
+assert.equal(screenshotIndependentPress.feedbackAvailable, false);
+assert.equal(screenshotIndependentPress.coordinateBasisReady, false);
+assert.equal(
+  screenshotIndependentPressCalls.some(([, method, params]) => (
+    method === "Input.dispatchKeyEvent" && params.type === "rawKeyDown" && params.key === "Escape"
+  )),
+  true,
+  "a focused key press should dispatch without any actionable screenshot in its session/run scope",
+);
+const independentContext = { ...screenContext, sessionId: "scroll-without-screenshot", source: "run_script" };
+const screenAction = definitions.get("act_on_screen");
+await assert.rejects(screenAction.execute({ tabId: 3, action: "scroll", x: 500, y: 400, deltaY: 120,
+  returnScreenshot: false }, undefined, independentContext), error => error.code === "SCREENSHOT_CONTEXT_STALE"
+    && error.details.reason === "latest_missing", "an explicit scroll position still requires a screenshot");
+const beforeIndependent = cdpCalls.length;
+const independentScroll = await screenAction.execute({ tabId: 3, action: "scroll", deltaY: 120,
+  returnScreenshot: false }, undefined, independentContext);
+assert.equal(independentScroll.status, "completed");
+assert.equal(independentScroll.sourceScreenshotId, undefined);
+assert.equal(independentScroll.coordinateBasisReady, false);
+assert.equal(independentScroll._image, undefined);
+assert.deepEqual(independentScroll.resolvedPoint, { x: 500, y: 400 });
+assert.equal(cdpCalls.slice(beforeIndependent).some(([, method]) => method === "Page.captureScreenshot"), false,
+  "script scrolling without observation must not take an input or output screenshot");
+await screenAction.execute({ tabId: 3, action: "type", text: "focus only", returnScreenshot: false }, undefined, independentContext);
+assert.equal(cdpCalls.some(([, method, params]) => method === "Input.insertText" && params.text === "focus only"), true);
+
+await definitions.get("screenshot").execute({ tabId: 3, actionable: true }, undefined, independentContext);
+viewportState.clientHeight = 600;
+try {
+  await assert.rejects(screenAction.execute({ tabId: 3, action: "scroll", x: 500, y: 400, deltaY: 120,
+    returnScreenshot: false }, undefined, independentContext), error => error.code === "SCREENSHOT_CONTEXT_STALE"
+      && error.details.reason === "viewport_resized");
+  const observed = await screenAction.execute({ tabId: 3, action: "scroll", deltaY: 120,
+    returnScreenshot: true }, undefined, independentContext);
+  assert.deepEqual(observed.resolvedPoint, { x: 500, y: 300 }, "default scroll uses the live viewport, not the stale image");
+  assert.equal(observed.sourceScreenshotId, undefined);
+  assert.equal(observed.coordinateBasisReady, true);
+  assert.equal(observed.feedbackAvailable, true);
+  assert.equal(observed.coordinateSpace.height, 600);
+  assert.match(observed._image, /^data:image\//);
+  const controller = new AbortController();
+  controller.abort();
+  const beforeAbort = cdpCalls.length;
+  await assert.rejects(screenAction.execute({ tabId: 3, action: "scroll", deltaY: 120,
+    returnScreenshot: false }, controller.signal, independentContext), { code: "OPERATION_ABORTED" });
+  assert.equal(cdpCalls.slice(beforeAbort).some(([, method]) => method.startsWith("Input.")), false);
+} finally {
+  viewportState.clientHeight = 800;
+}
+
+const actionable = await definitions.get("screenshot").execute({
+  tabId: 3,
+  actionable: true,
+}, undefined, screenContext);
+assert.equal(actionable.actionable, true);
+assert.equal(actionable._imageDetail, "high");
+assert.match(actionable.screenshotId, /^screen_/);
+assert.deepEqual(actionable.coordinateSpace, {
+  origin: "top_left",
+  width: 1000,
+  height: 800,
+  unit: "pixel",
+});
+
+layoutMetricsSequence = [
+  { ...viewportState, clientWidth: 997, clientHeight: 803 },
+  { ...viewportState },
+];
+const toleratedViewportJitter = await definitions.get("act_on_screen").execute({
+  tabId: 3,
+  action: "click",
+  returnScreenshot: false,
+  x: 250,
+  y: 600,
+}, undefined, screenContext);
+assert.equal(toleratedViewportJitter.status, "completed", "a viewport delta of exactly 3 CSS px should preserve the coordinate basis");
+assert.equal(toleratedViewportJitter.viewportChange.resized, false);
+
+await definitions.get("screenshot").execute({ tabId: 3, actionable: true }, undefined, screenContext);
+layoutMetricsSequence = [
+  { ...viewportState, clientWidth: 996.9 },
+];
+const justBeyondViewportTolerance = await definitions.get("act_on_screen").execute({
+  tabId: 3,
+  action: "click",
+  returnScreenshot: false,
+  x: 250,
+  y: 600,
+}, undefined, screenContext).then(() => null, error => error);
+assert.equal(justBeyondViewportTolerance?.code, "SCREENSHOT_CONTEXT_STALE");
+assert.equal(justBeyondViewportTolerance?.details?.reason, "viewport_resized");
+assert.equal(justBeyondViewportTolerance?.details?.sourceViewportWidth, 1000);
+assert.equal(justBeyondViewportTolerance?.details?.currentViewportWidth, 996.9);
+assert.equal(justBeyondViewportTolerance?.details?.viewportWidthDelta, -3.1);
+assert.equal(justBeyondViewportTolerance?.details?.viewportResizeTolerancePx, 3);
+
+layoutMetricsSequence = [
+  { ...viewportState, clientHeight: 760 },
+  { ...viewportState },
+];
+const staleClickArgs = {
+  tabId: 3,
+  action: "click",
+  returnScreenshot: true,
+  x: 250,
+  y: 600,
+};
+const callsBeforeStaleClick = cdpCalls.length;
+await assert.rejects(
+  definitions.get("act_on_screen").execute(staleClickArgs, undefined, screenContext),
+  error => error?.code === "SCREENSHOT_CONTEXT_STALE" && error?.details?.reason === "viewport_resized",
+  "a changed viewport should fail one coordinate check without hidden retries",
+);
+assert.equal(
+  cdpCalls.slice(callsBeforeStaleClick).some(([, method]) => method === "Input.dispatchMouseEvent"),
+  false,
+  "stale coordinates must fail before input",
+);
+const callsBeforeClick = cdpCalls.length;
+const clicked = await definitions.get("act_on_screen").execute(staleClickArgs, undefined, screenContext);
+assert.equal(clicked.status, "completed");
+assert.equal(clicked.feedbackAvailable, true);
+assert.equal(clicked.coordinateBasisReady, true);
+assert.equal(clicked._image, "data:image/jpeg;base64,Y2Rw", "model feedback must keep the captured pixels untouched");
+assert.notEqual(clicked.screenshotId, actionable.screenshotId);
+assert.deepEqual(clicked.marker, { kind: "point", action: "click", x: 250, y: 600 });
+assert.deepEqual(clicked._display, {
+  type: "imageWithAction",
+  action: "click",
+  kind: "point",
+  x: 0.25,
+  y: 0.75,
+  beforeImage: actionable._image,
+  afterImage: clicked._image,
+}, "the chat-only action projection should use normalized coordinates outside the image bytes");
+assert.deepEqual(clicked.resolvedPoint, { x: 250, y: 600 });
+const clickInputCalls = cdpCalls.slice(callsBeforeClick).filter(([, method]) => method === "Input.dispatchMouseEvent");
+assert.deepEqual(clickInputCalls.slice(0, 2).map(([, , params]) => ({ type: params.type, x: params.x, y: params.y })), [
+  { type: "mousePressed", x: 250, y: 600 },
+  { type: "mouseReleased", x: 250, y: 600 },
+]);
+assert.equal(layoutMetricsSequence.length, 0, "the caller may retry once the original coordinate space is current again");
+
+const callsBeforeMissingReturnScreenshot = cdpCalls.length;
+await assert.rejects(
+  definitions.get("act_on_screen").execute({
+    tabId: 3,
+    action: "click",
+    x: 250,
+    y: 600,
+  }, undefined, screenContext),
+  error => error?.code === "MISSING_REQUIRED_ARGUMENTS"
+    && error?.details?.missing?.includes("returnScreenshot"),
+  "screen actions must require an explicit screenshot-return decision",
+);
+await assert.rejects(
+  definitions.get("act_on_screen").execute({
+    tabId: 3,
+    action: "click",
+    returnScreenshot: "false",
+    x: 250,
+    y: 600,
+  }, undefined, screenContext),
+  error => error?.code === "INVALID_ARGUMENTS" && error?.details?.field === "returnScreenshot",
+  "screen actions must not coerce the screenshot-return decision",
+);
+assert.equal(cdpCalls.length, callsBeforeMissingReturnScreenshot, "invalid returnScreenshot values must not consume the current frame");
+
+const callsBeforeInvalidHold = cdpCalls.length;
+await assert.rejects(
+  definitions.get("act_on_screen").execute({
+    tabId: 3,
+    action: "long_press",
+    returnScreenshot: false,
+    x: 250,
+    y: 600,
+    durationMs: 299,
+  }, undefined, screenContext),
+  error => error?.code === "INVALID_LONG_PRESS_DURATION" && error?.details?.field === "durationMs",
+  "long press should reject unsafe hold durations before dispatch",
+);
+assert.equal(cdpCalls.length, callsBeforeInvalidHold, "invalid long-press duration must not consume the current frame");
+
+const longPressEvents = [];
+onCdpCall = ({ method, params }) => {
+  if (method === "Input.dispatchMouseEvent" && ["mousePressed", "mouseReleased"].includes(params.type)) {
+    longPressEvents.push({ type: params.type, at: Date.now() });
+  }
+};
+const held = await definitions.get("act_on_screen").execute({
+  tabId: 3,
+  action: "long_press",
+  returnScreenshot: false,
+  x: 250,
+  y: 600,
+  durationMs: 300,
+}, undefined, screenContext);
+onCdpCall = null;
+assert.equal(held.status, "completed");
+assert.equal(held.durationMs, 300);
+assert.equal(held.feedbackAvailable, false);
+assert.equal(held.coordinateBasisReady, true);
+assert.equal(held._image, undefined);
+assert.deepEqual(held._display, {
+  type: "imageWithAction",
+  action: "long_press",
+  kind: "point",
+  x: 0.25,
+  y: 0.75,
+  beforeImage: clicked._image,
+  afterImage: "data:image/jpeg;base64,Y2Rw",
+}, "model-silent actions should retain both frames only as Chat UI animation data");
+assert.match(held.note, /未截取观察图/);
+assert.deepEqual(held.marker, { kind: "point", action: "long_press", x: 250, y: 600 });
+assert.deepEqual(longPressEvents.map(event => event.type), ["mousePressed", "mouseReleased"]);
+assert.ok(longPressEvents[1].at - longPressEvents[0].at >= 275, "long press must keep the mouse down for the requested interval");
+assert.equal(
+  cdpCalls.slice(callsBeforeInvalidHold).filter(([, method]) => method === "Page.captureScreenshot").length,
+  2,
+  "a direct model-silent action should capture only its before and after animation frames",
+);
+
+const callsBeforeScriptedActions = cdpCalls.length;
+const scriptedAction = await definitions.get("act_on_screen").execute({
+  tabId: 3,
+  action: "click",
+  returnScreenshot: false,
+  x: 250,
+  y: 600,
+}, undefined, { ...screenContext, source: "run_script" });
+assert.equal(scriptedAction.coordinateBasisReady, true);
+assert.equal(scriptedAction._image, undefined);
+assert.equal(scriptedAction._display, undefined, "run_script child actions should not create unused Chat UI animation frames");
+const scriptedObservation = await definitions.get("act_on_screen").execute({
+  tabId: 3,
+  action: "hover",
+  returnScreenshot: true,
+  x: 250,
+  y: 600,
+}, undefined, { ...screenContext, source: "run_script" });
+assert.match(scriptedObservation._image, /^data:image\/jpeg;base64,/, "an explicitly requested script observation should return its image");
+assert.equal(scriptedObservation._display, undefined, "run_script observations should not create action animations");
+assert.equal(
+  cdpCalls.slice(callsBeforeScriptedActions).filter(([, method]) => method === "Page.captureScreenshot").length,
+  1,
+  "run_script should take no hidden screenshots and only the one explicitly requested observation",
+);
+
+const callsBeforeType = cdpCalls.length;
+const typed = await definitions.get("act_on_screen").execute({
+  tabId: 3,
+  action: "type",
+  returnScreenshot: true,
+  x: 500,
+  y: 400,
+  text: "轻舟",
+  replace: true,
+}, undefined, screenContext);
+assert.equal(typed.feedbackAvailable, true);
+assert.match(typed._display?.beforeImage || "", /^data:image\/jpeg;base64,/, "a direct action should capture a fresh animation pre-frame");
+const typeCalls = cdpCalls.slice(callsBeforeType);
+assert.equal(typeCalls.some(([, method, params]) => (
+  method === "Input.dispatchKeyEvent"
+  && params.key.toLowerCase() === "a"
+  && params.modifiers === 4
+  && params.commands?.includes("selectAll")
+)), true, "replace typing should derive Meta from the same macOS fact exposed in the run profile");
+assert.equal(typeCalls.some(([, method, params]) => method === "Input.insertText" && params.text === "轻舟"), true);
+
+const callsBeforeExplicitSelectAll = cdpCalls.length;
+await definitions.get("act_on_screen").execute({
+  tabId: 3,
+  action: "press",
+  returnScreenshot: true,
+  key: "Meta+A",
+}, undefined, screenContext);
+const explicitSelectAllCalls = cdpCalls.slice(callsBeforeExplicitSelectAll);
+assert.equal(explicitSelectAllCalls.some(([, method, params]) => (
+  method === "Input.dispatchKeyEvent"
+  && params.type === "rawKeyDown"
+  && params.key.toLowerCase() === "a"
+  && params.modifiers === 4
+  && params.commands?.includes("selectAll")
+)), true, "an explicit macOS Meta+A press should carry Blink's selectAll editing command");
+
+const windowsScreenContext = {
+  sessionId: "session-screen-windows",
+  runId: "run-screen-windows",
+  runProfile: { platform: { os: "win", label: "Windows" } },
+};
+await definitions.get("screenshot").execute({
+  tabId: 3,
+  actionable: true,
+}, undefined, windowsScreenContext);
+const callsBeforeWindowsSelectAll = cdpCalls.length;
+await definitions.get("act_on_screen").execute({
+  tabId: 3,
+  action: "press",
+  returnScreenshot: false,
+  key: "Control+A",
+}, undefined, windowsScreenContext);
+assert.equal(cdpCalls.slice(callsBeforeWindowsSelectAll).some(([, method, params]) => (
+  method === "Input.dispatchKeyEvent"
+  && params.type === "rawKeyDown"
+  && params.key.toLowerCase() === "a"
+  && params.modifiers === 2
+  && params.commands?.includes("selectAll")
+)), true, "an explicit Windows Control+A press should carry the same platform-neutral editing command");
+
+const callsBeforeWhitespace = cdpCalls.length;
+await definitions.get("act_on_screen").execute({
+  tabId: 3,
+  action: "type",
+  returnScreenshot: true,
+  x: 500,
+  y: 400,
+  text: "   ",
+}, undefined, screenContext);
+assert.equal(
+  cdpCalls.slice(callsBeforeWhitespace).some(([, method, params]) => method === "Input.insertText" && params.text === "   "),
+  true,
+  "screen typing must preserve an all-whitespace payload",
+);
+
+const callsBeforeFocusedType = cdpCalls.length;
+await definitions.get("act_on_screen").execute({
+  tabId: 3,
+  action: "type",
+  returnScreenshot: true,
+  text: "当前焦点",
+}, undefined, screenContext);
+const focusedTypeCalls = cdpCalls.slice(callsBeforeFocusedType);
+assert.equal(
+  focusedTypeCalls.some(([, method]) => method === "Input.dispatchMouseEvent"),
+  false,
+  "coordinate-free type should preserve and use the current focus",
+);
+assert.equal(
+  focusedTypeCalls.some(([, method, params]) => method === "Input.insertText" && params.text === "当前焦点"),
+  true,
+  "coordinate-free type should insert text into the current focus",
+);
+
+const callsBeforeClear = cdpCalls.length;
+await definitions.get("act_on_screen").execute({
+  tabId: 3,
+  action: "type",
+  returnScreenshot: true,
+  x: 500,
+  y: 400,
+  text: "",
+  replace: true,
+}, undefined, screenContext);
+const clearCalls = cdpCalls.slice(callsBeforeClear);
+assert.equal(clearCalls.some(([, method, params]) => method === "Input.dispatchKeyEvent" && params.key.toLowerCase() === "a"), true);
+assert.equal(clearCalls.some(([, method, params]) => method === "Input.dispatchKeyEvent" && params.key === "Backspace"), true);
+assert.equal(
+  clearCalls.some(([, method, params]) => method === "Input.insertText" && params.text === ""),
+  false,
+  "replace=true with empty text should clear without dispatching a meaningless empty insertion",
+);
+
+await assert.rejects(
+  definitions.get("act_on_screen").execute({
+    tabId: 3,
+    action: "type",
+    returnScreenshot: true,
+    text: "",
+    replace: false,
+  }, undefined, screenContext),
+  error => error?.code === "MISSING_REQUIRED_ARGUMENTS",
+  "empty type without replace should remain an explicit no-op error",
+);
+
+const recoverable = await definitions.get("screenshot").execute({ tabId: 3, actionable: true }, undefined, screenContext);
+const callsBeforeInvalid = cdpCalls.length;
+await assert.rejects(
+  definitions.get("act_on_screen").execute({
+    tabId: 3,
+    action: "click",
+    returnScreenshot: true,
+    x: 1001,
+    y: 100,
+  }, undefined, screenContext),
+  error => error?.code === "INVALID_SCREEN_COORDINATE",
+);
+assert.equal(cdpCalls.length, callsBeforeInvalid, "invalid coordinates must fail before any CDP work");
+const recovered = await definitions.get("act_on_screen").execute({
+  tabId: 3,
+  action: "click",
+  returnScreenshot: true,
+  x: 100,
+  y: 100,
+}, undefined, screenContext);
+assert.equal(recovered.feedbackAvailable, true, "argument validation must not consume the actionable screenshot");
+assert.equal(recovered.sourceScreenshotId, recoverable.screenshotId);
+
+const callsBeforeInvalidRepeat = cdpCalls.length;
+for (const repeat of [0, 1.5, 21]) {
+  await assert.rejects(
+    definitions.get("act_on_screen").execute({
+      tabId: 3,
+      action: "scroll",
+      returnScreenshot: true,
+      deltaY: 120,
+      repeat,
+    }, undefined, screenContext),
+    error => error?.code === "INVALID_SCROLL_REPEAT" && error?.details?.field === "repeat",
+    `scroll repeat should reject ${repeat}`,
+  );
+}
+assert.equal(cdpCalls.length, callsBeforeInvalidRepeat, "invalid repeat must fail before consuming the actionable screenshot");
+
+const callsBeforeInvalidKey = cdpCalls.length;
+await assert.rejects(
+  definitions.get("act_on_screen").execute({
+    tabId: 3,
+    action: "press",
+    returnScreenshot: false,
+    key: "Hyper+A",
+  }, undefined, screenContext),
+  error => error?.code === "INVALID_ARGUMENTS" && error?.details?.key === "Hyper+A",
+  "invalid key modifiers should fail during argument preparation",
+);
+assert.equal(cdpCalls.length, callsBeforeInvalidKey, "invalid key syntax must not consume the actionable screenshot");
+
+const callsBeforeScroll = cdpCalls.length;
+const repeatedScroll = await definitions.get("act_on_screen").execute({
+  tabId: 3,
+  action: "scroll",
+  returnScreenshot: true,
+  deltaY: 120,
+  repeat: 3,
+}, undefined, screenContext);
+const wheelCalls = cdpCalls.slice(callsBeforeScroll).filter(([, method, params]) => (
+  method === "Input.dispatchMouseEvent" && params.type === "mouseWheel"
+));
+assert.equal(wheelCalls.length, 3, "repeat should send the requested number of trusted wheel inputs");
+assert.deepEqual(
+  wheelCalls.map(([, , params]) => params),
+  Array.from({ length: 3 }, () => ({
+    type: "mouseWheel",
+    x: 500,
+    y: 400,
+    deltaX: 0,
+    deltaY: 120,
+  })),
+);
+assert.equal(repeatedScroll.repeat, 3);
+assert.deepEqual(repeatedScroll.viewportChange, {
+  observed: true,
+  scrolled: false,
+  deltaX: 0,
+  deltaY: 0,
+  scaled: false,
+  resized: false,
+}, "a handled wheel sequence should report that the browser viewport stayed still without guessing application effects");
+const screenActionTrace = await getTraceLog();
+assert.equal(
+  screenActionTrace.some(line => line.includes("screen_action_trace phase=action.coordinate_check.done")
+    && line.includes("staleReason=viewport_resized")
+    && line.includes("sourceViewportWidth=1000")
+    && line.includes("currentViewportWidth=996.9")
+    && line.includes("viewportWidthDelta=-3.1")
+    && line.includes("viewportResizeTolerancePx=3")),
+  true,
+  "viewport rejection traces should expose the measured dimensions, delta, and tolerance",
+);
+for (const expected of [
+  "screen_action_trace phase=action.input.done",
+  "screen_action_trace phase=capture.screenshot.done",
+  "screen_action_trace phase=action.done",
+  "screen_capture_trace phase=cdp.done",
+  "screen_capture_trace phase=normalize.done",
+]) {
+  assert.equal(
+    screenActionTrace.some(line => line.includes(expected)),
+    true,
+    `screen action diagnostics should record ${expected}`,
+  );
+}
+
+const callsBeforePendingWheel = cdpCalls.length;
+onCdpCall = ({ method, params }) => {
+  if (method === "Input.dispatchMouseEvent" && params.type === "mouseWheel") {
+    return new Promise(() => {});
+  }
+};
+const pendingWheel = await settleWithin(
+  definitions.get("act_on_screen").execute({
+    tabId: 3,
+    action: "scroll",
+    returnScreenshot: true,
+    deltaY: 140,
+  }, undefined, screenContext),
+  500,
+  "a missing wheel acknowledgement must not delay post-action observation",
+);
+onCdpCall = null;
+assert.equal(pendingWheel.status, "completed");
+assert.equal(pendingWheel.coordinateBasisReady, true);
+assert.equal(
+  cdpCalls.slice(callsBeforePendingWheel).some(([, method, params]) => (
+    method === "Input.dispatchMouseEvent" && params.type === "mouseWheel"
+  )),
+  true,
+  "the delayed wheel command must be dispatched before the feedback barrier",
+);
+
+const callsBeforePendingDrag = cdpCalls.length;
+let heldMoveReply = false;
+onCdpCall = ({ method, params }) => {
+  if (method === "Input.dispatchMouseEvent" && params.type === "mouseMoved" && !heldMoveReply) {
+    heldMoveReply = true;
+    return new Promise(() => {});
+  }
+};
+const pendingDrag = await settleWithin(
+  definitions.get("act_on_screen").execute({
+    tabId: 3,
+    action: "drag",
+    returnScreenshot: true,
+    x: 100,
+    y: 100,
+    endX: 900,
+    endY: 700,
+  }, undefined, screenContext),
+  500,
+  "a missing drag acknowledgement must not prevent release or observation",
+);
+onCdpCall = null;
+assert.equal(pendingDrag.status, "completed");
+const pendingDragInputs = cdpCalls.slice(callsBeforePendingDrag).filter(([, method]) => method === "Input.dispatchMouseEvent");
+assert.equal(pendingDragInputs.filter(([, , params]) => params.type === "mouseMoved").length, 8);
+assert.equal(pendingDragInputs.at(-1)?.[2]?.type, "mouseReleased", "drag must dispatch its release even when an earlier reply remains pending");
+const acknowledgementTrace = await getTraceLog();
+assert.equal(
+  acknowledgementTrace.filter(line => line.includes("screen_action_trace phase=action.input.done")).length >= 2,
+  true,
+  "wheel and drag dispatch completion should remain diagnosable without tracking acknowledgements",
+);
+
+onCdpCall = ({ method, params }) => {
+  if (method === "Input.dispatchMouseEvent" && params.type === "mouseWheel") {
+    return new Promise(() => {});
+  }
+};
+const neverAcknowledged = await settleWithin(
+  definitions.get("act_on_screen").execute({
+    tabId: 3,
+    action: "scroll",
+    returnScreenshot: true,
+    deltaY: 140,
+  }, undefined, screenContext),
+  500,
+  "an unacknowledged CDP input must not hold the tool open",
+);
+assert.equal(neverAcknowledged.status, "completed");
+onCdpCall = null;
+
+onCdpCall = ({ method, params }) => {
+  if (method === "Input.dispatchMouseEvent" && params.type === "mouseWheel") {
+    return Promise.reject(new ToolExecutionError("CDP_COMMAND_FAILED", "wheel rejected"));
+  }
+};
+await assert.rejects(
+  definitions.get("act_on_screen").execute({
+    tabId: 3,
+    action: "scroll",
+    returnScreenshot: true,
+    deltaY: 140,
+  }, undefined, screenContext),
+  error => error?.code === "CDP_COMMAND_FAILED" && /wheel rejected/.test(error?.message || ""),
+  "an explicit CDP gesture rejection must still fail instead of being mistaken for a delayed acknowledgement",
+);
+onCdpCall = null;
+
+await definitions.get("screenshot").execute({ tabId: 3, actionable: true }, undefined, screenContext);
+const modelSilentType = await definitions.get("act_on_screen").execute({
+  tabId: 3,
+  action: "type",
+  returnScreenshot: false,
+  x: 240,
+  y: 180,
+  text: "navigation input",
+  replace: true,
+}, undefined, screenContext);
+assert.equal(modelSilentType.coordinateBasisReady, true);
+assert.equal(modelSilentType.feedbackAvailable, false);
+assert.match(modelSilentType._display?.beforeImage || "", /^data:image\/jpeg;base64,/, "model-silent actions should keep their source frame for UI replay");
+assert.match(modelSilentType._display?.afterImage || "", /^data:image\/jpeg;base64,/, "model-silent actions should keep their result frame for UI replay");
+const callsBeforeModelSilentNavigation = cdpCalls.length;
+const pageUrlBeforeModelSilentNavigation = tabPageUrl;
+const loaderBeforeModelSilentNavigation = frameLoaderId;
+const viewportBeforeModelSilentNavigation = viewportState;
+onCdpCall = ({ method, params }) => {
+  if (method === "Input.dispatchMouseEvent" && params.type === "mouseReleased") {
+    tabPageUrl = "https://example.test/result";
+    frameLoaderId = "loader-navigation-result";
+    viewportState = { ...viewportState, clientHeight: viewportState.clientHeight - 2 };
+  }
+};
+const navigatedFromHiddenFeedback = await definitions.get("act_on_screen").execute({
+  tabId: 3,
+  action: "click",
+  returnScreenshot: true,
+  x: 300,
+  y: 200,
+}, undefined, screenContext);
+onCdpCall = null;
+assert.equal(navigatedFromHiddenFeedback.urlChanged, true);
+assert.equal(navigatedFromHiddenFeedback.viewportChange.resized, false, "a 2 CSS px navigation jitter should not be reported as a resize");
+assert.match(navigatedFromHiddenFeedback._display?.beforeImage || "", /^data:image\/jpeg;base64,/, "navigation from a model-hidden feedback frame should retain a fresh source preview for Chat UI");
+assert.equal(
+  cdpCalls.slice(callsBeforeModelSilentNavigation).filter(([, method]) => method === "Page.captureScreenshot").length,
+  2,
+  "a direct observed action should capture one animation pre-frame and one reusable observation post-frame",
+);
+tabPageUrl = pageUrlBeforeModelSilentNavigation;
+frameLoaderId = loaderBeforeModelSilentNavigation;
+viewportState = viewportBeforeModelSilentNavigation;
+await definitions.get("screenshot").execute({ tabId: 3, actionable: true }, undefined, screenContext);
+
+const callsBeforeChangedNoCapture = cdpCalls.length;
+onCdpCall = ({ method, params }) => {
+  if (method === "Input.dispatchMouseEvent" && params.type === "mouseReleased") {
+    viewportState = { ...viewportState, pageY: 300 };
+  }
+};
+const changedNoCapture = await definitions.get("act_on_screen").execute({
+  tabId: 3,
+  action: "click",
+  returnScreenshot: false,
+  x: 200,
+  y: 200,
+}, undefined, screenContext);
+onCdpCall = null;
+assert.equal(changedNoCapture.status, "completed");
+assert.equal(changedNoCapture.feedbackAvailable, false);
+assert.equal(changedNoCapture.coordinateBasisReady, true);
+assert.equal(changedNoCapture.continuationBlockedReason, undefined);
+assert.deepEqual(changedNoCapture.viewportChange, {
+  observed: true,
+  scrolled: true,
+  deltaX: 0,
+  deltaY: 300,
+  scaled: false,
+  resized: false,
+}, "model-silent actions should expose the observed viewport movement independently of image delivery");
+assert.equal(changedNoCapture._image, undefined);
+assert.match(changedNoCapture._display?.beforeImage || "", /^data:image\/jpeg;base64,/);
+assert.match(changedNoCapture._display?.afterImage || "", /^data:image\/jpeg;base64,/);
+assert.equal(
+  cdpCalls.slice(callsBeforeChangedNoCapture).filter(([, method]) => method === "Page.captureScreenshot").length,
+  2,
+  "a direct model-silent action should capture only its two animation frames",
+);
+viewportState = { ...viewportState, pageY: 0 };
+
+await definitions.get("screenshot").execute({ tabId: 3, actionable: true }, undefined, screenContext);
+onCdpCall = ({ method, params }) => {
+  if (method === "Input.dispatchMouseEvent" && params.type === "mouseWheel") {
+    viewportState = { ...viewportState, pageY: 180 };
+  }
+};
+const observedScroll = await definitions.get("act_on_screen").execute({
+  tabId: 3,
+  action: "scroll",
+  returnScreenshot: true,
+  deltaY: 180,
+}, undefined, screenContext);
+onCdpCall = null;
+assert.equal(observedScroll.repeat, 1, "scroll should preserve one-event behavior when repeat is omitted");
+assert.equal(observedScroll.coordinateBasisReady, true, "a returned screenshot should establish a new basis after viewport movement");
+assert.equal(observedScroll._display?.direction, "down", "scroll feedback should expose its dominant wheel direction to Chat UI");
+assert.deepEqual(observedScroll.viewportChange, {
+  observed: true,
+  scrolled: true,
+  deltaX: 0,
+  deltaY: 180,
+  scaled: false,
+  resized: false,
+}, "screenshot-returning actions should still report whether the browser viewport actually moved");
+viewportState = { ...viewportState, pageY: 0 };
+
+await definitions.get("screenshot").execute({ tabId: 3, actionable: true }, undefined, screenContext);
+onCdpCall = ({ method, params }) => {
+  if (method === "Input.dispatchMouseEvent" && params.type === "mouseReleased") cdpFailure = true;
+};
+const feedbackFailure = await definitions.get("act_on_screen").execute({
+  tabId: 3,
+  action: "click",
+  returnScreenshot: true,
+  x: 200,
+  y: 200,
+}, undefined, screenContext);
+onCdpCall = null;
+cdpFailure = false;
+assert.equal(feedbackFailure.status, "completed");
+assert.equal(feedbackFailure.feedbackAvailable, false);
+assert.equal(feedbackFailure.feedbackError.code, "CDP_COMMAND_FAILED");
+assert.match(feedbackFailure.note, /观察截图失败/);
+
+await definitions.get("screenshot").execute({ tabId: 3, actionable: true }, undefined, screenContext);
+viewportState = { ...viewportState, pageY: 300 };
+const callsBeforeStale = cdpCalls.length;
+await assert.rejects(
+  definitions.get("act_on_screen").execute({
+    tabId: 3,
+    action: "click",
+    returnScreenshot: true,
+    x: 100,
+    y: 100,
+  }, undefined, screenContext),
+  error => error?.code === "SCREENSHOT_CONTEXT_STALE" && error?.details?.reason === "viewport_scrolled",
+  "scrolling after capture must invalidate coordinates before input dispatch",
+);
+assert.equal(cdpCalls.slice(callsBeforeStale).some(([, method]) => method.startsWith("Input.")), false);
+viewportState = { ...viewportState, pageY: 0 };
+
+await definitions.get("screenshot").execute({ tabId: 3, actionable: true }, undefined, screenContext);
+await assert.rejects(
+  definitions.get("act_on_screen").execute({
+    tabId: 3,
+    action: "click",
+    returnScreenshot: true,
+    x: 100,
+    y: 100,
+  }, undefined, { sessionId: "another-session", runId: "run-screen" }),
+  error => error?.code === "SCREENSHOT_CONTEXT_STALE" && error?.details?.reason === "latest_missing",
+  "screen coordinates must not cross session boundaries",
+);
+
+const longLivedCapture = await definitions.get("screenshot").execute({ tabId: 3, actionable: true }, undefined, screenContext);
+fakeNow += 121000;
+const longLivedAction = await definitions.get("act_on_screen").execute({
+  tabId: 3,
+  action: "click",
+  returnScreenshot: true,
+  x: 100,
+  y: 100,
+}, undefined, screenContext);
+assert.equal(
+  longLivedAction.sourceScreenshotId,
+  longLivedCapture.screenshotId,
+  "elapsed wall-clock time alone must not invalidate an otherwise current coordinate basis",
+);
+assert.equal(longLivedCapture.expiresInSeconds, undefined, "actionable screenshots must not advertise a time-based expiry");
+assert.equal(longLivedAction.expiresInSeconds, undefined, "screen actions must not advertise a time-based expiry");
+
+const superseded = await definitions.get("screenshot").execute({ tabId: 3, actionable: true }, undefined, screenContext);
+const newest = await definitions.get("screenshot").execute({ tabId: 3, actionable: true }, undefined, screenContext);
+assert.notEqual(newest.screenshotId, superseded.screenshotId);
+const newestAction = await definitions.get("act_on_screen").execute({
+  tabId: 3,
+  action: "click",
+  returnScreenshot: true,
+  x: 100,
+  y: 100,
+}, undefined, screenContext);
+assert.equal(newestAction.sourceScreenshotId, newest.screenshotId, "screen actions must always consume the latest frame");
+
+const repeatAbort = new AbortController();
+let repeatedWheelCount = 0;
+onCdpCall = ({ method, params }) => {
+  if (method === "Input.dispatchMouseEvent" && params.type === "mouseWheel") {
+    repeatedWheelCount += 1;
+    repeatAbort.abort();
+  }
+};
+await assert.rejects(
+  definitions.get("act_on_screen").execute({
+    tabId: 3,
+    action: "scroll",
+    returnScreenshot: false,
+    deltaY: 120,
+    repeat: 5,
+  }, repeatAbort.signal, screenContext),
+  error => error?.code === "OPERATION_ABORTED",
+  "aborting a repeated wheel action should stop the remaining inputs",
+);
+onCdpCall = null;
+assert.equal(repeatedWheelCount, 1, "a cancelled wheel sequence must not dispatch later repeats");
+
+await definitions.get("screenshot").execute({ tabId: 3, actionable: true }, undefined, screenContext);
+const longPressAbort = new AbortController();
+onCdpCall = ({ method, params }) => {
+  if (method === "Input.dispatchMouseEvent" && params.type === "mousePressed") longPressAbort.abort();
+};
+const callsBeforeAbortedHold = cdpCalls.length;
+await assert.rejects(
+  definitions.get("act_on_screen").execute({
+    tabId: 3,
+    action: "long_press",
+    returnScreenshot: false,
+    x: 100,
+    y: 100,
+    durationMs: 5000,
+  }, longPressAbort.signal, screenContext),
+  error => error?.code === "OPERATION_ABORTED",
+  "aborting a long press should terminate the hold",
+);
+onCdpCall = null;
+const holdCalls = cdpCalls.slice(callsBeforeAbortedHold).filter(([, method]) => method === "Input.dispatchMouseEvent");
+assert.equal(holdCalls[0][2].type, "mousePressed");
+assert.equal(holdCalls.at(-1)[2].type, "mouseReleased", "an aborted long press must release the mouse button");
+
+await definitions.get("screenshot").execute({ tabId: 3, actionable: true }, undefined, screenContext);
+const dragAbort = new AbortController();
+onCdpCall = ({ method, params }) => {
+  if (method === "Input.dispatchMouseEvent" && params.type === "mouseMoved") dragAbort.abort();
+};
+const callsBeforeDrag = cdpCalls.length;
+await assert.rejects(
+  definitions.get("act_on_screen").execute({
+    tabId: 3,
+    action: "drag",
+    returnScreenshot: false,
+    x: 100,
+    y: 100,
+    endX: 900,
+    endY: 700,
+  }, dragAbort.signal, screenContext),
+  error => error?.code === "OPERATION_ABORTED",
+  "aborting a drag should terminate the action",
+);
+onCdpCall = null;
+const dragCalls = cdpCalls.slice(callsBeforeDrag).filter(([, method]) => method === "Input.dispatchMouseEvent");
+assert.equal(dragCalls.some(([, , params]) => params.type === "mousePressed"), true);
+assert.equal(dragCalls.at(-1)[2].type, "mouseReleased", "an aborted drag must release the mouse button");
+const retriedAfterAbort = await definitions.get("act_on_screen").execute({
+  tabId: 3,
+  action: "click",
+  returnScreenshot: true,
+  x: 100,
+  y: 100,
+}, undefined, screenContext);
+assert.equal(retriedAfterAbort.status, "completed", "an interrupted action should release the serial coordinate lock");
+
+let transitionUrl = "https://before-transition.test/";
+let transitionLoaderId = "transition-before";
+let transitionImage = "YmVmb3Jl";
+let transitionPresentationCount = 0;
+const transitionRuntime = createScreenActionRuntime({
+  getPageContext: () => ({}),
+  ToolExecutionError,
+  async captureTabScreenshot() {
+    return {
+      dataUrl: `data:image/jpeg;base64,${transitionImage}`,
+      width: 1000,
+      height: 800,
+      cssWidth: 1000,
+      cssHeight: 800,
+      method: "test",
+    };
+  },
+  async createPresentationImage(image) {
+    transitionPresentationCount += 1;
+    return image.endsWith("YmVmb3Jl")
+      ? "data:image/jpeg;base64,cHJldmlldy1iZWZvcmU="
+      : "data:image/jpeg;base64,cHJldmlldy1hZnRlcg==";
+  },
+  async getTabPageState(tabId) { return { tabId, url: transitionUrl, title: transitionLoaderId }; },
+  pageStateDelta(before, after) {
+    return { urlChanged: before.url !== after.url, titleChanged: before.title !== after.title };
+  },
+  commitObservedPageNavigation({ pageBefore, pageAfter }) {
+    return pageBefore.url !== pageAfter.url ? { url: pageAfter.url } : null;
+  },
+  async getSecurityGuardrails() { return {}; },
+  async sendCdp(_tabId, method, params) {
+    if (method === "Page.getLayoutMetrics") {
+      return { cssVisualViewport: { clientWidth: 1000, clientHeight: 800, pageX: 0, pageY: 0, scale: 1 } };
+    }
+    if (method === "Page.getFrameTree") {
+      return { frameTree: { frame: { loaderId: transitionLoaderId, url: transitionUrl } } };
+    }
+    if (method === "Input.dispatchMouseEvent" && params.type === "mouseReleased") {
+      transitionUrl = "https://after-transition.test/";
+      transitionLoaderId = "transition-after";
+      transitionImage = "YWZ0ZXI=";
+    }
+    return {};
+  },
+  async withDebugger(_tabId, callback) { return await callback({ tabId: 6 }); },
+  now: () => 4000,
+});
+const transitionContext = { sessionId: "transition-session", runId: "transition-run" };
+await transitionRuntime.capture(6, {}, transitionContext);
+const transitioned = await transitionRuntime.act({
+  tabId: 6,
+  action: "click",
+  returnScreenshot: true,
+  x: 250,
+  y: 600,
+}, undefined, transitionContext);
+assert.equal(transitioned._image, "data:image/jpeg;base64,YWZ0ZXI=", "the model image must be the clean post-navigation frame");
+assert.deepEqual(transitioned._display, {
+  type: "imageWithAction",
+  action: "click",
+  kind: "point",
+  x: 0.25,
+  y: 0.75,
+  beforeImage: "data:image/jpeg;base64,cHJldmlldy1iZWZvcmU=",
+  afterImage: "data:image/jpeg;base64,cHJldmlldy1hZnRlcg==",
+}, "Chat UI should receive compact presentation frames while the model keeps the full post-action image");
+assert.equal(transitioned.urlChanged, true);
+assert.equal(transitionPresentationCount, 2, "direct screen actions should prepare the before and after UI frames");
+const scriptedTransition = await transitionRuntime.act({
+  tabId: 6,
+  action: "hover",
+  returnScreenshot: false,
+  x: 250,
+  y: 600,
+}, undefined, { ...transitionContext, source: "run_script" });
+assert.equal(scriptedTransition._display, undefined, "run_script child actions should omit the animation projection");
+assert.equal(transitionPresentationCount, 2, "run_script child actions should not render animation previews");
+const scriptedTransitionObservation = await transitionRuntime.act({
+  tabId: 6,
+  action: "hover",
+  returnScreenshot: true,
+  x: 250,
+  y: 600,
+}, undefined, { ...transitionContext, source: "run_script" });
+assert.equal(scriptedTransitionObservation._image, "data:image/jpeg;base64,YWZ0ZXI=");
+assert.equal(scriptedTransitionObservation._display, undefined);
+assert.equal(transitionPresentationCount, 2, "run_script observations must not prepare animation previews");
+assert.equal(transitionRuntime.releaseRun("transition-session", "transition-run"), 1, "run teardown should release the retained display frame and coordinate basis");
+await assert.rejects(
+  transitionRuntime.act({
+    tabId: 6,
+    action: "click",
+    returnScreenshot: true,
+    x: 250,
+    y: 600,
+  }, undefined, transitionContext),
+  error => error?.code === "SCREENSHOT_CONTEXT_STALE" && error?.details?.reason === "latest_missing",
+  "a terminal run must not retain an actionable frame or its display image",
+);
+
+const rawCoordinateCalls = [];
+const rawCoordinateRuntime = createScreenActionRuntime({
+  getPageContext: () => ({}),
+  ToolExecutionError,
+  async captureTabScreenshot() {
+    return { dataUrl: "data:image/jpeg;base64,YQ==", width: 2000, height: 1600, cssWidth: 1000, cssHeight: 800, method: "test" };
+  },
+  async getTabPageState() { return { url: "https://raw-coordinate.test/", title: "Raw" }; },
+  pageStateDelta(before, after) {
+    return { pageBefore: before, pageAfter: after, urlChanged: false, titleChanged: false };
+  },
+  async getSecurityGuardrails() { return {}; },
+  async sendCdp(_tabId, method, params) {
+    rawCoordinateCalls.push([method, params]);
+    if (method === "Page.getLayoutMetrics") {
+      return { cssVisualViewport: { clientWidth: 985, clientHeight: 785, pageX: 0, pageY: 0, scale: 1 } };
+    }
+    if (method === "Page.getFrameTree") {
+      return { frameTree: { frame: { loaderId: "raw-loader", url: "https://raw-coordinate.test/" } } };
+    }
+    return {};
+  },
+  async withDebugger(_tabId, callback) { return await callback({ tabId: 7 }); },
+  now: () => 5000,
+});
+const rawContext = { sessionId: "raw-session", runId: "raw-run" };
+const rawCapture = await rawCoordinateRuntime.capture(7, {}, rawContext);
+assert.deepEqual(rawCapture.coordinateSpace, {
+  origin: "top_left",
+  width: 2000,
+  height: 1600,
+  unit: "pixel",
+});
+const rawAction = await rawCoordinateRuntime.act({
+  tabId: 7,
+  action: "click",
+  returnScreenshot: true,
+  x: 500,
+  y: 1200,
+}, undefined, rawContext);
+const rawMouseDown = rawCoordinateCalls.find(([method, params]) => (
+  method === "Input.dispatchMouseEvent" && params.type === "mousePressed"
+));
+assert.deepEqual(
+  { x: rawMouseDown?.[1]?.x, y: rawMouseDown?.[1]?.y },
+  { x: 250, y: 600 },
+  "image pixels must use the full screenshot CSS extent, including scrollbar space",
+);
+assert.deepEqual(rawAction.marker, { kind: "point", action: "click", x: 500, y: 1200 });
+assert.deepEqual(rawAction._display, {
+  type: "imageWithAction",
+  action: "click",
+  kind: "point",
+  x: 0.25,
+  y: 0.75,
+  beforeImage: "data:image/jpeg;base64,YQ==",
+  afterImage: "data:image/jpeg;base64,YQ==",
+});
+
+const rawDrag = await rawCoordinateRuntime.act({
+  tabId: 7,
+  action: "drag",
+  returnScreenshot: true,
+  x: 200,
+  y: 160,
+  endX: 1800,
+  endY: 1440,
+}, undefined, rawContext);
+assert.deepEqual(rawDrag._display, {
+  type: "imageWithAction",
+  action: "drag",
+  kind: "drag",
+  x: 0.1,
+  y: 0.1,
+  endX: 0.9,
+  endY: 0.9,
+  beforeImage: "data:image/jpeg;base64,YQ==",
+  afterImage: "data:image/jpeg;base64,YQ==",
+}, "drag feedback should keep a responsive start/end projection without changing the screenshot");
+assert.equal(rawDrag._image, "data:image/jpeg;base64,YQ==");
+
+const originalCreateImageBitmap = globalThis.createImageBitmap;
+const originalOffscreenCanvas = globalThis.OffscreenCanvas;
+const previewCanvases = [];
+try {
+  globalThis.createImageBitmap = async blob => {
+    const encoded = /^(\d+)x(\d+)$/.exec(await blob.text());
+    return { width: encoded ? Number(encoded[1]) : 2400, height: encoded ? Number(encoded[2]) : 1600, close() {} };
+  };
+  globalThis.OffscreenCanvas = class {
+    constructor(width, height) {
+      this.width = width;
+      this.height = height;
+      previewCanvases.push({ width, height, options: null });
+    }
+
+    getContext(kind) {
+      assert.equal(kind, "2d");
+      return { drawImage() {} };
+    }
+
+    async convertToBlob(options) {
+      previewCanvases.at(-1).options = options;
+      return new Blob([`${this.width}x${this.height}`], { type: options.type });
+    }
+  };
+
+  const previewContext = { sessionId: "preview-session", runId: "preview-run" };
+  const fullPreviewBasis = await definitions.get("screenshot").execute({
+    tabId: 3,
+    actionable: true,
+  }, undefined, previewContext);
+  const previewOnlyAction = await definitions.get("act_on_screen").execute({
+    tabId: 3,
+    action: "click",
+    returnScreenshot: false,
+    x: 1200,
+    y: 800,
+  }, undefined, previewContext);
+
+  assert.equal(fullPreviewBasis._image, `data:image/jpeg;base64,${Buffer.from('2048x1365').toString('base64')}`, "the coordinate/model frame respects the shared limit");
+  assert.equal(previewOnlyAction._image, undefined, "animation previews must not become model-visible images");
+  assert.deepEqual(previewCanvases.map(({ width, height }) => ({ width, height })), [
+    { width: 2048, height: 1365 },
+    { width: 2048, height: 1365 },
+    { width: 960, height: 639 },
+    { width: 2048, height: 1365 },
+    { width: 960, height: 639 },
+  ], "both animation frames should be derived at the bounded presentation size");
+  assert.equal(previewCanvases.every(item => item.options?.type === "image/jpeg"), true);
+  assert.equal(previewCanvases.filter(item => item.width === 960).every(item => item.options?.quality === 0.72), true);
+  assert.equal(previewOnlyAction._display.beforeImage, `data:image/jpeg;base64,${Buffer.from('960x639').toString('base64')}`);
+  assert.equal(previewOnlyAction._display.afterImage, `data:image/jpeg;base64,${Buffer.from('960x639').toString('base64')}`);
+  assert.deepEqual(previewOnlyAction.coordinateSpace, {
+    origin: "top_left",
+    width: 2048,
+    height: 1365,
+    unit: "pixel",
+  }, "animation downscaling must not change the coordinate world");
+} finally {
+  if (originalCreateImageBitmap === undefined) delete globalThis.createImageBitmap;
+  else globalThis.createImageBitmap = originalCreateImageBitmap;
+  if (originalOffscreenCanvas === undefined) delete globalThis.OffscreenCanvas;
+  else globalThis.OffscreenCanvas = originalOffscreenCanvas;
+}
+
+updates.length = 0;
+cdpFailure = true;
+const fallbackShot = await runtime.captureTabScreenshot(3, { format: "jpeg", quality: 60 });
+assert.equal(fallbackShot.method, "visible_tab_restore");
+assert.equal(fallbackShot.dataUrl, "data:image/jpeg;base64,dmlzaWJsZQ==");
+assert.deepEqual(updates.map(([tabId]) => tabId), [3, 9], "a screenshot fallback must restore the previously active tab");
+for (const fallback of [false, true]) {
+  cdpFailure = fallback;
+  for (const mobile of [false, true]) {
+    mobileMode = mobile;
+    viewportState.scale = mobile ? 0.5 : 1.25;
+    const shot = await runtime.captureTabScreenshot(3);
+    assert.equal(shot.cssWidth, (!fallback && mobile ? 412 : viewportState.clientWidth) / viewportState.scale);
+    assert.equal(shot.cssHeight, (!fallback && mobile ? 915 : viewportState.clientHeight) / viewportState.scale);
+  }
+}
+mobileMode = false;
+viewportState.scale = 1;
+cdpFailure = false;
+measurementUnavailable = true;
+assert.ok((await runtime.captureTabScreenshot(3)).dataUrl, "image-only capture survives unavailable page measurements");
+await assert.rejects(definitions.get("screenshot").execute({ tabId: 3, actionable: true }, undefined, screenContext),
+  { code: "SCREENSHOT_COORDINATES_UNAVAILABLE" }, "actionable images must not silently guess their CSS extent");
+measurementUnavailable = false;
+cdpFailure = true;
+
+const validImages = listedImages;
+const writesBeforeInvalidImageReply = imageMetadataWrites.length;
+listedImages = [{ src: { unsafe: "not a URL string" } }];
+await assert.rejects(
+  definitions.get("list_images").execute({ tabId: 3 }, undefined, { sessionId: "session-a" }),
+  { code: "INVALID_CONTENT_RESPONSE" },
+);
+assert.equal(imageMetadataWrites.length, writesBeforeInvalidImageReply, "malformed Content metadata cannot enter durable assets");
+listedImages = validImages;
+const listed = await definitions.get("list_images").execute({ tabId: 3 }, undefined, { sessionId: "session-a" });
+const listImagesSchema = definitions.get("list_images").parameters;
+const collectImagesSchema = definitions.get("collect_images").parameters;
+const readImageSchema = definitions.get("read_image").parameters;
+assert.equal(listImagesSchema.properties.tabId.type, "number");
+assert.equal((listImagesSchema.required || []).includes("tabId"), false, "list_images should default to the working tab");
+assert.deepEqual(collectImagesSchema.required, ["table"]);
+assert.equal(collectImagesSchema.properties.targets.items.type, "string");
+assert.equal(collectImagesSchema.properties.urls.items.type, "string");
+assert.equal(readImageSchema.properties.target.type, "string");
+assert.equal(readImageSchema.properties.url.type, "string");
+assert.equal(listed.images.length, 1);
+assert.equal(listed.images[0].target, "uid:t3_snapshot_img_1");
+assert.equal(listed.images[0].src, "https://example.test/hero-a.png");
+assert.equal(listed.images[0].currentSrc, undefined, "discovery should not duplicate the effective URL");
+assert.equal(listed.images[0].srcset, undefined, "discovery should not expose raw srcset");
+assert.deepEqual(listed.pageContext, {
+  heading: "Example gallery",
+  description: "A curated image gallery",
+});
+assert.deepEqual(listed.images[0].context, {
+  accessibleName: "Featured campus portrait",
+  caption: "Taken during the CMU years",
+  heading: "Research profile",
+  linkText: "Open profile",
+  linkTitle: "View the complete profile",
+  nearbyText: "Research profile · Taken during the CMU years",
+  linkUrl: "https://example.test/profile",
+});
+assert.equal(elementRefs.get("t3_snapshot_img_1").imageSrc, "https://example.test/hero-a.png");
+assert.equal(elementRefs.get("t3_snapshot_img_1").imageIndex, 4);
+const inspected = await definitions.get("read_image").execute({ target: listed.images[0].target }, undefined, { sessionId: "session-a" });
+assert.equal(inspected.target, listed.images[0].target);
+assert.match(inspected.note, /满足时在切换页面上下文前把这个 target 交给 collect_images/);
+
+const embeddedSource = `data:image/png;base64,${"A".repeat(120000)}`;
+listedImages = [{
+  ...listedImages[0],
+  src: embeddedSource,
+  currentSrc: embeddedSource,
+  srcset: `${embeddedSource} 1x, ${embeddedSource} 2x`,
+  alt: "内嵌图片".repeat(300),
+  context: {
+    accessibleName: "内嵌图片".repeat(300),
+    accessibleDescription: "辅助说明".repeat(300),
+    caption: "图片说明".repeat(300),
+    nearbyText: "附近正文".repeat(300),
+    linkUrl: `https://example.test/${"path/".repeat(600)}`,
+    privateField: "must not escape the projection",
+  },
+}];
+const embeddedListing = await definitions.get("list_images").execute({ tabId: 4 }, undefined, { sessionId: "session-a" });
+const embeddedCandidate = embeddedListing.images[0];
+assert.equal(embeddedCandidate.sourceKind, "embedded");
+assert.equal(embeddedCandidate.sourceOmitted, true);
+assert.match(embeddedCandidate.sourceSummary, /内嵌 image\/png/);
+assert.equal(embeddedCandidate.src, undefined, "embedded image bytes must stay behind the target reference");
+assert.equal(embeddedCandidate.currentSrc, undefined);
+assert.equal(embeddedCandidate.srcset, undefined);
+assert.equal(embeddedCandidate.hasSrcset, true);
+assert.ok(embeddedCandidate.alt.length <= 500, "candidate text should be bounded");
+assert.equal(embeddedCandidate.context.accessibleName, undefined, "context should not repeat alt text");
+assert.ok(embeddedCandidate.context.accessibleDescription.length <= 320);
+assert.ok(embeddedCandidate.context.caption.length <= 320);
+assert.ok(embeddedCandidate.context.nearbyText.length <= 400);
+assert.ok(embeddedCandidate.context.linkUrl.length <= 2048);
+assert.equal(embeddedCandidate.context.privateField, undefined, "candidate context must use an allowlisted projection");
+assert.ok(JSON.stringify(embeddedCandidate).length < 5000, "a large embedded image must produce a bounded discovery result");
+assert.equal(elementRefs.get("t4_snapshot_img_1").imageSrc, embeddedSource, "the full source must remain bound internally for target validation");
+
+listedImages = [{
+  index: 4,
+  rank: 0,
+  selector: "#gallery > img.hero",
+  src: "https://example.test/hero-a.png",
+  currentSrc: "https://example.test/hero-a.png",
+  alt: "Hero",
+  title: "",
+  naturalWidth: 800,
+  naturalHeight: 600,
+  visible: true,
+}];
+
+listedImages = [{ ...listedImages[0], src: "https://example.test/hero-b.png", currentSrc: "https://example.test/hero-b.png" }];
+await assert.rejects(
+  definitions.get("collect_images").execute({ table: "images", tabId: 3, targets: [listed.images[0].target] }, undefined, { sessionId: "session-a" }),
+  error => error?.code === "STALE_IMAGE_TARGET",
+  "collection should reject a target whose image source changed after listing",
+);
+
+listedImages = [
+  { ...listedImages[0], selector: "#gallery img:nth-of-type(1)" },
+  { ...listedImages[0], selector: "#gallery img:nth-of-type(2)" },
+];
+await assert.rejects(
+  definitions.get("collect_images").execute({ table: "images", tabId: 3, targets: ["css:#gallery"] }, undefined, { sessionId: "session-a" }),
+  error => error?.code === "IMAGE_TARGET_NOT_SINGLE",
+  "collection should reject a target that resolves to multiple images",
+);
+
+await assert.rejects(
+  definitions.get("collect_images").execute({ table: "images" }, undefined, { sessionId: "session-a" }),
+  error => error?.code === "MISSING_IMAGE_SELECTION",
+  "collection should require explicit URL or target selections",
+);
+
+blockImageUrl = true;
+guardrailReads = 0;
+await assert.rejects(
+  definitions.get("read_image").execute({ url: "https://blocked.example/image.png" }, undefined, {}),
+  error => error?.code === "SECURITY_GUARDRAIL_BLOCKED",
+  "URL reads should use the injected security-guardrail dependency",
+);
+assert.equal(guardrailReads, 1, "URL reads should load guardrails before fetching");
+
+blockImageUrl = false;
+const originalFetch = globalThis.fetch;
+const originalUrlBitmap = globalThis.createImageBitmap;
+globalThis.createImageBitmap = async () => ({ width: 1, height: 1, close() {} });
+try {
+  globalThis.fetch = async (input) => {
+    const url = String(input || "");
+    if (url.includes("fail")) {
+      return new Response("unavailable", {
+        status: 503,
+        headers: { "content-type": "text/plain" },
+      });
+    }
+    return new Response(
+      new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+      { status: 200, headers: { "content-type": "image/png", "content-length": "8" } },
+    );
+  };
+  const remoteImage = await definitions.get("read_image").execute({ url: "https://images.example/tiny.png" }, undefined, {});
+  assert.equal(remoteImage.method, "url_fetch");
+  assert.match(remoteImage._image, /^data:image\/png;base64,/);
+  assert.equal(guardrailReads, 3, "successful URL reads should validate both requested and final URLs");
+
+  const savedCanvas = globalThis.OffscreenCanvas;
+  const pngFetch = globalThis.fetch;
+  try {
+    globalThis.OffscreenCanvas = class {
+      getContext() { return { drawImage() {} }; }
+      async convertToBlob({ type }) { return new Blob(["converted"], { type }); }
+    };
+    for (const mimeType of ["image/avif", "image/bmp", "image/tiff", "image/x-icon"]) {
+      globalThis.fetch = async () => new Response("image bytes", { headers: { "content-type": mimeType } });
+      const converted = await definitions.get("read_image").execute({ url: "https://images.example/image" }, undefined, {});
+      assert.equal(converted.mimeType, "image/png", `${mimeType} must convert even below size limit`);
+      assert.match(converted._image, /^data:image\/png;base64,/);
+    }
+    globalThis.createImageBitmap = async () => { throw new Error("corrupt image"); };
+    await assert.rejects(
+      definitions.get("read_image").execute({ url: "https://images.example/image" }, undefined, {}),
+      error => error.code === "IMAGE_DECODE_FAILED" && /截图/.test(error.message),
+    );
+  } finally {
+    globalThis.fetch = pngFetch;
+    globalThis.OffscreenCanvas = savedCanvas;
+    globalThis.createImageBitmap = async () => ({ width: 1, height: 1, close() {} });
+  }
+
+  const partial = await definitions.get("collect_images").execute({
+    table: "partial-images",
+    urls: ["https://images.example/ok.png", "https://images.example/fail.png"],
+  }, undefined, { sessionId: "session-a" });
+  assert.equal(partial.status, "partial");
+  assert.equal(partial.collected, 1);
+  assert.equal(partial.failed, 1);
+  assert.equal(partial.inserted, 1, "only successfully saved images should count as inserted rows");
+  assert.equal(partial.totalRows, 1, "gallery totals should count saved images, not failed attempts");
+  assert.equal(partial.totalImages, 1);
+  assert.equal(partial.diagnosticRows, 0);
+  assert.equal(partial.artifacts[0].rowCount, 1);
+  assert.equal(partial.artifacts[0].kind, "image_collection");
+  assert.equal(partial.artifacts[0].meta, undefined, "generated count captions belong to the current-language projection");
+  assert.match(partial.note, /失败项未写入图集/);
+  assert.deepEqual(
+    storedImageRows.get("partial-images").map(row => row.status),
+    ["ready"],
+    "failed attempts must stay in the tool diagnostics rather than the gallery table",
+  );
+  assert.equal(partial.failures[0].src, "https://images.example/fail.png");
+
+  const embeddedCollection = await definitions.get("collect_images").execute({
+    table: "embedded-images",
+    urls: [embeddedSource],
+  }, undefined, { sessionId: "session-a" });
+  assert.equal(embeddedCollection.collected, 1);
+  assert.equal(embeddedCollection.images[0].sourceKind, "embedded");
+  assert.equal(embeddedCollection.images[0].sourceOmitted, true);
+  assert.equal(embeddedCollection.images[0].src, undefined);
+  assert.ok(JSON.stringify(embeddedCollection).length < 5000, "collection summaries must not echo embedded image bytes");
+  assert.match(storedImageRows.get("embedded-images")[0].src, /^内嵌 image\/png/, "gallery metadata should store a bounded source summary");
+  assert.ok(storedImageRows.get("embedded-images")[0].src.length < 100, "gallery rows must not persist embedded image bytes");
+
+  const writesBeforeAllFailed = imageMetadataWrites.length;
+  await assert.rejects(
+    definitions.get("collect_images").execute({
+      table: "all-failed-images",
+      urls: ["https://images.example/fail-a.png", "https://images.example/fail-b.png"],
+    }, undefined, { sessionId: "session-a" }),
+    error => error?.code === "IMAGE_COLLECTION_ALL_FAILED"
+      && error?.details?.collected === 0
+      && error?.details?.failed === 2
+      && error?.details?.failures?.length === 2,
+    "an all-failed selection should be a tool failure rather than an empty gallery artifact",
+  );
+  assert.equal(storedImageRows.has("all-failed-images"), false, "all-failed attempts must not create table rows");
+  assert.equal(imageMetadataWrites.length, writesBeforeAllFailed, "all-failed attempts must not create gallery metadata");
+} finally {
+  globalThis.fetch = originalFetch;
+  globalThis.createImageBitmap = originalUrlBitmap;
+}
+
+cdpFailure = false;
+onCdpCall = null;
+const savedScreenshot = await definitions.get("screenshot").execute({ tabId: 3, destination: "saved-screenshots" }, undefined, screenContext);
+assert.equal(savedScreenshot.saved, true);
+assert.equal(savedScreenshot.totalRows, 1);
+assert.ok(savedScreenshot._image, "saving a screenshot still returns image input to the model");
+assert.equal(savedScreenshot.assetId, storedImageRows.get("saved-screenshots")[0].assetId);
+assert.deepEqual(imageUpserts.at(-1), { table: "saved-screenshots", dedupField: "sourceKey" });
+assert.equal(savedScreenshot.artifacts[0].rowCount, 1);
+assert.equal(savedScreenshot.artifacts[0].kind, "image_collection");
+assert.equal(savedScreenshot.artifacts[0].meta, undefined);
+assert.equal(imageMetadataWrites.at(-1).metadata.kind, "image_collection");
+const screenshotMetadataCount = imageMetadataWrites.length;
+imageWriteError = new Error("table write failed");
+await assert.rejects(definitions.get("screenshot").execute({ tabId: 3, destination: "failed-screenshot" }, undefined, screenContext), /table write failed/);
+assert.equal(imageMetadataWrites.length, screenshotMetadataCount, "a failed table write must not publish gallery metadata");
+imageWriteError = null;
+const recoveredScreenshot = await definitions.get("screenshot").execute({ tabId: 3, destination: "failed-screenshot" }, undefined, screenContext);
+assert.equal(recoveredScreenshot.saved, true, "the same screenshot path recovers after a persistence failure");
+assert.equal(recoveredScreenshot.totalRows, 1);
+
+console.log("media screenshot boundary tests passed");

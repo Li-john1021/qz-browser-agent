@@ -1,0 +1,13 @@
+{
+  "language-settings.title": "Язык",
+  "language-settings.interfaceLanguage": "Язык интерфейса",
+  "language-settings.followBrowser": "Язык браузера",
+  "language-settings.loading": "Загрузка сохранённого языка…",
+  "language-settings.unsavedChanges": "Есть несохранённые изменения",
+  "language-settings.saveFailed": "Не удалось сохранить язык. Попробуйте ещё раз.",
+  "language-settings.loadFailed": "Не удалось загрузить сохранённый язык. Откройте настройки заново и повторите попытку.",
+  "language-settings.save": "Сохранить",
+  "language-settings.saved": "Сохранено",
+  "language-settings.saving": "Сохранение…",
+  "language-settings.advanced": "Дополнительно"
+}

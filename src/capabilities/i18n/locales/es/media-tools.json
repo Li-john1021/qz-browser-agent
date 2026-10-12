@@ -1,0 +1,8 @@
+{
+  "media-tools.screenshotMaxWidth": "Anchura máxima de la imagen devuelta. Valor predeterminado y límite: 2048; la salida codificada ocupa como máximo 2 MiB.",
+  "media-tools.screenshotMaxHeight": "Altura máxima de la imagen devuelta. Valor predeterminado y límite: 2048; la salida codificada ocupa como máximo 2 MiB.",
+  "media-tools.collectImagesMaxWidth": "Anchura máxima de la imagen al leerla o guardarla. Valor predeterminado y límite: 2048; la salida codificada ocupa como máximo 2 MiB.",
+  "media-tools.collectImagesMaxHeight": "Altura máxima de la imagen al leerla o guardarla. Valor predeterminado y límite: 2048; la salida codificada ocupa como máximo 2 MiB.",
+  "media-tools.collectImagesMaxBytes": "Máximo de bytes que se pueden leer por imagen de URL. Valor predeterminado: 20 MiB; límite: 32 MiB. La salida codificada ocupa como máximo 2 MiB.",
+  "media-tools.readImageMaxBytes": "Máximo de bytes que se pueden leer por imagen de URL. Valor predeterminado: 20 MiB; límite: 32 MiB. La salida codificada ocupa como máximo 2 MiB."
+}

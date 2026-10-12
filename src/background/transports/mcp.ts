@@ -1,0 +1,110 @@
+import type { BackgroundApi } from "../background-api.js";
+type Fields = Record<string, unknown>;
+interface BridgePort { describe?(): unknown; getConfig?(): unknown; saveConfig?(config: unknown): unknown }
+import { resolveBackgroundApiMethod } from "../background-api.js";
+
+export const QINGZHOU_MCP_METHODS = Object.freeze([
+  "ping",
+  "capabilities",
+  "get_bridge_config",
+  "save_bridge_config",
+  "runtime_message",
+  "list_sessions",
+  "create_session",
+  "send_message",
+  "follow_up",
+  "continue_task",
+  "submit_wait_form",
+  "cancel_wait",
+  "get_session_state",
+  "get_session_snapshot",
+  "get_messages",
+  "get_history",
+  "stop_session",
+  "clear_goal",
+  "list_tools",
+  "execute_tool",
+  "call_tool",
+  "list_data_tables",
+  "list_skills",
+  "get_skill",
+  "load_skill",
+  "get_skill_resource",
+  "load_skill_resource",
+  "get_config",
+  "save_config",
+  "get_runtime_config",
+  "set_runtime_config",
+  "list_plugins",
+  "refresh_skill_registry",
+  "list_automations",
+  "run_automation",
+  "get_trace",
+  "clear_trace",
+]);
+
+export function createMcpTransport(api: BackgroundApi, { bridge = {} }: { bridge?: BridgePort } = {}) {
+  const call = (path: string, ...args: unknown[]) => resolveBackgroundApiMethod(api, path)(...args);
+
+  async function dispatch(request: Fields = {}) {
+    const method = String(request.method || "").trim();
+    const params = isPlainObject(request.params) ? request.params : {};
+    await call("system.ready");
+
+    switch (method) {
+      case "ping": return call("system.ping");
+      case "capabilities": return bridge.describe?.() || { protocolVersion: 1, methods: QINGZHOU_MCP_METHODS };
+      case "get_bridge_config": return bridge.getConfig?.() || {};
+      case "save_bridge_config": return bridge.saveConfig?.(params.config || params);
+      case "runtime_message": return call("system.runtimeMessage", params.message || {}, params);
+      case "list_sessions": return call("sessions.list", params);
+      case "create_session": return call("sessions.create", params);
+      case "send_message": return call("sessions.send", params);
+      case "follow_up": return call("sessions.followUp", params);
+      case "continue_task": return call("sessions.continueWait", params);
+      case "submit_wait_form": return call("sessions.submitWaitForm", params);
+      case "cancel_wait": return call("sessions.cancelWait", params);
+      case "get_session_state": return call("sessions.state", params.sessionId);
+      case "get_session_snapshot": return call("sessions.snapshot", params.sessionId, params);
+      case "get_messages": return call("sessions.messages", params.sessionId, params);
+      case "get_history": return call("sessions.history", params.sessionId);
+      case "stop_session": return call("sessions.stop", params.sessionId, { source: "mcp_bridge", cascade: params.cascade !== false });
+      case "clear_goal": return call("sessions.clearGoal", params.sessionId, "mcp_bridge");
+      case "list_tools": return call("tools.list", params);
+      case "execute_tool":
+      case "call_tool": return call("tools.execute", params);
+      case "list_data_tables": return call("data.listTables");
+      case "list_skills": return call("skills.list", params);
+      case "get_skill":
+      case "load_skill": return call("skills.get", params);
+      case "get_skill_resource":
+      case "load_skill_resource": return call("skills.resource", params);
+      case "get_config": return call("config.get");
+      case "save_config": return call("config.save", params.config || {});
+      case "get_runtime_config": return call("config.getRuntime");
+      case "set_runtime_config": return call("config.setRuntime", isPlainObject(params.config) ? params.config : params);
+      case "list_plugins": return call("skills.contributions", params.sessionId);
+      case "refresh_skill_registry": return call("skills.refresh", params);
+      case "list_automations": return call("automations.list", params);
+      case "run_automation": return call("automations.run", params.automationId);
+      case "get_trace": return { logs: await call("trace.get") };
+      case "clear_trace":
+        await call("trace.clear");
+        return { cleared: true };
+      default:
+        // Older MCP bridge clients use this prefix to detect unsupported methods.
+        throw transportError("METHOD_NOT_FOUND", `Unknown Qingzhou MCP bridge method: ${method || "(empty)"}`);
+    }
+  }
+
+  return Object.freeze({ dispatch, methods: QINGZHOU_MCP_METHODS });
+}
+
+function isPlainObject(value: unknown): value is Fields {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function transportError(code: string, message: string) {
+  const error = new Error(message);
+  return Object.assign(error, { code });
+}

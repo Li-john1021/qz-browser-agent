@@ -1,0 +1,15 @@
+{
+  "accessibility.inspectPageTree": "페이지 구조 검사",
+  "accessibility.pageInspection": "페이지 검사",
+  "accessibility.pageStructure": "페이지 구조",
+  "accessibility.element": "요소",
+  "accessibility.editable": "편집 가능",
+  "accessibility.outsideViewport": "화면 영역 밖",
+  "accessibility.interactiveElements": "상호작용 요소",
+  "accessibility.attributes": "속성",
+  "accessibility.cannotResolveAxRoot": "페이지 구조의 루트를 찾을 수 없습니다: {selector}",
+  "accessibility.pageOverviewResponseIsInvalid": "페이지 개요에서 잘못된 응답을 반환했습니다.",
+  "accessibility.items": "항목",
+  "accessibility.showingTheFirst": "처음부터 표시:",
+  "accessibility.inspectPageTreeShort": "페이지 검사"
+}

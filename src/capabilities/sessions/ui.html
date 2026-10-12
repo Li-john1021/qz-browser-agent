@@ -1,0 +1,113 @@
+<div id="sessions-panel" class="tab-panel hidden qz-scroll">
+      <div class="qz-list-toolbar sessions-list-toolbar">
+        <div class="qz-list-toolbar-tabs-row sessions-mode-row qz:pb-1">
+          <div class="qz-segment qz-list-toolbar-tabs sessions-mode-tabs qz:flex-none" role="tablist" aria-label="任务视图" data-i18n-aria-label="sessions.taskView">
+            <button class="qz-segment-item qz-list-toolbar-tab sessions-mode-btn active qz:inline-flex qz:items-center qz:justify-center" data-sessions-mode="manual" type="button" data-i18n="sessions.regularTasks">普通任务</button>
+            <button class="qz-segment-item qz-list-toolbar-tab sessions-mode-btn qz:inline-flex qz:items-center qz:justify-center" data-sessions-mode="automation" type="button" data-i18n="sessions.automations">定时任务</button>
+          </div>
+          <button id="btn-new-automation" class="qz-btn qz-btn--secondary qz-btn--sm hidden" type="button" data-i18n="sessions.new">新建</button>
+        </div>
+        <div class="qz-list-toolbar-search-row sessions-toolbar">
+          <input id="sessions-search" type="search" class="qz-field qz-list-toolbar-search" placeholder="搜索任务..." data-i18n-placeholder="sessions.searchTasks">
+          <div class="qz-list-toolbar-actions">
+            <button id="btn-import-session" class="qz-btn qz-btn--secondary qz-list-toolbar-action sessions-import-btn" type="button" title="导入轻舟会话" data-i18n-title="sessions.importQingzhouConversation">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4"/>
+                <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
+                <path d="M2 15h10"/>
+                <path d="m9 18 3-3-3-3"/>
+              </svg>
+              <span data-i18n="sessions.import">导入</span>
+            </button>
+            <input id="session-import-file" class="hidden" type="file" accept=".html,text/html">
+          </div>
+        </div>
+      </div>
+      <div id="sessions-list" class="sessions-list qz-scroll qz:flex-1 qz:overflow-y-auto"></div>
+      <div id="automations-panel" class="automations-panel hidden qz:flex-1 qz:min-h-0 qz:overflow-hidden qz:flex qz:flex-col qz:gap-0">
+        <div id="automation-editor" class="automation-editor hidden qz:fixed qz:items-end qz:justify-center">
+          <div class="automation-editor-backdrop qz:absolute"></div>
+          <div class="automation-editor-card qz:relative qz:overflow-y-auto">
+            <div class="automation-editor-header qz:flex qz:items-center qz:justify-between qz:gap-2.5 qz:mb-3">
+              <h3 id="automation-editor-title" data-i18n="sessions.newAutomation">新建定时任务</h3>
+              <button id="btn-close-automation-editor" class="qz-icon-btn qz-icon-btn--md icon-btn" type="button" title="关闭" data-i18n-title="sessions.close">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+            <input id="automation-title" class="qz-field" type="text" placeholder="定时任务名称" data-i18n-placeholder="sessions.automationName">
+            <textarea id="automation-instruction" class="qz-field" spellcheck="false" placeholder="做什么？例如：每天抓竞品价格和新品，写入数据表，有异常时提醒。" data-i18n-placeholder="sessions.whatShouldItDoForExampleCheckCompetitorPrices"></textarea>
+            <div class="automation-form-grid qz:mt-2.5">
+              <label>
+                <span data-i18n="sessions.frequency">频率</span>
+                <select id="automation-frequency" class="qz-field qz-select">
+                  <option value="once" data-i18n="sessions.runOnce">单次运行</option>
+                  <option value="interval:5" data-i18n="sessions.every5Minutes">每 5 分钟</option>
+                  <option value="interval:15" data-i18n="sessions.every15Minutes">每 15 分钟</option>
+                  <option value="interval:30" data-i18n="sessions.every30Minutes">每 30 分钟</option>
+                  <option value="hourly" data-i18n="sessions.hourly">每小时</option>
+                  <option value="daily" selected data-i18n="sessions.daily">每天</option>
+                  <option value="weekly" data-i18n="sessions.weekly">每周</option>
+                </select>
+              </label>
+              <label class="automation-once-date-field hidden">
+                <span data-i18n="sessions.date">日期</span>
+                <input id="automation-once-date" class="qz-field" type="date">
+              </label>
+              <label class="automation-time-field">
+                <span data-i18n="sessions.time">时间</span>
+                <input id="automation-time" class="qz-field" type="time" value="09:00">
+              </label>
+              <label class="automation-weekday-field hidden">
+                <span data-i18n="sessions.day">星期</span>
+                <select id="automation-weekday" class="qz-field qz-select">
+                  <option value="1" data-i18n="sessions.monday">周一</option>
+                  <option value="2" data-i18n="sessions.tuesday">周二</option>
+                  <option value="3" data-i18n="sessions.wednesday">周三</option>
+                  <option value="4" data-i18n="sessions.thursday">周四</option>
+                  <option value="5" data-i18n="sessions.friday">周五</option>
+                  <option value="6" data-i18n="sessions.saturday">周六</option>
+                  <option value="7" data-i18n="sessions.sunday">周日</option>
+                </select>
+              </label>
+              <label>
+                <span data-i18n="sessions.missedRuns">漏跑</span>
+                <select id="automation-missed-policy" class="qz-field qz-select">
+                  <option value="run_once" data-i18n="sessions.catchUpOnceAfterResuming">恢复后补跑一次</option>
+                  <option value="latest_only" data-i18n="sessions.checkLatestStateOnly">只检查最新状态</option>
+                  <option value="skip" data-i18n="sessions.skipMissedRunsOption">跳过漏跑</option>
+                </select>
+              </label>
+              <label>
+                <span data-i18n="sessions.notifications">通知</span>
+                <select id="automation-notify-policy" class="qz-field qz-select">
+                  <option value="failure" data-i18n="sessions.onFailure">仅异常</option>
+                  <option value="always" data-i18n="sessions.afterEveryRun">每次完成</option>
+                  <option value="silent" data-i18n="sessions.recordSilently">静默记录</option>
+                </select>
+              </label>
+            </div>
+            <div class="automation-editor-note qz:mt-2" data-i18n="sessions.runsWhileChromeIsOpenOnThisDeviceTasks">本机 Chrome 运行时触发；关机、睡眠或 Chrome 未启动期间不会执行，恢复后按漏跑策略处理。</div>
+            <div class="automation-editor-actions qz:gap-1.5">
+              <button id="btn-cancel-automation" class="qz-btn qz-btn--secondary" type="button" data-i18n="sessions.cancel">取消</button>
+              <button id="btn-save-automation" class="qz-btn qz-btn--primary" type="button" data-i18n="sessions.save">保存</button>
+            </div>
+          </div>
+        </div>
+        <div id="automations-list" class="automations-list qz:relative qz:flex-1 qz:min-h-0 qz:flex qz:flex-col"></div>
+      </div>
+    </div>
+<div id="artifacts-panel" class="artifacts-panel hidden qz:fixed qz:items-end qz:justify-center">
+      <div class="artifacts-backdrop qz:absolute"></div>
+      <div class="artifacts-card qz:relative qz:flex qz:flex-col qz:overflow-hidden">
+        <div class="artifacts-header qz:flex-none qz:grid qz:gap-2.5 qz:items-center">
+          <div>
+            <h3 data-i18n="sessions.taskArtifacts">任务产物</h3>
+            <p id="artifacts-session-title"></p>
+          </div>
+          <button id="btn-close-artifacts" class="qz-icon-btn qz-icon-btn--md icon-btn" title="关闭" aria-label="关闭任务产物" data-i18n-title="sessions.close" data-i18n-aria-label="sessions.closeTaskArtifacts">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <div id="artifacts-body" class="artifacts-body qz:flex-1 qz:min-h-0 qz:overflow-auto"></div>
+      </div>
+    </div>

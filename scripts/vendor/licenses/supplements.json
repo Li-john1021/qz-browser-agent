@@ -1,0 +1,8 @@
+{
+  "@cfworker/json-schema": {
+    "version": "4.1.1",
+    "file": "cfworker.LICENSE.md",
+    "source": "https://github.com/cfworker/cfworker/blob/5409fdc2bd144f68e8b28c61c71fcb16600000a6/LICENSE.md",
+    "sha256": "376944252ab78ca6b41aee44ddea8894927ee67891e77e61eb9d59af63e35094"
+  }
+}

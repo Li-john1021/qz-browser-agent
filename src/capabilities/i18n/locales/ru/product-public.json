@@ -1,0 +1,5 @@
+{
+  "product-public.thisProductHasNoGitPublishingAdapterExportThe": "Прямая публикация в Git недоступна в этой версии. Экспортируйте навык и создайте коммит в своём репозитории.",
+  "product-public.configureModelEndpoint": "Подключить модель",
+  "product-public.connectingToGpt": "Подключение к модели…"
+}

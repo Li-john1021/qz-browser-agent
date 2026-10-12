@@ -1,0 +1,56 @@
+{
+  "name": "abort-run-status",
+  "widths": [360, 420],
+  "conversation": {
+    "title": "停止状态穿透证据",
+    "entries": [
+      { "type": "user", "_uiKey": "abort-u1", "text": "请分析页面。中途我会停止。" },
+      {
+        "type": "thinking",
+        "_uiKey": "abort-think-1",
+        "text": "正在分析页面结构和可操作项。",
+        "isStreaming": false,
+        "phase": "aborted",
+        "runId": "run-abort-ui"
+      },
+      {
+        "type": "tool",
+        "_uiKey": "abort-tool-1",
+        "toolCallId": "abort-tool-1",
+        "name": "run_script",
+        "args": { "code": "return window.location.href;" },
+        "result": {
+          "error": "工具调用已被用户终止，未返回结果。",
+          "code": "TOOL_ABORTED",
+          "interrupted": true
+        },
+        "phase": "aborted",
+        "isRunning": false,
+        "isError": true,
+        "runId": "run-abort-ui"
+      },
+      {
+        "type": "run-status",
+        "_uiKey": "abort-status-1",
+        "status": "aborted",
+        "text": "已取消",
+        "reason": "stopped_by_user",
+        "runId": "run-abort-ui"
+      }
+    ]
+  },
+  "steps": [
+    { "action": "assert", "expect": "selectorCount", "selector": ".msg-run-status", "equals": 1 },
+    { "action": "assert", "expect": "selectorText", "selector": ".msg-run-status", "includes": "已取消" },
+    { "action": "assert", "expect": "selectorCount", "selector": ".run-status-badge", "equals": 1 },
+    { "action": "assert", "expect": "selectorText", "selector": ".thinking-group-summary", "includes": "思考已取消" },
+    { "action": "assert", "expect": "selectorCount", "selector": ".thinking-dot.aborted", "equals": 1 },
+    { "action": "click", "selector": ".thinking-group-summary" },
+    { "action": "assert", "expect": "selectorText", "selector": ".thinking-group-slot-title", "equals": "最近思考" },
+    { "action": "assert", "expect": "selectorText", "selector": ".thinking-group-slot-title", "notIncludes": "已取消" },
+    { "action": "assert", "expect": "selectorCount", "selector": ".tool-summary .dot.aborted", "equals": 1 },
+    { "action": "click", "selector": ".msg-tool > .tool-summary" },
+    { "action": "assert", "expect": "selectorText", "selector": ".msg-tool > .tool-details", "notIncludes": "工具参数准备中" },
+    { "action": "assert", "expect": "noHorizontalOverflow" }
+  ]
+}

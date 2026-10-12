@@ -1,0 +1,60 @@
+{
+  "name": "step-order-navigation",
+  "widths": [420],
+  "conversation": {
+    "title": "一级工具聚合顺序翻页",
+    "entries": [
+      { "type": "user", "_uiKey": "son-u1", "text": "交错执行同类工具，检查一级聚合翻页顺序。" },
+      {
+        "type": "tool",
+        "_uiKey": "son-t1",
+        "toolCallId": "son-t1",
+        "name": "read_article",
+        "args": { "source": "auto", "limit": 1000 },
+        "result": { "title": "正文 A", "text": "第一条采集正文" }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "son-t2",
+        "toolCallId": "son-t2",
+        "name": "run_script",
+        "args": { "target": "page", "timeout": 5, "code": "async () => { return { ok: true, marker: 'script-middle' }; }" },
+        "result": { "ok": true, "hasResult": true, "result": { "ok": true, "marker": "script-middle" }, "elapsedMs": 120 }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "son-t3",
+        "toolCallId": "son-t3",
+        "name": "screenshot",
+        "args": { "fullPage": false },
+        "result": { "method": "viewport", "note": "第三条截图证据" }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "son-t4",
+        "toolCallId": "son-t4",
+        "name": "network_body",
+        "args": { "requestId": "req_son" },
+        "result": { "requestId": "req_son", "status": 200, "body": "{\"marker\":\"network-last\"}" }
+      }
+    ]
+  },
+  "steps": [
+    { "action": "expandGroup", "group": 0, "label": "展开一级工具聚合" },
+    { "action": "assert", "expect": "selectorCount", "selector": ".tool-timeline-step", "equals": 4 },
+    { "action": "assert", "expect": "selectorCount", "selector": ".tool-family-trace", "equals": 0 },
+    { "action": "assert", "expect": "navText", "equals": "4/4" },
+    { "action": "click", "selector": ".tool-timeline-nav-btn[data-timeline-nav-direction=\"-1\"]", "label": "按出现顺序回到第三步截图" },
+    { "action": "assert", "expect": "navText", "equals": "3/4" },
+    { "action": "assert", "expect": "activeText", "selector": ".tool-timeline-step.active", "includes": "页面截图" },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "第三条截图证据" },
+    { "action": "click", "selector": ".tool-timeline-nav-btn[data-timeline-nav-direction=\"-1\"]", "label": "继续按出现顺序回到第二步脚本" },
+    { "action": "assert", "expect": "navText", "equals": "2/4" },
+    { "action": "assert", "expect": "activeText", "selector": ".tool-timeline-step.active", "includes": "执行脚本" },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "script-middle" },
+    { "action": "click", "selector": ".tool-timeline-nav-btn[data-timeline-nav-direction=\"1\"]", "label": "向前回到第三步截图" },
+    { "action": "assert", "expect": "navText", "equals": "3/4" },
+    { "action": "assert", "expect": "activeText", "selector": ".tool-timeline-step.active", "includes": "页面截图" },
+    { "action": "assert", "expect": "noHorizontalOverflow" }
+  ]
+}

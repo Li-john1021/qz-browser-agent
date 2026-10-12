@@ -1,0 +1,8 @@
+{
+  "media-tools.screenshotMaxWidth": "返す画像の最大幅。既定値と上限は 2048、エンコード後のサイズは最大 2 MiB。",
+  "media-tools.screenshotMaxHeight": "返す画像の最大高さ。既定値と上限は 2048、エンコード後のサイズは最大 2 MiB。",
+  "media-tools.collectImagesMaxWidth": "読み取り・保存する画像の最大幅。既定値と上限は 2048、エンコード後のサイズは最大 2 MiB。",
+  "media-tools.collectImagesMaxHeight": "読み取り・保存する画像の最大高さ。既定値と上限は 2048、エンコード後のサイズは最大 2 MiB。",
+  "media-tools.collectImagesMaxBytes": "URL 画像 1 枚あたりの最大読み取りバイト数。既定値は 20 MiB、上限は 32 MiB。エンコード後のサイズは最大 2 MiB。",
+  "media-tools.readImageMaxBytes": "URL 画像 1 枚あたりの最大読み取りバイト数。既定値は 20 MiB、上限は 32 MiB。エンコード後のサイズは最大 2 MiB。"
+}

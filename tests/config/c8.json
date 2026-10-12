@@ -1,0 +1,20 @@
+{
+  "clean": true,
+  "all": true,
+  "reports-dir": "tests/results/coverage",
+  "reporter": [
+    "text-summary",
+    "html",
+    "json-summary",
+    "lcovonly"
+  ],
+  "include": [
+    "src/**/*.{js,ts}"
+  ],
+  "exclude": [
+    "src/vendor/**",
+    "tests/**",
+    "src/**/*.d.ts"
+  ],
+  "exclude-after-remap": true
+}

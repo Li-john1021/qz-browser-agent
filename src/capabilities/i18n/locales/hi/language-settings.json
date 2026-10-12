@@ -1,0 +1,13 @@
+{
+  "language-settings.title": "भाषा",
+  "language-settings.interfaceLanguage": "इंटरफ़ेस की भाषा",
+  "language-settings.followBrowser": "ब्राउज़र की भाषा",
+  "language-settings.loading": "सेव की गई भाषा लोड हो रही है…",
+  "language-settings.unsavedChanges": "बदलाव अभी सेव नहीं हुए हैं",
+  "language-settings.saveFailed": "भाषा सेव नहीं हो सकी। फिर से कोशिश करें।",
+  "language-settings.loadFailed": "सेव की गई भाषा लोड नहीं हो सकी। फिर से कोशिश करने के लिए सेटिंग दोबारा खोलें।",
+  "language-settings.save": "सेव करें",
+  "language-settings.saved": "सेव हो गया",
+  "language-settings.saving": "सेव हो रहा है…",
+  "language-settings.advanced": "एडवांस्ड"
+}

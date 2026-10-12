@@ -1,0 +1,13 @@
+{
+  "language-settings.title": "اللغة",
+  "language-settings.interfaceLanguage": "لغة الواجهة",
+  "language-settings.followBrowser": "اتباع لغة المتصفح",
+  "language-settings.loading": "جارٍ تحميل اللغة المحفوظة…",
+  "language-settings.unsavedChanges": "تغييرات غير محفوظة",
+  "language-settings.saveFailed": "تعذّر حفظ اللغة. حاول مرة أخرى.",
+  "language-settings.loadFailed": "تعذّر تحميل اللغة المحفوظة. أعد فتح الإعدادات للمحاولة مجددًا.",
+  "language-settings.save": "حفظ",
+  "language-settings.saved": "تم الحفظ",
+  "language-settings.saving": "جارٍ الحفظ…",
+  "language-settings.advanced": "متقدّم"
+}

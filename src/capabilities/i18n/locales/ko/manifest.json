@@ -1,0 +1,5 @@
+{
+  "manifest.extensionName": "qz",
+  "manifest.extensionDescription": "qz는 브라우저에서 사용하는 AI 에이전트 작업 공간입니다.",
+  "manifest.switchModel": "모델 프리셋 빠르게 전환"
+}

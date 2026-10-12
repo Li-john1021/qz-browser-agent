@@ -1,0 +1,8 @@
+{
+  "media-tools.screenshotMaxWidth": "回傳圖片的最大寬度。預設值及上限：2048；編碼後不超過 2 MiB。",
+  "media-tools.screenshotMaxHeight": "回傳圖片的最大高度。預設值及上限：2048；編碼後不超過 2 MiB。",
+  "media-tools.collectImagesMaxWidth": "讀取／儲存圖片的最大寬度。預設值及上限：2048；編碼後不超過 2 MiB。",
+  "media-tools.collectImagesMaxHeight": "讀取／儲存圖片的最大高度。預設值及上限：2048；編碼後不超過 2 MiB。",
+  "media-tools.collectImagesMaxBytes": "每張 URL 圖片可讀取的最大位元組數。預設值：20 MiB；上限：32 MiB。編碼後不超過 2 MiB。",
+  "media-tools.readImageMaxBytes": "每張 URL 圖片可讀取的最大位元組數。預設值：20 MiB；上限：32 MiB。編碼後不超過 2 MiB。"
+}

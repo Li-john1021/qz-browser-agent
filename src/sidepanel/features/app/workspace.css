@@ -1,0 +1,51 @@
+/* ============================================================================
+   Workspace Pages
+   ============================================================================ */
+
+.tab-panel {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  animation: panel-in var(--motion-base) var(--ease-emphasized);
+}
+
+/* ============================================================================
+   Disabled Controls
+   ============================================================================ */
+
+button:disabled,
+button:disabled:hover,
+button:disabled:active {
+  transform: none;
+  box-shadow: none;
+}
+
+/* ============================================================================
+   Selectable message text
+   ============================================================================ */
+
+.user-selectable {
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: text;
+}
+
+.msg-user .msg-content::selection,
+.msg-user .msg-content *::selection,
+textarea.msg-user-edit-input::selection {
+  background: var(--user-bubble-selection-bg);
+  color: var(--user-bubble-selection-text);
+  -webkit-text-fill-color: var(--user-bubble-selection-text);
+}
+
+.msg-assistant .msg-content {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.msg-assistant .msg-content::selection {
+  background: var(--selection-bg);
+}

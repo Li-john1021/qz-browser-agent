@@ -1,0 +1,12 @@
+{
+  "provider-codex.signInWithYourChatgptAccountToUseCodex": "ChatGPT 계정으로 로그인해 Codex 모델을 사용하세요.",
+  "provider-codex.openaiCodexModelsApiReturnedAnEmptyModelList": "OpenAI Codex Models API에서 빈 모델 목록을 반환했습니다",
+  "provider-codex.theLoginSessionExpiredStartCodexLoginAgain": "로그인 세션이 만료되었습니다. Codex에 다시 로그인하세요.",
+  "provider-codex.theCodexLoginCodeExpiredStartLoginAgain": "Codex 로그인 코드가 만료되었습니다. 다시 시작하세요.",
+  "provider-codex.signInToOpenaiCodexInSettingsFirst": "먼저 설정에서 OpenAI Codex에 로그인하세요.",
+  "provider-codex.openaiCodexLoginIsMissingAnAccessTokenSign": "OpenAI Codex에서 액세스 토큰을 받지 못했습니다. 다시 로그인하세요.",
+  "provider-codex.openaiCodexLoginExpiredOrLacksPermissionSignIn": "OpenAI Codex 세션이 만료되었거나 필요한 권한이 없습니다({status}). 다시 로그인하세요. {detail}",
+  "provider-codex.couldNotReadTheChatgptAccountIdFromThe": "OpenAI Codex 토큰에서 ChatGPT 계정 ID를 읽을 수 없습니다",
+  "provider-codex.loginCanceledStartAgain": "로그인이 취소되었습니다. 다시 시작하세요.",
+  "provider-codex.allProviders": "모든 제공업체"
+}

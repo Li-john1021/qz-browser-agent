@@ -1,0 +1,21 @@
+{
+  "bookmarks.bookmarks": "書籤",
+  "bookmarks.history": "歷史記錄",
+  "bookmarks.visits": "造訪次數：{count}",
+  "bookmarks.deleted": "已刪除 {count} 項",
+  "bookmarks.manageBookmarks": "管理書籤",
+  "bookmarks.browsingHistory": "瀏覽記錄",
+  "bookmarks.manageBookmarksSearchRequiresANonEmptyQuery": "搜尋書籤時，query 不得為空。",
+  "bookmarks.manageBookmarksCreateRequiresTitleOrUrl": "建立書籤需要 title 或 url。",
+  "bookmarks.manageBookmarksUpdateRequiresId": "更新書籤需要 id。",
+  "bookmarks.manageBookmarksUpdateRequiresTitleOrUrlToMove": "更新書籤需要 title 或 url。若要移動書籤或資料夾，請使用 action=move 並提供 parentId 或 index。",
+  "bookmarks.manageBookmarksMoveRequiresId": "移動書籤需要 id。",
+  "bookmarks.manageBookmarksMoveRequiresParentidOrIndex": "移動書籤需要 parentId 或 index。",
+  "bookmarks.manageBookmarksDeleteRequiresId": "刪除書籤需要 id。",
+  "bookmarks.unsupportedManageBookmarksAction": "不支援的 manage_bookmarks 操作：{action}",
+  "bookmarks.browseHistorySearchRequiresANonEmptyQuery": "搜尋瀏覽記錄時，query 不得為空。",
+  "bookmarks.unsupportedBrowseHistoryAction": "不支援的 browse_history 操作：{action}",
+  "bookmarks.items": "條目",
+  "bookmarks.manageBookmarksShort": "管理書籤",
+  "bookmarks.browsingHistoryShort": "瀏覽記錄"
+}

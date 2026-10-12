@@ -1,0 +1,72 @@
+{
+  "name": "malformed-empty-values",
+  "widths": [320, 420],
+  "conversation": {
+    "title": "空值与异常数据",
+    "entries": [
+      { "type": "user", "_uiKey": "mev-u1", "text": "这些工具返回值很不规整，UI 不要崩。" },
+      {
+        "type": "tool",
+        "_uiKey": "mev-t1",
+        "toolCallId": "mev-t1",
+        "name": "unknown_custom_tool",
+        "args": {},
+        "result": null
+      },
+      {
+        "type": "tool",
+        "_uiKey": "mev-t2",
+        "toolCallId": "mev-t2",
+        "name": "read_article",
+        "args": { "source": "auto", "limit": 4000 },
+        "result": { "title": "", "url": "", "text": "" }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "mev-t3",
+        "toolCallId": "mev-t3",
+        "name": "data_store",
+        "args": {
+          "action": "upsert",
+          "table": "mixed_rows",
+          "rows": [
+            null,
+            "primitive row",
+            { "id": "ok", "nested": { "a": 1 }, "long": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" }
+          ]
+        },
+        "result": {
+          "table": "mixed_rows",
+          "inserted": 1,
+          "updated": 0,
+          "rows": [
+            null,
+            "primitive row",
+            { "id": "ok", "nested": { "a": 1 }, "long": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" }
+          ]
+        }
+      },
+      {
+        "type": "tool",
+        "_uiKey": "mev-t4",
+        "toolCallId": "mev-t4",
+        "name": "ask_llm",
+        "args": { "prompt": "", "data": { "weird": [null, true, { "x": 1 }] } },
+        "result": { "summary": "对象结果", "items": [1, 2, 3] }
+      }
+    ]
+  },
+  "steps": [
+    { "action": "assert", "expect": "collapsedLane", "lane": "tool" },
+    { "action": "expandGroup", "group": 0, "label": "展开异常数据工具组" },
+    { "action": "assert", "expect": "selectorText", "selector": "#messages", "notIncludes": "undefined" },
+    { "action": "assert", "expect": "selectorText", "selector": "#messages", "notIncludes": "[object Object]" },
+    { "action": "clickStep", "group": 0, "step": "写入数据表", "label": "查看混合行表格" },
+    { "action": "assert", "expect": "selectorCount", "selector": ".tool-data-table", "min": 1 },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-data-table", "includes": "primitive row" },
+    { "action": "clickStep", "group": 0, "step": "询问模型", "label": "查看对象结果" },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "对象结果" },
+    { "action": "assert", "expect": "selectorText", "selector": "#messages", "notIncludes": "[object Object]" },
+    { "action": "assert", "expect": "noHorizontalOverflow" }
+  ]
+}

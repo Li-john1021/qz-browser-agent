@@ -1,0 +1,21 @@
+{
+  "bookmarks.bookmarks": "Lesezeichen",
+  "bookmarks.history": "Verlauf",
+  "bookmarks.visits": "Besuche: {count}",
+  "bookmarks.deleted": "Gelöscht: {count}",
+  "bookmarks.manageBookmarks": "Lesezeichen verwalten",
+  "bookmarks.browsingHistory": "Browserverlauf",
+  "bookmarks.manageBookmarksSearchRequiresANonEmptyQuery": "Zum Suchen von Lesezeichen darf query nicht leer sein.",
+  "bookmarks.manageBookmarksCreateRequiresTitleOrUrl": "Zum Erstellen eines Lesezeichens wird title oder url benötigt.",
+  "bookmarks.manageBookmarksUpdateRequiresId": "Zum Aktualisieren eines Lesezeichens wird id benötigt.",
+  "bookmarks.manageBookmarksUpdateRequiresTitleOrUrlToMove": "Zum Aktualisieren eines Lesezeichens wird title oder url benötigt. Zum Verschieben eines Lesezeichens oder Ordners verwende action=move mit parentId oder index.",
+  "bookmarks.manageBookmarksMoveRequiresId": "Zum Verschieben eines Lesezeichens wird id benötigt.",
+  "bookmarks.manageBookmarksMoveRequiresParentidOrIndex": "Zum Verschieben eines Lesezeichens wird parentId oder index benötigt.",
+  "bookmarks.manageBookmarksDeleteRequiresId": "Zum Löschen eines Lesezeichens wird id benötigt.",
+  "bookmarks.unsupportedManageBookmarksAction": "Nicht unterstützte manage_bookmarks-Aktion: {action}",
+  "bookmarks.browseHistorySearchRequiresANonEmptyQuery": "Zum Suchen im Browserverlauf darf query nicht leer sein.",
+  "bookmarks.unsupportedBrowseHistoryAction": "Nicht unterstützte browse_history-Aktion: {action}",
+  "bookmarks.items": "Elemente",
+  "bookmarks.manageBookmarksShort": "Lesezeichen verwalten",
+  "bookmarks.browsingHistoryShort": "Verlauf"
+}

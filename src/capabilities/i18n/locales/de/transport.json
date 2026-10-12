@@ -1,0 +1,11 @@
+{
+  "transport.tooLarge": "Die Nachricht ist für die Übertragung zu groß. Reduziere die Anhänge oder lies das Ergebnis in kleineren Teilen.",
+  "transport.invalid": "Die Nachricht konnte nicht kodiert werden. Prüfe die übermittelten Daten und versuche es erneut.",
+  "transport.disconnected": "Die Verbindung wurde vor Abschluss der Übertragung geschlossen. Öffne die Aufgabe erneut und prüfe ihren Status, bevor du es erneut versuchst.",
+  "transport.upgrade": "Öffne die Seitenleiste erneut, um diese große Nachricht mit der aktualisierten Erweiterung zu übertragen.",
+  "transport.busy": "Eine andere große Übertragung belegt den verfügbaren Puffer. Warte, bis sie abgeschlossen ist, und versuche es erneut.",
+  "transport.timeout": "Die Zeit für die Nachrichtenübertragung ist abgelaufen. Prüfe den Aufgabenstatus, bevor du es erneut versuchst.",
+  "transport.cancelled": "Die Nachrichtenübertragung wurde abgebrochen.",
+  "transport.protocol": "Die Nachrichtenübertragung war unvollständig oder ungültig. Öffne die Aufgabe erneut und versuche es noch einmal.",
+  "transport.failed": "Die Nachricht konnte nicht gesendet werden. Prüfe die Verbindung und den Aufgabenstatus, bevor du es erneut versuchst."
+}

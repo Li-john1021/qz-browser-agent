@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Visual image retention fixture</title>
+<style>html,body{margin:0;overflow:hidden;background:#f5f6fa}canvas{display:block;width:100vw;height:100vh}</style>
+<canvas width="2560" height="1440" aria-label="Visual interaction board"></canvas>
+<script>
+(() => {
+  const canvas = document.querySelector('canvas');
+  const ctx = canvas.getContext('2d');
+  const requestedSteps = Number(new URLSearchParams(location.search).get('steps') || 9);
+  const steps = Number.isInteger(requestedSteps) && requestedSteps >= 9 && requestedSteps <= 64 ? requestedSteps : 9;
+  const order = [1, 7, 3, 8, 0, 5, 6, 2, 4];
+  let seed = 0x6d2b79f5;
+  while (order.length < steps) {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    const target = seed % 9;
+    if (target !== order.at(-1)) order.push(target);
+  }
+  const centers = Array.from({ length: 9 }, (_, i) => ({ x: 440 + i % 3 * 840, y: 400 + Math.floor(i / 3) * 380 }));
+  const state = { steps, completed: 0, misses: 0, clicks: [] };
+  const draw = () => {
+    ctx.fillStyle = '#f5f6fa'; ctx.fillRect(0, 0, 2560, 1440);
+    ctx.fillStyle = '#172334'; ctx.font = 'bold 64px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(state.completed === steps ? `DONE — ${steps} / ${steps}` : `STEP ${state.completed + 1} / ${steps} — CLICK THE BLUE CIRCLE`, 1280, 120);
+    if (state.completed === steps) return;
+    centers.forEach((point, index) => {
+      ctx.fillStyle = index === order[state.completed] ? '#1266e9' : '#c7cdd6';
+      ctx.beginPath(); ctx.arc(point.x, point.y, 112, 0, Math.PI * 2); ctx.fill();
+    });
+  };
+  canvas.addEventListener('click', event => {
+    if (state.completed === steps) return;
+    const rect = canvas.getBoundingClientRect();
+    const point = { x: (event.clientX - rect.left) * 2560 / rect.width, y: (event.clientY - rect.top) * 1440 / rect.height };
+    const target = centers[order[state.completed]];
+    const hit = Math.hypot(point.x - target.x, point.y - target.y) < 112;
+    state.clicks.push({ stage: state.completed + 1, x: event.clientX, y: event.clientY, hit, at: Date.now() });
+    if (hit) state.completed++; else state.misses++;
+    draw();
+  });
+  window.__readVisionRetentionState = () => structuredClone(state);
+  draw();
+})();
+</script>
+</html>

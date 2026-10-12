@@ -1,0 +1,11 @@
+{
+  "extensionName": {
+    "message": "轻舟"
+  },
+  "extensionDescription": {
+    "message": "轻舟是生活在浏览器中的AI Agent工作台。"
+  },
+  "switchModel": {
+    "message": "快速切换模型预设"
+  }
+}

@@ -1,0 +1,4 @@
+{
+  "skills.siteAuthorName": "Creador de habilidades para sitios",
+  "skills.siteAuthorDescription": "Crea capacidades para un sitio web, página o dominio concreto. Úsala para enseñar a qz a utilizar un sitio o crear sus habilidades, herramientas, recopilación de datos o interacciones. A diferencia de skill-workbench, parte de los requisitos del sitio para diseñar capacidades específicas. Usa skill-workbench para crear, actualizar, eliminar o editar una habilidad ya especificada, su contenido, plugin.json, scripts o recursos."
+}

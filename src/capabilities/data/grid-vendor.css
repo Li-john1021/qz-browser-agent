@@ -1,0 +1,3 @@
+/* Keep the upstream stylesheet in its own layer without rewriting vendor bytes. */
+@layer theme, base, vendor, components, utilities;
+@import url("../../vendor/tabulator/tabulator.min.css") layer(vendor);

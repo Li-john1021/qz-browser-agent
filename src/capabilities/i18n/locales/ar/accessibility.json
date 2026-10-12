@@ -1,0 +1,15 @@
+{
+  "accessibility.inspectPageTree": "فحص بنية الصفحة",
+  "accessibility.pageInspection": "فحص الصفحة",
+  "accessibility.pageStructure": "بنية الصفحة",
+  "accessibility.element": "عنصر",
+  "accessibility.editable": "قابل للتعديل",
+  "accessibility.outsideViewport": "خارج المنطقة المرئية",
+  "accessibility.interactiveElements": "العناصر التفاعلية",
+  "accessibility.attributes": "السمات",
+  "accessibility.cannotResolveAxRoot": "تعذّر العثور على جذر بنية الصفحة: {selector}",
+  "accessibility.pageOverviewResponseIsInvalid": "أعاد ملخص الصفحة استجابة غير صالحة.",
+  "accessibility.items": "عناصر",
+  "accessibility.showingTheFirst": "عرض أول",
+  "accessibility.inspectPageTreeShort": "فحص الصفحة"
+}

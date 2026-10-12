@@ -1,0 +1,48 @@
+{
+  "name": "family-navigation-boundaries",
+  "widths": [360, 420],
+  "conversation": {
+    "title": "工具族导航边界",
+    "entries": [
+      { "type": "user", "_uiKey": "fnb-u1", "text": "连续执行多类工具，检查详情左右导航。" },
+      { "type": "tool", "_uiKey": "fnb-t1", "toolCallId": "fnb-t1", "name": "open_tab", "args": { "url": "https://example.com/a" }, "result": { "title": "页面 A", "url": "https://example.com/a" } },
+      { "type": "tool", "_uiKey": "fnb-t2", "toolCallId": "fnb-t2", "name": "read_article", "args": { "source": "auto", "limit": 4000 }, "result": { "title": "正文 A", "text": "第一段正文证据" } },
+      { "type": "tool", "_uiKey": "fnb-t3", "toolCallId": "fnb-t3", "name": "find_elements", "args": { "selector": "button" }, "result": { "elements": [{ "target": "css:button.save", "name": "保存", "selector": "button.save" }] } },
+      { "type": "tool", "_uiKey": "fnb-t4", "toolCallId": "fnb-t4", "name": "read_dom", "args": { "selector": "main" }, "result": { "title": "DOM A", "nodeCount": 12, "snapshot": "main > button.save" } },
+      { "type": "tool", "_uiKey": "fnb-t5", "toolCallId": "fnb-t5", "name": "act_on_element", "args": { "target": "css:button.save", "action": "click" }, "result": { "clicked": "保存", "target": "css:button.save", "selector": "button.save" } },
+      { "type": "tool", "_uiKey": "fnb-t6", "toolCallId": "fnb-t6", "name": "run_script", "args": { "code": "return document.title;" }, "result": { "ok": true, "result": "页面 A" } },
+      { "type": "tool", "_uiKey": "fnb-t7", "toolCallId": "fnb-t7", "name": "read_article", "args": { "source": "auto", "limit": 4000 }, "result": { "title": "正文 B", "text": "第二段正文证据" } },
+      { "type": "tool", "_uiKey": "fnb-t8", "toolCallId": "fnb-t8", "name": "screenshot", "args": { "fullPage": false }, "result": { "method": "viewport", "note": "截图证据：页面停留在成功态" } },
+      { "type": "tool", "_uiKey": "fnb-t9", "toolCallId": "fnb-t9", "name": "network_body", "args": { "requestId": "req_fnb" }, "result": { "requestId": "req_fnb", "method": "POST", "url": "https://example.com/api", "status": 200, "body": "{\"ok\":true,\"source\":\"network-body\"}" } },
+      { "type": "tool", "_uiKey": "fnb-t10", "toolCallId": "fnb-t10", "name": "ask_user", "args": { "title": "确认", "message": "是否继续？", "fields": [{ "id": "ok", "label": "是否继续", "type": "choice", "options": [{ "label": "继续", "value": "yes" }] }] }, "result": { "submitted": true, "answers": { "ok": "yes" } } },
+      { "type": "tool", "_uiKey": "fnb-t11", "toolCallId": "fnb-t11", "name": "document_create", "args": { "title": "报告" }, "result": { "title": "报告", "artifactId": "doc_fnb", "blockCount": 3 } },
+      { "type": "tool", "_uiKey": "fnb-t12", "toolCallId": "fnb-t12", "name": "update_skill", "args": { "name": "sample", "appendContent": "新增规则" }, "result": { "skill": { "name": "sample", "resources": [] }, "changes": [{ "action": "append", "path": "SKILL.md", "content": "新增规则" }] } },
+      { "type": "tool", "_uiKey": "fnb-t13", "toolCallId": "fnb-t13", "name": "read_console_messages", "args": { "level": "warning" }, "result": { "messages": [{ "level": "warning", "text": "console tail evidence" }] } }
+    ]
+  },
+  "steps": [
+    { "action": "expandGroup", "group": 0, "label": "展开工具族" },
+    { "action": "assert", "expect": "selectorCount", "selector": ".tool-family-trace", "equals": 1 },
+    { "action": "click", "selector": ".tool-family-row[data-tool-family-id=\"collect\"]", "label": "切到采集信息" },
+    { "action": "clickText", "selector": ".tool-family-batch[data-tool-family-id=\"collect\"]", "text": "采集正文", "label": "切到采集正文批次" },
+    { "action": "assert", "expect": "navText", "equals": "3/4" },
+    { "action": "assert", "expect": "activeText", "selector": ".tool-family-batch.active", "includes": "采集正文" },
+    { "action": "click", "selector": ".tool-timeline-nav-btn[data-timeline-nav-direction=\"1\"]", "label": "同族下一项：页面截图" },
+    { "action": "assert", "expect": "navText", "equals": "4/4" },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "截图证据" },
+    { "action": "click", "selector": ".tool-timeline-nav-btn[data-timeline-nav-direction=\"1\"]", "label": "采集信息越界到 UI 下一类：操作页面" },
+    { "action": "assert", "expect": "navText", "equals": "1/2" },
+    { "action": "assert", "expect": "activeText", "selector": ".tool-family-row.active", "includes": "操作页面" },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "保存" },
+    { "action": "click", "selector": ".tool-timeline-nav-btn[data-timeline-nav-direction=\"1\"]", "label": "操作页面同族下一项" },
+    { "action": "assert", "expect": "navText", "equals": "2/2" },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "保存" },
+    { "action": "click", "selector": ".tool-timeline-nav-btn[data-timeline-nav-direction=\"1\"]", "label": "操作页面越界到 UI 下一类：处理数据" },
+    { "action": "assert", "expect": "navText", "equals": "1/4" },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "页面 A" },
+    { "action": "click", "selector": ".tool-timeline-nav-btn[data-timeline-nav-direction=\"-1\"]", "label": "处理数据越界回 UI 上一类：操作页面" },
+    { "action": "assert", "expect": "navText", "equals": "2/2" },
+    { "action": "assert", "expect": "selectorText", "selector": ".tool-timeline-slot", "includes": "保存" },
+    { "action": "assert", "expect": "noHorizontalOverflow" }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "defaultProduct": "public",
+  "ports": [
+    {
+      "facade": "background/product/providers.ts",
+      "entry": "background/providers.ts"
+    },
+    {
+      "facade": "shared/product/model-capabilities.ts",
+      "entry": "shared/model-capabilities.ts"
+    },
+    {
+      "facade": "background/product/runtime.ts",
+      "entry": "background/runtime.ts"
+    },
+    {
+      "facade": "sidepanel/product/settings.ts",
+      "entry": "sidepanel/settings.ts"
+    },
+    {
+      "facade": "shared/product/git-platforms.ts",
+      "entry": "shared/git-platforms.ts"
+    },
+    {
+      "facade": "background/product/git-publisher.ts",
+      "entry": "background/git-publisher.ts"
+    }
+  ],
+  "rules": [
+    {
+      "path": "rules/provider-headers.json",
+      "entry": "rules/provider-headers.json"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "language-settings.title": "Sprache",
+  "language-settings.interfaceLanguage": "Sprache der Oberfläche",
+  "language-settings.followBrowser": "Browsersprache",
+  "language-settings.loading": "Gespeicherte Sprache wird geladen…",
+  "language-settings.unsavedChanges": "Ungespeicherte Änderungen",
+  "language-settings.saveFailed": "Die Sprache konnte nicht gespeichert werden. Versuch es erneut.",
+  "language-settings.loadFailed": "Die gespeicherte Sprache konnte nicht geladen werden. Öffne die Einstellungen erneut.",
+  "language-settings.save": "Speichern",
+  "language-settings.saved": "Gespeichert",
+  "language-settings.saving": "Wird gespeichert…",
+  "language-settings.advanced": "Erweitert"
+}

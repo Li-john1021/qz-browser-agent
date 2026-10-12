@@ -1,0 +1,15 @@
+{
+  "accessibility.inspectPageTree": "檢查頁面結構",
+  "accessibility.pageInspection": "頁面檢查",
+  "accessibility.pageStructure": "頁面結構",
+  "accessibility.element": "元素",
+  "accessibility.editable": "可編輯",
+  "accessibility.outsideViewport": "可視區域之外",
+  "accessibility.interactiveElements": "互動元素",
+  "accessibility.attributes": "屬性",
+  "accessibility.cannotResolveAxRoot": "找不到頁面結構根節點：{selector}",
+  "accessibility.pageOverviewResponseIsInvalid": "頁面概覽傳回無效回應。",
+  "accessibility.items": "項",
+  "accessibility.showingTheFirst": "已顯示前",
+  "accessibility.inspectPageTreeShort": "檢查頁面結構"
+}

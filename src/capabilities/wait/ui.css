@@ -1,0 +1,10 @@
+@layer components {
+/* Alert result presentation belongs to the Wait capability. */
+.tool-alert-message {
+  color: var(--text-secondary);
+  font-size: calc(13px * var(--chat-text-scale, 1));
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+}

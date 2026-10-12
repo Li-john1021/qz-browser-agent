@@ -1,0 +1,5 @@
+{
+  "model-payload.images": "模型請求的圖片總大小超出上限，請減少圖片或壓縮上下文後重試。",
+  "model-payload.request": "模型請求過大，請壓縮上下文或開始新任務。",
+  "model-payload.remote": "請先使用圖片讀取工具載入這張圖片，再傳送給模型。"
+}
