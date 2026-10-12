@@ -398,6 +398,12 @@ test.describe("act_on_screen · structural edge cases in real Chrome", () => {
       expect(state.movingClicks).toBe(2);
       expect(state.movingTargetMoved).toBe(false);
 
+      await page.locator("#animated-target").evaluate(target => {
+        // Hold the real transition until the action returns, independently of screenshot latency.
+        target.addEventListener("click", () => {
+          for (const animation of target.getAnimations()) animation.pause();
+        }, { once: true });
+      });
       const animatedPoint = await harness.point("#animated-target");
       const animated = await harness.act({
         action: "click",
@@ -408,7 +414,12 @@ test.describe("act_on_screen · structural edge cases in real Chrome", () => {
       state = await harness.state(STATE_READER);
       expect(state.animatedClicks).toBe(1);
       expect(state.animatedTargetMoved).toBe(true);
-      expect(state.animatedTransitions).toBe(0, "screen actions must not wait for a page-owned CSS transition");
+      expect(state.animatedTransitions, "screen actions return while the page-owned transition is paused").toBe(0);
+      expect(await page.locator("#animated-target").evaluate(target =>
+        target.getAnimations().map(animation => animation.playState))).toEqual(["paused"]);
+      await page.locator("#animated-target").evaluate(target => {
+        for (const animation of target.getAnimations()) animation.finish();
+      });
       await expect.poll(async () => (await harness.state(STATE_READER)).animatedTransitions).toBe(1);
 
       const beforeResize = await harness.capture();

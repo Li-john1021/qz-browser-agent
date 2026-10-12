@@ -22,6 +22,25 @@ import { runInnerWorker, sandboxFixture } from "../support/inner-runner-fixture.
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
+test("Windows-style Git checkout preserves upstream license hashes", async t => {
+  const work = await workspace(t);
+  const git = (...args) => promisify(execFile)("git", args, { cwd: work });
+  await git("init", "-q");
+  await cp(join(ROOT, ".gitattributes"), join(work, ".gitattributes"));
+  await cp(join(ROOT, "scripts/vendor/licenses"), join(work, "scripts/vendor/licenses"), { recursive: true });
+  await writeFile(join(work, "probe.txt"), "checkout\n");
+  await git("-c", "core.autocrlf=false", "add", ".");
+  await rm(join(work, "scripts"), { recursive: true });
+  await rm(join(work, "probe.txt"));
+  await git("-c", "core.autocrlf=true", "checkout-index", "--all", "--force");
+  assert.equal(await readFile(join(work, "probe.txt"), "utf8"), "checkout\r\n");
+  const supplements = JSON.parse(await readFile(join(work, "scripts/vendor/licenses/supplements.json"), "utf8"));
+  for (const supplement of Object.values(supplements)) {
+    const bytes = await readFile(join(work, "scripts/vendor/licenses", supplement.file));
+    assert.equal(createHash("sha256").update(bytes).digest("hex"), supplement.sha256);
+  }
+});
+
 test("development build preserves application modules and generates locked runtime assets deterministically", async t => {
   const work = await workspace(t);
   const sourceDir = join(work, "source");

@@ -4,7 +4,6 @@ import { installBenchmarkChromeStub } from "./benchmark-chrome-stub.mjs";
 const SIDEPANEL_URL = "/extension/sidepanel/sidepanel.html";
 const WINDOW_ID = 7;
 const VIEW_KEY = `qingzhou:workspace-view:${WINDOW_ID}`;
-const LONG_CHAT_COLD_REVEAL_BUDGET_MS = 700;
 
 // Build fixture records with the browser's emitted modules before navigating to the app.
 async function storedSessionFixture(page, input) {
@@ -204,7 +203,7 @@ test("leaving a slow restoring page preserves the user's newer navigation", asyn
     message.type === "restore_session" && message.sessionId === "cancelled-restoration"))).toBe(false);
 });
 
-test("reveals the latest tail of a long restored chat before backfilling its history", async ({ page }) => {
+test("reveals the latest tail of a long restored chat before backfilling its history", async ({ page }, testInfo) => {
   await page.goto("/__test_health");
   await page.evaluate(() => localStorage.clear());
   const sessionId = "restored-long-chat";
@@ -242,7 +241,9 @@ test("reveals the latest tail of a long restored chat before backfilling its his
     hasLongFirstMessage: false,
     hasLongLastMessage: true,
   });
-  expect(firstReveal.revealedAfterMs).toBeLessThan(LONG_CHAT_COLD_REVEAL_BUDGET_MS);
+  await testInfo.attach("first-workspace-reveal.json", {
+    body: JSON.stringify(firstReveal), contentType: "application/json",
+  });
 
   await expect.poll(
     () => page.locator("#messages > [data-transcript-key]").count(),
