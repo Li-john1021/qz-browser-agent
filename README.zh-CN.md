@@ -9,6 +9,8 @@
 
 ![轻舟从 Wikipedia 采集杭州照片](docs/images/workspace-zh-CN.png)
 
+https://github.com/user-attachments/assets/3203bc89-ef26-4f66-86cc-b602a912a1ab
+
 ## 功能
 
 - **浏览器自动化**：通过 DOM 元素或截图操作页面，填写表单，跨标签页协作，支持桌面和移动端视口。
