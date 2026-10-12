@@ -27,21 +27,30 @@ https://github.com/user-attachments/assets/3203bc89-ef26-4f66-86cc-b602a912a1ab
 
 ## 快速开始
 
-环境要求：Node.js 24 LTS、npm 和 Google Chrome。
+### 安装
 
-1. 在本地仓库中构建：
+1. 下载[最新版本](https://github.com/alibaba/qz-browser-agent/releases/latest)中的 ZIP 安装包。
+2. 解压文件。
+3. 打开 `chrome://extensions`，启用**开发者模式**。
+4. 点击**加载已解压的扩展程序**，选择解压后的 `qz-browser-agent-extension` 文件夹。
 
-   ```bash
-   npm ci
-   npm run build
-   ```
+### 从源码构建
 
-2. 打开 `chrome://extensions`，启用**开发者模式**。
-3. 点击**加载已解压的扩展程序**，选择 `dist/extension/`。
-4. 从扩展工具栏打开轻舟侧边栏。
-5. 在**设置**中选择服务商并填写凭证。使用自定义接口时，还需填写 URL 和协议。
-6. 选择模型并保存。
-7. 试着输入：`打开 example.com，把页面的主标题提取到一张表格中。`
+如需本地构建，安装 Node.js 24 LTS 和 npm，然后在本地仓库中运行：
+
+```bash
+npm ci
+npm run build
+```
+
+按照上面的 Chrome 安装步骤，选择 `dist/extension/` 作为扩展文件夹。
+
+### 使用
+
+1. 从扩展工具栏打开轻舟侧边栏。
+2. 在**设置**中选择服务商并填写凭证。使用自定义接口时，还需填写 URL 和协议。
+3. 选择模型并保存。
+4. 试着输入：`打开 example.com，把页面的主标题提取到一张表格中。`
 
 ## 扩展轻舟
 

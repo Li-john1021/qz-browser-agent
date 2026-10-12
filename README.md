@@ -31,21 +31,30 @@ data with services you configure. See [permissions and data flow](docs/permissio
 
 ## Quick start
 
-Requirements: Node.js 24 LTS, npm, and Google Chrome.
+### Install
 
-1. Build from a local checkout:
+1. Download the [latest release](https://github.com/alibaba/qz-browser-agent/releases/latest).
+2. Extract the ZIP.
+3. Open `chrome://extensions` and enable **Developer mode**.
+4. Click **Load unpacked** and select the extracted `qz-browser-agent-extension` folder.
 
-   ```bash
-   npm ci
-   npm run build
-   ```
+### Build from source
 
-2. Open `chrome://extensions` and enable **Developer mode**.
-3. Click **Load unpacked** and select `dist/extension/`.
-4. Open the qz side panel from the extension toolbar.
-5. In **Settings**, choose a provider and enter its credentials. A custom endpoint also requires a URL and protocol.
-6. Select a model and save.
-7. Try a prompt: `Open example.com and extract its main heading into a table.`
+To build locally, install Node.js 24 LTS and npm, then run from a local checkout:
+
+```bash
+npm ci
+npm run build
+```
+
+Follow the Chrome installation steps above, selecting `dist/extension/` as the extension folder.
+
+### Run
+
+1. Open the qz side panel from the extension toolbar.
+2. In **Settings**, choose a provider and enter its credentials. A custom endpoint also requires a URL and protocol.
+3. Select a model and save.
+4. Try a prompt: `Open example.com and extract its main heading into a table.`
 
 ## Extending qz
 

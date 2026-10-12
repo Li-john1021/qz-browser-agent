@@ -73,8 +73,9 @@ index](../tests/BEHAVIOR_INDEX.md). See [tests/README.md](../tests/README.md) fo
 
 ### Continuous integration
 
-[GitHub Actions](../.github/workflows/ci.yml) checks builds on Linux, macOS and Windows, then runs
-the full verification on Linux using local fixtures.
+[GitHub Actions](../.github/workflows/ci.yml) runs type-checked builds and focused Tool and Renderer
+browser contract tests on Linux, macOS and Windows. Run `npm run verify` locally for the full
+test suites and coverage gates.
 
 ## Run against a real model
 
