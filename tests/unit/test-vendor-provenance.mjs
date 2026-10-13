@@ -40,7 +40,7 @@ try {
   await writeFile(lockPath, await readFile(join(root, "package-lock.json")));
   await writeFile(packagePath, await readFile(join(root, "package.json")));
   const manifest = await checkDependencyAssets(options);
-  assert.equal(manifest.components["@modelcontextprotocol/sdk"].version, "1.29.0");
+  assert.equal(manifest.components["@modelcontextprotocol/sdk"].version, "1.31.0");
   assert.equal(manifest.components["@mozilla/readability"].version, "0.6.0");
   assert.equal(manifest.components.zod.version, "4.4.3");
   const cfworker = manifest.components["@cfworker/json-schema"];

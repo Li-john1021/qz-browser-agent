@@ -673,10 +673,7 @@ function collectScrollTargets(root: HTMLElement) {
 function scrollStateSelector(el: HTMLElement) {
   if (el.classList.contains("tool-details-streaming")) return ":scope";
   if (el.dataset.toolScrollSurface) {
-    const escapeSelector = typeof CSS !== "undefined" && typeof CSS.escape === "function"
-      ? CSS.escape
-      : (value: string) => String(value).replace(/"/g, "\\\"");
-    return `[data-tool-scroll-surface="${escapeSelector(el.dataset.toolScrollSurface)}"]`;
+    return `[data-tool-scroll-surface="${CSS.escape(el.dataset.toolScrollSurface)}"]`;
   }
   return "";
 }

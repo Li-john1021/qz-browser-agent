@@ -6,11 +6,30 @@ import sys
 from copy import deepcopy
 from dataclasses import replace
 from datetime import datetime, timezone
+from http.client import HTTPConnection
 from pathlib import Path
+from urllib.parse import parse_qsl, urlsplit
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "background"))
 from agent_behavior import acceptance, capture as case_capture, cases, fixtures, reporting, runner
+
+
+def test_navigation_redirect_preserves_query_values_in_one_header():
+    query = "key=first&key=second&empty=&note=a%0D%0AX-QZ-Injected%3A+yes"
+    with fixtures.fixture_server() as origin:
+        connection = HTTPConnection(urlsplit(origin).netloc, timeout=5)
+        try:
+            connection.request("GET", f"/navigation/redirect?{query}")
+            response = connection.getresponse()
+            assert response.status == 302
+            location = response.getheader("Location")
+            assert response.getheader("X-QZ-Injected") is None
+            assert "\r" not in location and "\n" not in location
+            assert parse_qsl(urlsplit(location).query, keep_blank_values=True) == parse_qsl(query, keep_blank_values=True)
+            response.read()
+        finally:
+            connection.close()
 
 
 class FakeClient:

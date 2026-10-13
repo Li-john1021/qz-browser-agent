@@ -6,6 +6,10 @@ import { join } from "node:path";
 import { expect, test } from "./fixtures.mjs";
 import { ensureTestExtension } from "../support/extension-build.mjs";
 
+function escapeHtml(value) {
+  return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+}
+
 for (const watchNetwork of [false, true]) test(`tab navigation commits before reading (watchNetwork=${watchNetwork})`, async () => {
   test.setTimeout(60_000);
   const held = new Map(), counts = new Map();
@@ -16,12 +20,12 @@ for (const watchNetwork of [false, true]) test(`tab navigation commits before re
     if (path === "/fail") { req.socket.destroy(); return; }
     if (path.startsWith("/busy-open-")) {
       res.writeHead(200, { "Content-Type": "text/html" });
-      res.end(`<title>Busy renderer</title><script>fetch('/started${path}');const until=Date.now()+8000;while(Date.now()<until){}</script>`);
+      res.end("<title>Busy renderer</title><script>fetch('/started'+location.pathname);const until=Date.now()+8000;while(Date.now()<until){}</script>");
       return;
     }
     const finish = () => {
       res.writeHead(200, { "Content-Type": "text/html", "Cache-Control": "no-store" });
-      res.end(`<title>Navigation fixture</title><article>Document ${path} generation ${counts.get(path)}</article>`);
+      res.end(`<title>Navigation fixture</title><article>Document ${escapeHtml(path)} generation ${counts.get(path)}</article>`);
     };
     if (held.has(path)) held.get(path).push({ res, finish });
     else if (path === "/stream") {

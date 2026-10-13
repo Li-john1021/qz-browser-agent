@@ -1111,7 +1111,8 @@ function formatCompactSubscriptIdentifier(identifier: string) {
 }
 
 function escapeMathsfIdentifier(text: string) {
-  return String(text || "").replace(/\\/g, "\\backslash{}").replace(/_/g, "\\_").replace(/[{}]/g, "");
+  // Callers tokenize ASCII letters, digits and underscores before formatting.
+  return text.replaceAll("_", "\\_");
 }
 
 function isCjkCharacter(char: string) {

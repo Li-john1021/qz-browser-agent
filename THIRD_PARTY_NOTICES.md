@@ -154,7 +154,7 @@ helpers and browser dependencies included in the extension.
 | semver | 7.8.5 | ISC |
 | signal-exit | 4.1.0 | ISC |
 | source-map | 0.6.1 | BSD-3-Clause |
-| source-map-js | 1.2.1 | BSD-3-Clause |
+| source-map-js | 1.2.2 | BSD-3-Clause |
 | source-map-support | 0.5.21 | MIT |
 | string-width | 4.2.3 | MIT |
 | strip-ansi | 6.0.1 | MIT |
@@ -210,7 +210,7 @@ these service and test dependencies are not bundled in the browser extension.
 | [pydantic-settings](https://pypi.org/pypi/pydantic-settings/2.14.2/json) | 2.14.2 | MIT |
 | [pyee](https://pypi.org/pypi/pyee/13.0.1/json) | 13.0.1 | MIT |
 | [pygments](https://pypi.org/pypi/pygments/2.20.0/json) | 2.20.0 | BSD-2-Clause |
-| [pyjwt](https://pypi.org/pypi/pyjwt/2.13.0/json) | 2.13.0 | MIT |
+| [pyjwt](https://pypi.org/pypi/pyjwt/2.15.1/json) | 2.15.1 | MIT |
 | [pytest](https://pypi.org/pypi/pytest/9.1.1/json) | 9.1.1 | MIT |
 | [pytest-asyncio](https://pypi.org/pypi/pytest-asyncio/1.4.0/json) | 1.4.0 | Apache-2.0 |
 | [python-dotenv](https://pypi.org/pypi/python-dotenv/1.2.2/json) | 1.2.2 | BSD-3-Clause |

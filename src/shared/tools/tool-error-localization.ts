@@ -594,7 +594,6 @@ function localizeMixedChineseText(text: string) {
   return String(text || "")
     .replace(/\bAgent\b/g, "智能体")
     .replace(/\bData tab\b/g, "Data 页面")
-    .replace(/\brun_script\b/g, "run_script")
     .replace(/安全护栏/g, "安全策略");
 }
 

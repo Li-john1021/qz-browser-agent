@@ -39,7 +39,8 @@ try {
     globalThis.__visionRequests = [];
     globalThis.fetch = async (input, init) => {
       let record;
-      if (String(input).includes('api.deepseek.com') && typeof init?.body === 'string') {
+      const url = new URL(input instanceof Request ? input.url : String(input), location.href);
+      if (url.hostname === 'api.deepseek.com' && typeof init?.body === 'string') {
         const body = JSON.parse(init.body);
         const messages = body.messages || [];
         if (JSON.stringify(messages).includes('QZ_VISION_RETENTION')) {

@@ -227,7 +227,7 @@ test("read_article resolves responsive and lazy image sources before its canonic
         <img alt="Picture source" src="/images/picture-fallback.jpg">
       </picture>
       <img alt="Noscript fallback" src="/images/noscript-placeholder.gif">
-      <noscript><img alt="Noscript fallback" src="/images/noscript.jpg"></noscript>
+      <noscript><img alt="Noscript fallback" src="/images/noscript.jpg" onload="window.__extractionProbe = true"></noscript>
       <img alt="Safe protocol fallback" data-src="javascript:alert(1)" src="/images/safe.jpg">
       <img alt="Safe data fallback" data-src="data:text/html,unsafe" src="/images/safe-data.jpg">
       <img alt="Compact high-resolution icon" src="/images/highres-icon.png" style="width:24px;height:24px">
@@ -251,6 +251,8 @@ test("read_article resolves responsive and lazy image sources before its canonic
   // Display-only hints must stay out of the model-facing top-level result.
   expect(result.imageDisplayHints).toBeUndefined();
   expect(result.text).not.toMatch(/placeholder|responsive-fallback|picture-fallback|javascript:|data:text/i);
+  expect(result.text).not.toContain("onload");
+  expect(await page.evaluate(() => window.__extractionProbe)).toBeUndefined();
 });
 
 test("visible overflow containers remain part of the extracted article", async ({ page }) => {
@@ -853,11 +855,12 @@ test("mixed-language pages keep both the primary prose and embedded CJK text", a
 });
 
 test("embedded JSON full text is the baseline when the rendered page has no article body", async ({ page }) => {
+  await page.route("https://example.test/extraction-probe", route => route.fulfill({ status: 404, body: "missing" }));
   const embedded = "The embedded article body is available before the client application renders its visible content. ".repeat(4);
   const json = JSON.stringify({
     "@context": "https://schema.org",
     "@type": "NewsArticle",
-    articleBody: `&lt;p&gt;${embedded}&lt;/p&gt;`,
+    articleBody: `&lt;p&gt;${embedded}&lt;/p&gt;&lt;img src="/extraction-probe" onerror="window.__extractionProbe = true"&gt;`,
   });
   await installContentScript(page, `<div id="app"></div><script type="application/ld+json">${json}</script>`);
 
@@ -870,6 +873,8 @@ test("embedded JSON full text is the baseline when the rendered page has no arti
   expect(result.text).toContain("embedded article body");
   expect(result.text).not.toContain("&lt;p&gt;");
   expect(result.sourceSelector).toBe("");
+  expect(result.text).not.toContain("onerror");
+  expect(await page.evaluate(() => window.__extractionProbe)).toBeUndefined();
 });
 
 test("comment sections stay out of ordinary articles but remain content on forum threads", async ({ page }) => {

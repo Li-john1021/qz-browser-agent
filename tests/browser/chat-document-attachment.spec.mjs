@@ -604,7 +604,7 @@ test.describe("message-owned document attachments", () => {
   test("deletes only owned document records and keeps batch cleanup atomic", async ({ page }) => {
     const result = await page.evaluate(async () => {
       const store = await import("/extension/shared/documents/document-store.js");
-      const suffix = `${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
+      const suffix = crypto.randomUUID();
       const owner = { sessionId: `owner_${suffix}`, messageId: `message_${suffix}` };
 
       async function seed({ sessionId, messageId, tag, modelFileId = "", sourceTool = "chat_attachment" }) {

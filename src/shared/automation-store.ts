@@ -55,11 +55,11 @@ const DEFAULT_SCHEDULE = Object.freeze({
 });
 
 export function genAutomationId() {
-  return `auto_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
+  return `auto_${crypto.randomUUID().replaceAll("-", "")}`;
 }
 
 export function genAutomationRunId() {
-  return `run_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
+  return `run_${crypto.randomUUID().replaceAll("-", "")}`;
 }
 
 export function normalizeAutomation(value: unknown = {}) {

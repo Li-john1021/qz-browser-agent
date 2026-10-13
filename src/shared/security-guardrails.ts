@@ -71,15 +71,14 @@ export function normalizeGuardrailPatternInput(value: unknown = "") {
   const pathPattern = slashIndex >= 0 ? rest.slice(slashIndex) : "/*";
   const normalizedScheme = scheme === "*" ? "*" : scheme.toLowerCase();
   const normalizedHost = hostPattern.toLowerCase().replace(/^\.+|\.+$/g, "");
-  if (!normalizedHost || !/^[a-z0-9.*-]+(?:\.[a-z0-9.*-]+)*$/.test(normalizedHost) || normalizedHost.includes("..")) {
+  if (!/^[a-z0-9.*-]+$/.test(normalizedHost) || normalizedHost.includes("..")) {
     return { pattern: "", error: t("security.patternInvalidDomain") };
   }
-  try {
-    compileGuardrailPattern(`${normalizedScheme}://${normalizedHost}${pathPattern}`);
-  } catch (_err) {
-    return { pattern: "", error: t("security.invalidPattern") };
+  const normalizedPattern = `${normalizedScheme}://${normalizedHost}${pathPattern}`;
+  if (normalizedPattern.length > MAX_GUARDRAIL_PATTERN_LENGTH) {
+    return { pattern: "", error: t("security.patternTooLong") };
   }
-  return { pattern: `${normalizedScheme}://${normalizedHost}${pathPattern}`, error: "" };
+  return { pattern: normalizedPattern, error: "" };
 }
 
 export function normalizeSecurityGuardrails(input: unknown = {}) {
@@ -505,7 +504,12 @@ function securityGuardrailTargetMatches(target: GuardrailTarget, host: string, n
   if (!target || !GUARDRAIL_TYPES.has(target.type)) return false;
   if (target.type === "domain") return host === target.value || host.endsWith(`.${target.value}`);
   try {
-    return compileGuardrailPattern(target.value).test(normalizedUrl);
+    const pattern = target.value.match(/^(\*|https?):\/\/([^/]+)(\/.*)$/);
+    if (!pattern) return false;
+    const url = new URL(normalizedUrl);
+    return (pattern[1] === "*" || `${pattern[1]}:` === url.protocol)
+      && matchesWildcard(url.host, pattern[2])
+      && matchesWildcard(`${url.pathname}${url.search}${url.hash}`, pattern[3]);
   } catch (_err) {
     return false;
   }
@@ -525,13 +529,18 @@ function normalizeUrlForPatternMatch(parsed: URL) {
   return `${protocol}//${host}${parsed.pathname}${parsed.search}${parsed.hash}`;
 }
 
-function compileGuardrailPattern(pattern: unknown = "") {
-  const source = String(pattern || "");
-  if (!source || source.length > MAX_GUARDRAIL_PATTERN_LENGTH) {
-    throw new Error("invalid guardrail pattern");
+function matchesWildcard(value: string, pattern: string) {
+  const parts = pattern.split("*");
+  if (parts.length === 1) return value === pattern;
+  if (!value.startsWith(parts[0])) return false;
+  let offset = parts[0].length;
+  for (const part of parts.slice(1, -1)) {
+    const index = value.indexOf(part, offset);
+    if (index < 0) return false;
+    offset = index + part.length;
   }
-  const escaped = source.replace(/[|\\{}()[\]^$+?.]/g, "\\$&").replace(/\*/g, ".*");
-  return new RegExp(`^${escaped}$`);
+  const last = parts[parts.length - 1];
+  return value.endsWith(last) && value.length - last.length >= offset;
 }
 
 function formatDurationMsForPrompt(ms: unknown = 0) {

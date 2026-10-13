@@ -22,7 +22,7 @@ export const ACTIVE_CONVERSATION_PREFIX = "_active_conversation_";
 export const ROOT_SESSION_ID = "0";
 
 export function genSessionId() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  return crypto.randomUUID().replaceAll("-", "");
 }
 
 export function normalizeSessionId(sessionId: unknown) {

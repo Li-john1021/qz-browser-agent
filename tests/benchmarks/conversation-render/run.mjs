@@ -8,6 +8,7 @@ import { pathToFileURL } from "node:url";
 import { fileURLToPath } from "node:url";
 import { discoverRealExamples } from "./tools/real-examples.mjs";
 import { createScrollFuzz } from "./tools/scroll-fuzz.mjs";
+import { mergeBudgets } from "./tools/merge-budgets.mjs";
 import { parseExportHtmlFixture } from "./tools/export-html-fixture.mjs";
 import { runConversationVisualAudit } from "./visual-audit.mjs";
 import { prepareBenchmarkAssets } from "../../support/benchmark-assets.mjs";
@@ -2549,8 +2550,9 @@ async function startStaticServer(root) {
       res.writeHead(200, { "content-type": contentType(file) });
       res.end(readFileSync(file));
     } catch (err) {
-      res.writeHead(500);
-      res.end(String(err?.stack || err));
+      console.error(err);
+      res.writeHead(500, { "content-type": "text/plain" });
+      res.end("Internal server error");
     }
   });
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -2690,19 +2692,7 @@ function readHealthBudgets(file) {
   const budgets = JSON.parse(JSON.stringify(DEFAULT_HEALTH_BUDGETS));
   if (!file) return budgets;
   const override = JSON.parse(readFileSync(resolve(String(file)), "utf8"));
-  return deepMerge(budgets, override);
-}
-
-function deepMerge(target, source) {
-  if (!source || typeof source !== "object") return target;
-  for (const [key, value] of Object.entries(source)) {
-    if (value && typeof value === "object" && !Array.isArray(value) && target[key] && typeof target[key] === "object") {
-      deepMerge(target[key], value);
-    } else {
-      target[key] = value;
-    }
-  }
-  return target;
+  return mergeBudgets(budgets, override);
 }
 
 function resolveBaselineDir(args, fixture, mode) {

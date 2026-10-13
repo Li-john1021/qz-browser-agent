@@ -92,6 +92,20 @@ test("stable scroll keys preserve both axes when an unknown renderer replaces an
   expect(await page.locator(".js-code-block, .tool-file-content-block, .tool-skill-content-preview, .tool-data-table-wrap").count()).toBe(0);
 });
 
+test("scroll surface keys with CSS metacharacters retain their own position", async ({ page }) => {
+  const keys = ['quoted"key', String.raw`back\slash`, "line\nbreak", "] .other, ["];
+  await page.evaluate(keys => window.__customScroll.create({ order: keys }), keys);
+  const before = await page.evaluate(keys => {
+    keys.forEach((key, index) => window.__customScroll.position(key, 60 + index * 40, 20 + index * 10));
+    return window.__customScroll.snapshot();
+  }, keys);
+  await page.evaluate(keys => window.__customScroll.patch({ order: [...keys].reverse(), count: 60 }), keys);
+  const after = await page.evaluate(() => window.__customScroll.snapshot());
+  for (const expected of before) {
+    expect(after.find(item => item.key === expected.key)).toMatchObject({ top: expected.top, left: expected.left });
+  }
+});
+
 test("stream following uses declared priority and respects the reader's pause and resume", async ({ page }) => {
   await page.evaluate(() => window.__customScroll.create({ streaming: true,
     order: ["low", "first", "last"], priorities: { first: 5, last: 5 } }));

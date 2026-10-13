@@ -10,7 +10,7 @@ import zlib
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from typing import Any
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, parse_qsl, urlencode, urlparse
 from xml.sax.saxutils import escape
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "support"))
@@ -85,7 +85,8 @@ class FixtureHandler(BaseHTTPRequestHandler):
         query = parse_qs(parsed.query)
         if path == "/navigation/redirect":
             self.send_response(302)
-            self.send_header("Location", f"http://localhost:{self.server.server_port}/navigation/landed?{parsed.query}")
+            redirect_query = urlencode(parse_qsl(parsed.query, keep_blank_values=True))
+            self.send_header("Location", f"http://localhost:{self.server.server_port}/navigation/landed?{redirect_query}")
             self.end_headers()
             return
         if path in {"/navigation/first", "/navigation/second", "/navigation/landed"}:

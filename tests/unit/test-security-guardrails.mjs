@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { transformSync } from "esbuild";
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
@@ -318,6 +319,27 @@ test("normalizes URL patterns with safe wildcard syntax", () => {
   assert.equal(Boolean(normalizeGuardrailPatternInput("https://example..com/*").error), true);
   assert.equal(Boolean(normalizeGuardrailPatternInput("https://example.com/a\nb").error), true);
   assert.equal(Boolean(normalizeGuardrailPatternInput("a".repeat(2050)).error), true);
+  assert.equal(Boolean(normalizeGuardrailPatternInput("a".repeat(2043)).error), true);
+  const boundary = normalizeGuardrailPatternInput("a".repeat(2042));
+  assert.equal(boundary.error, "");
+  assert.equal(boundary.pattern.length, 2048);
+  assert.deepEqual(normalizeGuardrailPatternInput(boundary.pattern), boundary);
+});
+
+test("rejects adversarial wildcard hosts within a bounded process", () => {
+  const result = spawnSync(process.execPath, [
+    "--import", "./tests/support/typescript-loader.mjs", "--input-type=module", "-e",
+    `import assert from 'node:assert/strict';
+     import { normalizeGuardrailPatternInput, matchBlockedUrl } from './src/shared/security-guardrails.js';
+     for (const suffix of ['!', ':', '@', '_']) {
+       assert.ok(normalizeGuardrailPatternInput('https://' + '*.'.repeat(900) + suffix + '/*').error);
+     }
+     assert.equal(matchBlockedUrl('https://example.com/' + 'a'.repeat(1000) + 'c', {
+       blockedPatterns: [{ pattern: 'https://example.com/' + '*a'.repeat(500) + 'b' }],
+     }), null);`,
+  ], { cwd: root, encoding: "utf8", timeout: 5000 });
+  assert.ifError(result.error);
+  assert.equal(result.status, 0, result.stderr);
 });
 
 test("normalizes rule inputs with defaults and stable ids", () => {
@@ -472,6 +494,40 @@ test("matches URL patterns against normalized full URLs", () => {
   assert.equal(matchBlockedUrl("http://b.example.com/private/page", guardrails)?.type, "pattern");
   assert.equal(matchBlockedUrl("https://example.com/private/page", guardrails), null);
   assert.equal(matchBlockedUrl("https://a.example.com/public/page", guardrails), null);
+});
+
+test("URL wildcards stay within the protocol and authority boundaries", () => {
+  const rules = [
+    { action: "allow", type: "pattern", value: "*://*.example.com/public/*" },
+    { action: "block", type: "domain", value: "evil.test" },
+  ];
+  assert.equal(matchSecurityGuardrailUrl("https://a.example.com/public/x", { rules })?.allowed, true);
+  for (const url of [
+    "https://evil.test/.example.com/public/x",
+    "https://evil.test/?next=https://a.example.com/public/x",
+    "https://evil.test/#https://a.example.com/public/x",
+    "https://a.example.com@evil.test/public/x",
+  ]) {
+    assert.equal(matchSecurityGuardrailUrl(url, { rules })?.blocked, true, url);
+    assert.equal(matchSiteOpenRateLimitUrl(url, {
+      siteOpenRateLimits: [{ type: "pattern", value: rules[0].value, minOpenIntervalMs: 1000 }],
+    }), null);
+  }
+});
+
+test("path wildcards preserve literal punctuation, anchors and ordered segments", () => {
+  const matches = (pattern, path) => Boolean(matchBlockedUrl(`https://example.com${path}`, {
+    blockedPatterns: [{ pattern: `https://example.com${pattern}` }],
+  }));
+  assert.equal(matches("/a+b.$?q=[x]#end", "/a+b.$?q=[x]#end"), true);
+  assert.equal(matches("/a+b.$?q=[x]#end", "/aaabX?q=x#end"), false);
+  assert.equal(matches("/start**middle*end", "/start/a/middle/b/end"), true);
+  assert.equal(matches("/start*middle*end", "/start/end/middle"), false);
+  assert.equal(matches("/abc*bc", "/abc"), false);
+  assert.equal(matches("/abc*bc", "/abcbc"), true);
+  assert.equal(matches("/exact", "/exact/extra"), false);
+  assert.equal(matchBlockedUrl("http://example.com/a", { blockedPatterns: [{ pattern: "https://example.com/*" }] }), null);
+  assert.ok(matchBlockedUrl("http://localhost:8080/a", { blockedPatterns: [{ pattern: "*://*/*" }] }));
 });
 
 test("applies configured access rule order", () => {
