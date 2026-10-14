@@ -2062,10 +2062,31 @@ const errorMessage = (error: unknown) => error instanceof Error ? error.message 
             tag: el.tagName.toLowerCase(),
           });
         }
-        el.value = value;
+        const wanted = String(value ?? "").trim();
+        const options = Array.from(el.options);
+        let match = options.find(option => option.textContent?.trim() === wanted);
+        if (!match) match = options.find(option => option.value === wanted);
+        if (!match && wanted) {
+          return toolError("OPTION_NOT_FOUND", `No <option> matched text or value: ${wanted}`, {
+            selector,
+            value: wanted,
+            options: options.slice(0, 20).map(option => ({
+              value: option.value,
+              text: (option.textContent || "").trim(),
+            })),
+          });
+        }
+        el.value = match ? match.value : "";
         el.dispatchEvent(new Event("input", { bubbles: true }));
         el.dispatchEvent(new Event("change", { bubbles: true }));
-        return { action: op, selector, index, selected: el.value, element: getElementSummary(el) };
+        return {
+          action: op,
+          selector,
+          index,
+          selected: el.value,
+          selectedText: match ? (match.textContent || "").trim() : "",
+          element: getElementSummary(el),
+        };
       }
 
       if (op === "check" || op === "uncheck") {
