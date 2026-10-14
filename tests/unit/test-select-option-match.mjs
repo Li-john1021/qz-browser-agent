@@ -6,39 +6,40 @@ import test from "node:test";
 
 const root = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
 const source = readFileSync(join(root, "src/content/content-script.ts"), "utf8");
+const toolMessages = readFileSync(join(root, "src/capabilities/page/tool-messages.ts"), "utf8");
+const browserSpec = readFileSync(join(root, "tests/browser/select-option-match.spec.mjs"), "utf8");
 
-test("select prefers option textContent before value and errors when unmatched", () => {
-  assert.match(source, /option\.textContent\?\.trim\(\) === wanted/);
-  assert.match(source, /option\.value === wanted/);
+test("select matches untrimmed option.value first, then trimmed option.label", () => {
+  assert.match(source, /option\.value === rawWanted/);
+  assert.match(source, /String\(option\.label \|\| ""\)\.trim\(\) === labelWanted/);
   assert.match(source, /OPTION_NOT_FOUND/);
-  assert.match(source, /No <option> matched text or value/);
-  // Prefer text before value: text find must appear before value find in source order.
-  const textIdx = source.indexOf("option.textContent?.trim() === wanted");
-  const valueIdx = source.indexOf("option.value === wanted");
-  assert.ok(textIdx > 0 && valueIdx > textIdx, "text match must come before value fallback");
+  assert.match(source, /No <option> matched value or label/);
+  const valueIdx = source.indexOf("option.value === rawWanted");
+  const labelIdx = source.indexOf('String(option.label || "").trim() === labelWanted');
+  assert.ok(valueIdx > 0 && labelIdx > valueIdx, "value match must come before label fallback");
 });
 
-/** Mirror of the content-script select matcher for behavioral coverage without Playwright. */
-function matchSelectOption(options, value) {
-  const wanted = String(value ?? "").trim();
-  let match = options.find(option => String(option.textContent || "").trim() === wanted);
-  if (!match) match = options.find(option => option.value === wanted);
-  if (!match && wanted) {
-    return { code: "OPTION_NOT_FOUND", selected: undefined };
-  }
-  return {
-    selected: match ? match.value : "",
-    selectedText: match ? String(match.textContent || "").trim() : "",
-  };
-}
+test("select assigns by selectedIndex and returns selected value plus label", () => {
+  assert.match(source, /el\.selectedIndex = matchIndex/);
+  assert.doesNotMatch(source, /el\.value = match/);
+  assert.match(source, /selectedLabel:/);
+  assert.match(source, /selectedOption \? selectedOption\.value/);
+});
 
-test("matcher selects by visible label when value codes differ", () => {
-  const options = [
-    { value: "", textContent: "请选择" },
-    { value: "sh", textContent: "上海" },
-    { value: "bj", textContent: "北京" },
-  ];
-  assert.deepEqual(matchSelectOption(options, "北京"), { selected: "bj", selectedText: "北京" });
-  assert.deepEqual(matchSelectOption(options, "sh"), { selected: "sh", selectedText: "上海" });
-  assert.equal(matchSelectOption(options, "广州").code, "OPTION_NOT_FOUND");
+test("tool descriptions document value-or-label select matching with value priority", () => {
+  assert.match(toolMessages, /精确匹配 option\.value/);
+  assert.match(toolMessages, /可见 label/);
+  assert.match(toolMessages, /exact option\.value first/i);
+  assert.match(toolMessages, /visible label/i);
+  assert.match(toolMessages, /exact value takes priority/i);
+});
+
+test("browser select tests call actOnElement with elementAction, not action", () => {
+  assert.match(browserSpec, /elementAction:\s*"select"/);
+  // Ensure the happy-path helper does not pass action:"select" into the message route.
+  assert.match(browserSpec, /async function callSelect/);
+  assert.doesNotMatch(
+    browserSpec.replace(/select with action instead of elementAction[\s\S]*$/, ""),
+    /elementAction:\s*"select"[\s\S]*action:\s*"select"/,
+  );
 });

@@ -2062,29 +2062,36 @@ const errorMessage = (error: unknown) => error instanceof Error ? error.message 
             tag: el.tagName.toLowerCase(),
           });
         }
-        const wanted = String(value ?? "").trim();
+        // Prefer an exact, untrimmed option.value match; fall back to visible label
+        // (option.label) with surrounding whitespace ignored. Select by index so
+        // duplicate values do not resolve to the wrong option.
+        const rawWanted = String(value ?? "");
+        const labelWanted = rawWanted.trim();
         const options = Array.from(el.options);
-        let match = options.find(option => option.textContent?.trim() === wanted);
-        if (!match) match = options.find(option => option.value === wanted);
-        if (!match && wanted) {
-          return toolError("OPTION_NOT_FOUND", `No <option> matched text or value: ${wanted}`, {
+        let matchIndex = options.findIndex(option => option.value === rawWanted);
+        if (matchIndex < 0 && labelWanted) {
+          matchIndex = options.findIndex(option => String(option.label || "").trim() === labelWanted);
+        }
+        if (matchIndex < 0 && labelWanted) {
+          return toolError("OPTION_NOT_FOUND", `No <option> matched value or label: ${labelWanted}`, {
             selector,
-            value: wanted,
+            value: rawWanted,
             options: options.slice(0, 20).map(option => ({
               value: option.value,
-              text: (option.textContent || "").trim(),
+              label: String(option.label || "").trim(),
             })),
           });
         }
-        el.value = match ? match.value : "";
+        el.selectedIndex = matchIndex;
         el.dispatchEvent(new Event("input", { bubbles: true }));
         el.dispatchEvent(new Event("change", { bubbles: true }));
+        const selectedOption = matchIndex >= 0 ? options[matchIndex] : null;
         return {
           action: op,
           selector,
           index,
-          selected: el.value,
-          selectedText: match ? (match.textContent || "").trim() : "",
+          selected: selectedOption ? selectedOption.value : "",
+          selectedLabel: selectedOption ? String(selectedOption.label || "").trim() : "",
           element: getElementSummary(el),
         };
       }
