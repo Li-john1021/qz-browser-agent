@@ -6,6 +6,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const SOURCE_ROOT = resolve(PROJECT_ROOT, "src");
 const localSourceCache = new Map();
+const localScriptCache = new Map();
 
 export function createBrowserV8CoverageCollector({
   coverageDir = process.env.NODE_V8_COVERAGE || "",
@@ -111,6 +112,8 @@ function localExtensionScript(value, source, extensionDir) {
     if (!file.startsWith(`${root}${sep}`)) return null;
     if (!existsSync(file)) return "";
     if (typeof source !== "string" || source !== localSource(file)) return "";
+    // The runner's compiled build is immutable; validate bytes before reusing its map.
+    if (localScriptCache.has(file)) return localScriptCache.get(file);
     const original = resolve(SOURCE_ROOT, relativePath.slice("extension/".length));
     // Unchanged JS shares the source URL, so Node and browser ranges still merge.
     if (existsSync(original) && source === localSource(original)) return { url: pathToFileURL(original).href };
@@ -122,10 +125,12 @@ function localExtensionScript(value, source, extensionDir) {
     // Classic entry maps include their npm inputs; c8 filters these after remapping.
     if (!paths.some(path => path.startsWith(`${SOURCE_ROOT}${sep}`))
       || paths.some(path => !path.startsWith(`${SOURCE_ROOT}${sep}`) && !path.startsWith(`${PROJECT_ROOT}${sep}node_modules${sep}`))) return null;
-    return {
+    const script = {
       url: pathToFileURL(file).href,
       sourceMap: { data: { ...data, sources }, lineLengths: source.split("\n").map(line => line.length) },
     };
+    localScriptCache.set(file, script);
+    return script;
   } catch (_error) {
     return "";
   }

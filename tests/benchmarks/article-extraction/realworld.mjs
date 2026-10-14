@@ -23,6 +23,7 @@ import { instrumentContentScriptSource } from "./instrument-content-script.mjs";
 import { analyzeMarkdown } from "./markdown-quality.mjs";
 import { normalizeSnapshotText } from "./corpus-diversity-audit.mjs";
 import { resolveCaptureSettlePolicy } from "./capture-settle-policy.mjs";
+import { createSnapshotSanitizer } from "./snapshot-html.mjs";
 import { ensureTestExtension } from "../../support/extension-build.mjs";
 import { prepareUpstreamArticleAssets } from "../../support/upstream-article-assets.mjs";
 
@@ -199,33 +200,6 @@ function canonicalUrl(value) {
   } catch (_error) {
     return "";
   }
-}
-
-function withBase(html, url) {
-  const base = `<base href="${String(url).replace(/&/g, "&amp;").replace(/"/g, "&quot;")}">`;
-  if (/<head(?:\s[^>]*)?>/i.test(html)) return html.replace(/<head(?:\s[^>]*)?>/i, match => `${match}${base}`);
-  return html.replace(/<html(?:\s[^>]*)?>/i, match => `${match}<head>${base}</head>`);
-}
-
-function sanitizeSnapshotHtml(html) {
-  let value = String(html || "")
-    .replace(/<script\b([^>]*)>[\s\S]*?<\/script\s*>/gi, (match, attributes) => (
-      /\btype\s*=\s*["']application\/ld\+json(?:;[^"']*)?["']/i.test(attributes) ? match : ""
-    ))
-    .replace(/<script\b[^>]*\/\s*>/gi, "")
-    .replace(/<meta\b[^>]*http-equiv\s*=\s*["']?refresh["']?[^>]*>/gi, "")
-    .replace(/<link\b[^>]*rel\s*=\s*["'][^"']*(?:stylesheet|preload|modulepreload|prefetch)[^"']*["'][^>]*>/gi, "")
-    .replace(/<iframe\b[^>]*>[\s\S]*?<\/iframe\s*>/gi, "")
-    .replace(/<(?:iframe|embed)\b[^>]*\/?>/gi, "")
-    .replace(/<object\b[^>]*>/gi, "")
-    .replace(/<\/object\s*>/gi, "")
-    .replace(/<param\b[^>]*\/?>/gi, "")
-    .replace(/\son[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "")
-    .replace(/<meta\b[^>]*(?:charset\s*=|http-equiv\s*=\s*["']?content-type)[^>]*>/gi, "");
-  if (/<head(?:\s[^>]*)?>/i.test(value)) {
-    value = value.replace(/<head(?:\s[^>]*)?>/i, match => `${match}<meta charset="utf-8">`);
-  }
-  return value;
 }
 
 function sameHost(url, hosts) {
@@ -706,7 +680,7 @@ function captureFailureReason(status, title, text, finalUrl = "") {
   return "";
 }
 
-async function captureOne(page, entry, outputDir, screenshots) {
+async function captureOne(page, entry, outputDir, screenshots, sanitizeSnapshot) {
   const started = performance.now();
   let response = null;
   try {
@@ -743,7 +717,7 @@ async function captureOne(page, entry, outputDir, screenshots) {
     }
     if (!captured.consistent) return { ...base, ok: false, failure: "unstable_content" };
     if (reason) return { ...base, ok: false, failure: reason };
-    const html = withBase(sanitizeSnapshotHtml(inspected.html), finalUrl);
+    const html = await sanitizeSnapshot(inspected.html, finalUrl);
     const inputSha256 = sha256(html);
     const fileName = `${entry.siteId}-${inputSha256.slice(0, 16)}.html`;
     const snapshotPath = join(outputDir, "snapshots", fileName);
@@ -837,6 +811,7 @@ async function captureCore(config, outputDir, workers, screenshots, {
 } = {}) {
   const browser = await chromium.launch({ headless: !flag("--headed") });
   try {
+    const sanitizeSnapshot = await createSnapshotSanitizer(browser);
     const siteResults = new Array(config.sites.length);
     for (const [siteIndex, result] of completedSites) siteResults[siteIndex] = result;
     const pendingSites = config.sites
@@ -881,7 +856,7 @@ async function captureCore(config, outputDir, workers, screenshots, {
         };
         for (const seed of site.seeds) {
           if (config.strictSiteQuotas && successes.length >= quota) break;
-          const captured = await captureOne(page, siteCaptureEntry(site, seed), outputDir, screenshots);
+          const captured = await captureOne(page, siteCaptureEntry(site, seed), outputDir, screenshots, sanitizeSnapshot);
           attemptedUrls.add(canonicalUrl(seed.url));
           attemptedUrls.add(canonicalUrl(captured.finalUrl || captured.requestedUrl));
           accept(captured);
@@ -900,7 +875,7 @@ async function captureCore(config, outputDir, workers, screenshots, {
           accept(await captureOne(page, siteCaptureEntry(site, {
             type: site.discoveredType || "detail",
             url,
-          }), outputDir, screenshots));
+          }), outputDir, screenshots, sanitizeSnapshot));
         }
         result = { site, quota, successes, failures, reserveUrls: candidateAttempts.filter(url => !attemptedUrls.has(url)) };
       } finally {
@@ -941,7 +916,7 @@ async function captureCore(config, outputDir, workers, screenshots, {
         try {
           await context.route("**/*", async route => ["font", "media"].includes(route.request().resourceType()) ? route.abort() : route.continue());
           const page = await context.newPage();
-          return await captureOne(page, entry, outputDir, screenshots);
+          return await captureOne(page, entry, outputDir, screenshots, sanitizeSnapshot);
         } finally {
           await context.close();
         }
@@ -1465,21 +1440,28 @@ function composeCommand() {
   }
 }
 
-function sanitizeCommand() {
+async function sanitizeCommand() {
   const corpusDir = resolve(option("--corpus", join(defaultResults, "zh-core-v1")));
   const manifestPath = resolve(option("--manifest", join(corpusDir, "manifest.json")));
   const manifest = json(manifestPath);
   let changed = 0;
-  for (const sample of manifest.samples || []) {
-    const currentPath = resolve(corpusDir, sample.snapshot);
-    const sanitized = sanitizeSnapshotHtml(readFileSync(currentPath, "utf8"));
-    const inputSha256 = sha256(sanitized);
-    if (inputSha256 === sample.inputSha256) continue;
-    const nextPath = join(corpusDir, "snapshots", `${sample.siteId}-${inputSha256.slice(0, 16)}.html`);
-    writeFileSync(nextPath, sanitized);
-    sample.snapshot = relative(corpusDir, nextPath);
-    sample.inputSha256 = inputSha256;
-    changed += 1;
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const sanitizeSnapshot = await createSnapshotSanitizer(browser);
+    for (const sample of manifest.samples || []) {
+      const currentPath = resolve(corpusDir, sample.snapshot);
+      const sanitized = await sanitizeSnapshot(readFileSync(currentPath, "utf8"), sample.finalUrl || sample.url);
+      const inputSha256 = sha256(sanitized);
+      if (inputSha256 === sample.inputSha256) continue;
+      const nextPath = join(corpusDir, "snapshots", `${sample.siteId}-${inputSha256.slice(0, 16)}.html`);
+      mkdirSync(dirname(nextPath), { recursive: true });
+      writeFileSync(nextPath, sanitized);
+      sample.snapshot = relative(corpusDir, nextPath);
+      sample.inputSha256 = inputSha256;
+      changed += 1;
+    }
+  } finally {
+    await browser.close();
   }
   manifest.sanitizedAt = new Date().toISOString();
   writeJson(manifestPath, manifest);
@@ -2619,7 +2601,7 @@ async function runCommand() {
 const command = process.argv[2] || "";
 if (command === "capture") await captureCommand();
 else if (command === "compose") composeCommand();
-else if (command === "sanitize") sanitizeCommand();
+else if (command === "sanitize") await sanitizeCommand();
 else if (command === "annotate") await annotateCommand();
 else if (command === "run") await runCommand();
 else {

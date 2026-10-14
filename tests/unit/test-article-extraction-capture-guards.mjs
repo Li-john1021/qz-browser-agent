@@ -48,7 +48,7 @@ test("live capture rejects generic challenge and login redirects without matchin
       response.end(`<html><head><title>404-页面不存在</title></head><body><main>${"当前地址没有可展示的页面，请返回首页。".repeat(12)}</main></body></html>`);
       return;
     }
-    response.end(`<html><head><title>正常正文</title></head><body><article><h1>正常正文</h1><p>${normalText}</p><a href="/account/login">账号登录入口</a></article></body></html>`);
+    response.end(`<html><head><title>正常正文</title><script>window.DOMParser = class { constructor() { throw new Error('site-owned parser'); } };</script></head><body><article><h1>正常正文</h1><p>${normalText}</p><a href="/account/login">账号登录入口</a></article></body></html>`);
   });
   await new Promise((resolvePromise, reject) => {
     server.once("error", reject);
@@ -234,6 +234,8 @@ test("live capture freezes CSS-hidden roots without depending on site styles dur
   const browser = await chromium.launch({ headless: true });
   t.after(() => browser.close());
   const page = await browser.newPage();
+  await page.addInitScript({ path: readabilityScript });
+  await page.addInitScript({ path: articleExtractorScript });
   await page.goto(pathToFileURL(join(output, sample.snapshot)).href, { waitUntil: "domcontentloaded" });
   const frozen = await page.evaluate(() => {
     document.querySelectorAll("style,link[rel~='stylesheet']").forEach(element => element.remove());
@@ -275,8 +277,6 @@ test("live capture freezes CSS-hidden roots without depending on site styles dur
     descendantWasSkipped: false,
   });
 
-  await page.addScriptTag({ path: readabilityScript });
-  await page.addScriptTag({ path: articleExtractorScript });
   const candidates = await page.evaluate(() => {
     const parseReadability = () => new Readability(document.cloneNode(true), {
       charThreshold: 0,

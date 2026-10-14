@@ -5,20 +5,32 @@ import { copyFile, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test from "node:test";
+import { parseAgentArgs } from "../background/agent-behavior-cli.mjs";
+import { parseBehaviorArgs } from "../behavior/cli.mjs";
 
-test("Agent arguments fail before credentials are read or browsers launch", async t => {
-  const fixture = await runnerFixture(t, "background/agent-behavior-e2e.mjs");
+test("Agent argument validation covers every flag and rejects malformed values", () => {
   for (const flag of ["suite", "cases", "concurrency", "repetitions", "bridge-timeout", "ak-file", "provider", "model", "report", "capture-dir"]) {
     for (const args of [[`--${flag}`], [`--${flag}=`], [`--${flag}`, " "], [`--${flag}`, "--vision"]]) {
-      const result = fixture.run(args);
-      assert.notEqual(result.status, 0, args.join(" "));
-      assert.equal(fixture.observed(), null, args.join(" "));
+      assert.throws(() => parseAgentArgs(args), undefined, args.join(" "));
     }
   }
   for (const args of [["--typo"], ["unexpected"], ["--concurrency", "0"], ["--repetitions", "1.5"], ["--bridge-timeout", "29"], ["--suite", "journeys-vision"]]) {
-    assert.notEqual(fixture.run(args).status, 0, args.join(" "));
-    assert.equal(fixture.observed(), null, args.join(" "));
+    assert.throws(() => parseAgentArgs(args), undefined, args.join(" "));
   }
+});
+
+for (const [entry, args] of [
+  ["background/agent-behavior-e2e.mjs", ["--suite"]],
+  ["background/agent-behavior-e2e.mjs", ["--repetitions", "1.5"]],
+  ["behavior/run.mjs", ["--journey"]],
+  ["behavior/run.mjs", ["--report", " "]],
+]) test(`${entry} rejects ${JSON.stringify(args)} before credentials, discovery or execution`, async t => {
+  const fixture = await runnerFixture(t, entry);
+  const result = fixture.run(args);
+  assert.ifError(result.error);
+  assert.equal(result.status, 1, result.stderr);
+  assert.match(result.stderr, /argument missing|requires a non-empty value|--repetitions must/);
+  assert.equal(fixture.observed(), null);
 });
 
 test("Agent values retain spaces and equals signs at the credential boundary", async t => {
@@ -29,18 +41,14 @@ test("Agent values retain spaces and equals signs at the credential boundary", a
   assert.deepEqual(fixture.observed(), { provider: "custom=provider", keyFile: "a directory/key=value" });
 });
 
-test("behavior arguments fail before test discovery or execution", async t => {
-  const fixture = await runnerFixture(t, "behavior/run.mjs");
+test("behavior argument validation covers every filter and rejects malformed values", () => {
   for (const flag of ["journey", "actor", "coverage", "layer", "report"]) {
     for (const args of [[`--${flag}`], [`--${flag}=`], [`--${flag}`, " "], [`--${flag}`, "--list"]]) {
-      const result = fixture.run(args);
-      assert.notEqual(result.status, 0, args.join(" "));
-      assert.equal(fixture.observed(), null, args.join(" "));
+      assert.throws(() => parseBehaviorArgs(args, "/fixture"), undefined, args.join(" "));
     }
   }
   for (const args of [["--typo"], ["unexpected"]]) {
-    assert.notEqual(fixture.run(args).status, 0, args.join(" "));
-    assert.equal(fixture.observed(), null, args.join(" "));
+    assert.throws(() => parseBehaviorArgs(args, "/fixture"), undefined, args.join(" "));
   }
 });
 
@@ -83,6 +91,8 @@ export const detectSkippedCommandOutput = () => {}, relativeIndexPath = () => {}
   const script = join(root, entry);
   await mkdir(dirname(script), { recursive: true });
   await copyFile(new URL(`../${entry}`, import.meta.url), script);
+  const cli = entry.startsWith("background/") ? "background/agent-behavior-cli.mjs" : "behavior/cli.mjs";
+  await copyFile(new URL(`../${cli}`, import.meta.url), join(root, cli));
   // These copied JS entrypoints only exercise argument handling against stubs.
   const env = { ...process.env };
   for (const name of ["NODE_OPTIONS", "NODE_V8_COVERAGE", "NODE_TEST_CONTEXT"]) delete env[name];

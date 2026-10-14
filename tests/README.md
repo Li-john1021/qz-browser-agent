@@ -6,9 +6,9 @@ runner options.
 
 ## Run and filter tests
 
-Install both Playwright Chromium for extension tests and Chromium Headless Shell for page tests with
-`npx playwright install chromium`. Python browser tests use `tests/python/uv.lock` through uv. Missing
-dependencies fail the run.
+Install the locked browser binaries with `npx playwright install chromium`. Playwright and extension
+tests use Chromium; standalone page fixtures also use Chromium Headless Shell. Python browser tests
+use `tests/python/uv.lock` through uv. Missing dependencies fail the run.
 
 ```bash
 npm test -- unit contracts
@@ -34,11 +34,16 @@ filters unit filenames or suite commands; the `playwright` entry accepts Playwri
 directly.
 
 The runner selects one to three concurrent jobs based on available CPUs. Timing-sensitive suites run
-after other work. Use `npm test -- --all --jobs 1` to diagnose resource contention.
+after other work. Each lane runs ready commands while dependent commands wait; build-only release
+checks use the general lane. Use `npm test -- --all --jobs 1` to diagnose resource contention.
+With two jobs, the auxiliary slot finishes ready general work, then runs isolated extension checks
+alongside Playwright. Each extension check owns its profile; timing measurements still run alone.
 `QINGZHOU_TEST_CONCURRENCY` and `QINGZHOU_PLAYWRIGHT_WORKERS` override their respective pools; suite
 ownership stays in [`runner/suites.mjs`](runner/suites.mjs).
 
-The runner uses the locked Chromium. Page tests can select `QINGZHOU_PLAYWRIGHT_CHANNEL=chrome`;
+The runner uses the locked Chromium, including its full headless mode for Playwright page tests.
+Native keyboard, clipboard and control fixtures retain Chromium Headless Shell.
+Page tests can select `QINGZHOU_PLAYWRIGHT_CHANNEL=chrome`;
 other browser entries accept `CHROME_EXECUTABLE`. Keep the browser version fixed for comparisons.
 
 ## Add a test at the right boundary
@@ -104,6 +109,10 @@ provider domains to a local receiver.
 Use `npm test -- report` to open `tests/results/playwright-report/`. Trace files, screenshots and
 error context are under `tests/results/playwright/`. Page exceptions and `console.error` fail a
 test; traces are retained on failure.
+
+Default traces include API calls and network events. Set `QINGZHOU_TEST_TRACE_SNAPSHOTS=1` to also
+record DOM snapshots, screencasts and sources for visual debugging. Failure screenshots, layout
+assertions, locale/viewport matrices and coverage collection run in both modes.
 
 The next Playwright run clears its output. Copy evidence you need to another ignored
 `tests/results/` directory before rerunning. Reproduce a failing scenario narrowly, then run its

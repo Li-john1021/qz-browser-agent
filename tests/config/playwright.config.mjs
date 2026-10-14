@@ -39,9 +39,11 @@ export default defineConfig({
   use: {
     locale: "zh-CN",
     baseURL: `http://127.0.0.1:${port}`,
-    ...(process.env.QINGZHOU_PLAYWRIGHT_CHANNEL ? { channel: process.env.QINGZHOU_PLAYWRIGHT_CHANNEL } : {}),
+    channel: process.env.QINGZHOU_PLAYWRIGHT_CHANNEL || "chromium",
     headless: process.env.QINGZHOU_TEST_HEADED !== "1",
-    trace: "retain-on-failure",
+    // API traces retain failure diagnostics; DOM snapshots are opt-in for visual debugging.
+    trace: process.env.QINGZHOU_TEST_TRACE_SNAPSHOTS === "1" ? "retain-on-failure"
+      : { mode: "retain-on-failure", snapshots: false, screenshots: false, sources: false },
     screenshot: "only-on-failure",
     video: "off",
   },

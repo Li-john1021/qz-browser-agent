@@ -7,6 +7,7 @@ export async function runTasks(tasks, { root: ROOT, jobs: testJobs, selected }) 
   const startedAt = performance.now();
   const activeChildren = new Set();
   const completionSignals = createCompletionSignals(tasks);
+  const completedIds = new Set();
   let stopping = false;
   let firstFailure = null;
   let receivedSignal = "";
@@ -30,7 +31,7 @@ export async function runTasks(tasks, { root: ROOT, jobs: testJobs, selected }) 
   await Promise.all(taskWorkers.map(queue => runTaskWorker(queue)));
   if (!stopping && exclusiveTasks.length) {
     console.log(`\nRunning ${exclusiveTasks.length} timing-sensitive commands exclusively`);
-    await runTaskWorker({ tasks: exclusiveTasks, index: 0 });
+    await runTaskWorker({ tasks: exclusiveTasks });
   }
 
   process.off("SIGINT", handleSigint);
@@ -55,13 +56,14 @@ export async function runTasks(tasks, { root: ROOT, jobs: testJobs, selected }) 
   }
 
   async function runTaskWorker(queue) {
-    while (!stopping) {
-      const task = queue.tasks[queue.index];
-      queue.index += 1;
-      if (!task) return;
-
-      await waitForDependencies(task);
-      if (stopping) return;
+    while (!stopping && queue.tasks.length) {
+      const ready = queue.tasks.findIndex(task => pendingDependencies(task).length === 0);
+      if (ready < 0) {
+        await Promise.race(queue.tasks.flatMap(task => pendingDependencies(task)
+          .map(id => completionSignals.get(id).promise)));
+        continue;
+      }
+      const [task] = queue.tasks.splice(ready, 1);
 
       const itemStartedAt = performance.now();
       console.log(`\n== ${task.suite} ==`);
@@ -69,6 +71,7 @@ export async function runTasks(tasks, { root: ROOT, jobs: testJobs, selected }) 
       const result = await runCommand(task.item);
       const elapsedMs = performance.now() - itemStartedAt;
       timings.push({ suite: task.suite, label: task.label, elapsedMs });
+      completedIds.add(task.item.id);
       completionSignals.get(task.item.id)?.resolve();
 
       if (result.exitCode === 0) {
@@ -85,26 +88,32 @@ export async function runTasks(tasks, { root: ROOT, jobs: testJobs, selected }) 
   }
 
   function createTaskWorkers(allTasks, jobs) {
-    if (jobs === 1) return [{ tasks: allTasks, index: 0 }];
+    if (jobs === 1) return [{ tasks: allTasks }];
 
     const primaryBrowserTasks = allTasks.filter(task => task.resource === "browser");
     const secondaryBrowserTasks = allTasks.filter(task => task.resource === "browser-secondary");
     const generalTasks = allTasks.filter(task => task.resource === "general");
     const workers = [];
 
+    // With two jobs, share the auxiliary slot after general work finishes instead
+    // of queueing isolated extension checks behind the entire Playwright matrix.
+    if (jobs === 2 && primaryBrowserTasks.length && secondaryBrowserTasks.length && generalTasks.length) {
+      return [{ tasks: primaryBrowserTasks }, { tasks: [...generalTasks, ...secondaryBrowserTasks] }];
+    }
+
     const canSplitBrowserLanes = primaryBrowserTasks.length
       && secondaryBrowserTasks.length
       && (jobs >= 3 || !generalTasks.length);
     if (canSplitBrowserLanes) {
-      workers.push({ tasks: primaryBrowserTasks, index: 0 });
-      workers.push({ tasks: secondaryBrowserTasks, index: 0 });
+      workers.push({ tasks: primaryBrowserTasks });
+      workers.push({ tasks: secondaryBrowserTasks });
     } else {
       const browserTasks = allTasks.filter(task => task.resource !== "general");
-      if (browserTasks.length) workers.push({ tasks: browserTasks, index: 0 });
+      if (browserTasks.length) workers.push({ tasks: browserTasks });
     }
 
     if (generalTasks.length) {
-      const queue = { tasks: generalTasks, index: 0 };
+      const queue = { tasks: generalTasks };
       const generalJobs = Math.min(generalTasks.length, jobs - workers.length);
       for (let index = 0; index < generalJobs; index += 1) workers.push(queue);
     }
@@ -156,11 +165,8 @@ export async function runTasks(tasks, { root: ROOT, jobs: testJobs, selected }) 
     return signals;
   }
 
-  async function waitForDependencies(task) {
-    const dependencies = (task.item.after || [])
-      .map(id => completionSignals.get(id)?.promise)
-      .filter(Boolean);
-    if (dependencies.length) await Promise.all(dependencies);
+  function pendingDependencies(task) {
+    return (task.item.after || []).filter(id => completionSignals.has(id) && !completedIds.has(id));
   }
 
   function releasePendingDependencies() {

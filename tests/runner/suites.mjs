@@ -9,7 +9,6 @@ const command = (bin, ...args) => ({ bin, args });
 const commandWith = (options, bin, ...args) => ({ bin, args, ...options });
 const parallelCommand = (bin, ...args) => ({ ...command(bin, ...args), resource: "general" });
 const secondaryBrowserCommand = (bin, ...args) => ({ ...command(bin, ...args), resource: "browser-secondary" });
-const testPython = (...args) => command("node", "tests/support/run-python-browser.mjs", ...args);
 const testPythonParallel = (...args) => parallelCommand("node", "tests/support/run-python-browser.mjs", ...args);
 const testPythonSecondary = (...args) => secondaryBrowserCommand("node", "tests/support/run-python-browser.mjs", ...args);
 
@@ -29,6 +28,7 @@ export function createSuiteCatalog({ root: ROOT, match, unitConcurrency }) {
     "tests/unit/test-article-extraction-capture-hydration.mjs",
     "tests/unit/test-article-extraction-capture-overflow.mjs",
     "tests/unit/test-article-extraction-runner.mjs",
+    "tests/unit/test-article-extraction-snapshot-html.mjs",
     "tests/unit/test-gold-markdown-generator.mjs",
     "tests/unit/test-design-system-comparison.mjs",
   ]);
@@ -81,8 +81,8 @@ export function createSuiteCatalog({ root: ROOT, match, unitConcurrency }) {
     ],
     e2e: [
       commandWith({ id: "image-conversion-e2e" }, "node", "tests/background/image-conversion-e2e.mjs"),
-      commandWith({ id: "extension-e2e" }, "node", "tests/background/extension-e2e.mjs"),
-      commandWith({ id: "mcp-tab-ownership-e2e" }, "node", "tests/background/mcp-tab-ownership-e2e.mjs"),
+      commandWith({ id: "extension-e2e", resource: "browser-secondary" }, "node", "tests/background/extension-e2e.mjs"),
+      commandWith({ id: "mcp-tab-ownership-e2e", resource: "browser-secondary" }, "node", "tests/background/mcp-tab-ownership-e2e.mjs"),
       commandWith(
         {
           resource: "general",
@@ -106,14 +106,14 @@ export function createSuiteCatalog({ root: ROOT, match, unitConcurrency }) {
         "node",
         "tests/benchmarks/conversation-render/run-stream-interaction.mjs",
       ),
-      testPython("tests/session-exchange/e2e-check.py"),
-      testPython("tests/qingzhou-documents/e2e-check.py"),
-      testPython("tests/tool-timeline/e2e-check.py"),
+      testPythonSecondary("tests/session-exchange/e2e-check.py"),
+      testPythonSecondary("tests/qingzhou-documents/e2e-check.py"),
+      testPythonSecondary("tests/tool-timeline/e2e-check.py"),
     ],
     release: [
-      secondaryBrowserCommand("node", "--test", "--test-reporter=spec", "tests/release/build-extension.test.mjs", "tests/release/bundle-release.test.mjs"),
+      parallelCommand("node", "--test", "--test-reporter=spec", "tests/release/build-extension.test.mjs", "tests/release/bundle-release.test.mjs"),
       commandWith(
-        { id: "release-chrome-smoke", resource: "browser-secondary", after: ["playwright-browser"] },
+        { id: "release-chrome-smoke", resource: "browser-secondary" },
         "node",
         "tests/release/chrome-smoke.mjs",
       ),

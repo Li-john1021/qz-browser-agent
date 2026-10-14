@@ -48,3 +48,34 @@ test("timeline policies retain immutable historical identity and support generic
   assert.deepEqual(registry.project("timelineBadge", tool, {}), { label: "original", order: 10 });
   assert.equal(tool.familyId, "original");
 });
+
+test("capability identity wins over renderer defaults, and registration can be removed", () => {
+  const registry = new ToolPresentationRegistry();
+  registry.register({ id: "fixture.renderer", argsSummary: () => "renderer default" });
+  const unregister = registry.register({ id: "fixture.logical-tool", argsSummary: () => "capability override" });
+  const tool = { name: "plugin__alias", capabilityId: "fixture.logical-tool", rendererId: "fixture.renderer" };
+  const before = registry.project("argsSummary", tool, {});
+  unregister();
+  const after = registry.project("argsSummary", tool, {});
+  let duplicateRejected = false;
+  try { registry.register({ id: "fixture.renderer" }); } catch { duplicateRejected = true; }
+  const result = { before, after, duplicateRejected };
+  assert.deepEqual(result, { before: "capability override", after: "renderer default", duplicateRejected: true });
+});
+
+test("registration snapshots declarations and stale disposal preserves newer registrations", () => {
+  const registry = new ToolPresentationRegistry();
+  const definition = { id: "fixture.stable", argsSummary: () => "original", timelineVisibility: "standalone" };
+  const dispose = registry.register(definition);
+  definition.id = "fixture.mutated";
+  definition.argsSummary = () => "mutated";
+  definition.timelineVisibility = "hidden";
+  const snapshot = [registry.project("argsSummary", "fixture.stable", {}), registry.timelineVisibility("fixture.stable")];
+  dispose();
+  const removed = registry.project("argsSummary", "fixture.stable", {}) === undefined;
+  registry.register({ id: "fixture.stable", argsSummary: () => "replacement" });
+  dispose();
+  const result = { snapshot, removed, replacement: registry.project("argsSummary", "fixture.stable", {}),
+    mutatedRegistered: registry.project("argsSummary", "fixture.mutated", {}) !== undefined };
+  assert.deepEqual(result, { snapshot: ["original", "standalone"], removed: true, replacement: "replacement", mutatedRegistered: false });
+});

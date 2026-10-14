@@ -7,7 +7,7 @@ import { expect, test } from "./fixtures.mjs";
 import { ensureTestExtension } from "../support/extension-build.mjs";
 
 function escapeHtml(value) {
-  return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+  return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 for (const watchNetwork of [false, true]) test(`tab navigation commits before reading (watchNetwork=${watchNetwork})`, async () => {

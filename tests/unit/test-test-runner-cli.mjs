@@ -4,6 +4,17 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { delimiter, dirname, join } from "node:path";
 import test from "node:test";
+import { parseCliArgs, validateSelection } from "../runner/cli.mjs";
+import { directEntrypoint } from "../runner/entrypoints.mjs";
+import { AUTOMATED_SUITES } from "../runner/suites.mjs";
+
+function select(args) {
+  const direct = directEntrypoint(args);
+  if (direct) return direct;
+  const cli = parseCliArgs(args);
+  validateSelection(cli, Object.fromEntries(AUTOMATED_SUITES.map(name => [name, []])));
+  return cli;
+}
 
 test("help and plans do not build, launch children or read live credentials", async t => {
   const fixture = await createFixture(t);
@@ -13,7 +24,13 @@ test("help and plans do not build, launch children or read live credentials", as
     ["live", "agent", "--cases", "example", "--list"], ["live", "deepseek", "--help"],
     ["live", "rate", "--list"], ["grid", "--help"], ["grid", "--list"],
     ["playwright", "--help"], ["behavior", "--help"], ["report", "--help"],
-  ]) assert.equal(fixture.run(args).status, 0, args.join(" "));
+  ]) {
+    const plan = select(args);
+    assert.ok(plan.help || plan.helpRequested || plan.list, args.join(" "));
+  }
+  for (const args of [["--help"], ["--all", "--coverage", "--list"]]) {
+    assert.equal(fixture.run(args).status, 0, args.join(" "));
+  }
   assert.match(fixture.run(["live", "agent", "--help"]).stdout, /--provider <name>, --model <name>/);
   assert.match(fixture.run(["live", "rate", "--help"]).stdout, /QINGZHOU_DEEPSEEK_MODEL/);
   assert.deepEqual(await fixture.events(), []);
@@ -29,7 +46,13 @@ test("invalid selections fail before launching or building anything", async t =>
     ["live", "agent", "--coverage"], ["live", "unknown"], ["live", "rate", "--model", "example"],
     ["live", "deepseek", "--unknown"], ["grid", "--unknown"], ["live", "realworld", "--suite", "base"],
     ["playwright", "--all"], ["unit,", "--list"],
-  ]) assert.notEqual(fixture.run(args).status, 0, args.join(" "));
+  ]) assert.throws(() => select(args), undefined, args.join(" "));
+  for (const args of [["--jobs", "0"], ["browser", "--coverage"], ["live", "unknown"]]) {
+    const result = fixture.run(args);
+    assert.ifError(result.error);
+    assert.equal(result.status, 1, result.stderr);
+    assert.match(result.stderr, /--jobs must|--coverage requires|Unknown live target/);
+  }
   assert.deepEqual(await fixture.events(), []);
 });
 

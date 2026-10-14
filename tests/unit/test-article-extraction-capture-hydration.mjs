@@ -12,6 +12,10 @@ import {
   runAsync,
 } from "../support/article-extraction-benchmark.mjs";
 
+function scriptString(value) {
+  return JSON.stringify(value).replace(/</g, "\\u003c");
+}
+
 test("live capture waits for hydration and retries when the inspected text changes before its screenshot", async t => {
   const fixtureRoot = mkdtempSync(join(tmpdir(), "qingzhou-capture-consistency-"));
   t.after(() => rmSync(fixtureRoot, { recursive: true, force: true }));
@@ -23,11 +27,11 @@ test("live capture waits for hydration and retries when the inspected text chang
   const server = createServer((request, response) => {
     response.writeHead(200, { "content-type": "text/html; charset=utf-8" });
     if (request.url === "/delayed") {
-      response.end(`<html><head><title>延迟水合</title></head><body><main id="content">${"正在加载中心内容".repeat(12)}</main><script>setTimeout(() => { document.querySelector('#content').textContent = ${JSON.stringify(delayedFinal)}; }, 180);</script></body></html>`);
+      response.end(`<html><head><title>延迟水合</title></head><body><main id="content">${"正在加载中心内容".repeat(12)}</main><script>setTimeout(() => { document.querySelector('#content').textContent = ${scriptString(delayedFinal)}; }, 180);</script></body></html>`);
       return;
     }
     if (request.url === "/rich-delayed") {
-      response.end(`<html><head><title>富壳延迟水合</title></head><body><main id="content">${richShell}</main><script>setTimeout(() => { document.querySelector('#content').textContent = ${JSON.stringify(richFinal)}; }, 180);</script></body></html>`);
+      response.end(`<html><head><title>富壳延迟水合</title></head><body><main id="content">${richShell}</main><script>setTimeout(() => { document.querySelector('#content').textContent = ${scriptString(richFinal)}; }, 180);</script></body></html>`);
       return;
     }
     if (request.url === "/unstable") {
@@ -39,7 +43,7 @@ test("live capture waits for hydration and retries when the inspected text chang
           if (!pending) {
             pending = true;
             queueMicrotask(() => {
-              document.querySelector('#content').textContent = ${JSON.stringify(betweenInitial)} + (++version);
+              document.querySelector('#content').textContent = ${scriptString(betweenInitial)} + (++version);
               pending = false;
             });
           }
@@ -54,7 +58,7 @@ test("live capture waits for hydration and retries when the inspected text chang
       Element.prototype.getBoundingClientRect = function(...args) {
         if (!queued) {
           queued = true;
-          queueMicrotask(() => { document.querySelector('#content').textContent = ${JSON.stringify(betweenFinal)}; });
+          queueMicrotask(() => { document.querySelector('#content').textContent = ${scriptString(betweenFinal)}; });
         }
         return originalRect.apply(this, args);
       };

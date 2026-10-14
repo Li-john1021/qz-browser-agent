@@ -73,24 +73,6 @@ test("throwing or malformed presentation callbacks preserve generic live and sta
   }
 });
 
-test("capability identity wins over renderer defaults, and registration can be removed", async ({ page }) => {
-  await page.goto("/__test_health");
-  const result = await page.evaluate(async () => {
-    const { ToolPresentationRegistry } = await import("/extension/sidepanel/tools/tool-presentation.js");
-    const registry = new ToolPresentationRegistry();
-    registry.register({ id: "fixture.renderer", argsSummary: () => "renderer default" });
-    const unregister = registry.register({ id: "fixture.logical-tool", argsSummary: () => "capability override" });
-    const tool = { name: "plugin__alias", capabilityId: "fixture.logical-tool", rendererId: "fixture.renderer" };
-    const before = registry.project("argsSummary", tool, {});
-    unregister();
-    const after = registry.project("argsSummary", tool, {});
-    let duplicateRejected = false;
-    try { registry.register({ id: "fixture.renderer" }); } catch { duplicateRejected = true; }
-    return { before, after, duplicateRejected };
-  });
-  expect(result).toEqual({ before: "capability override", after: "renderer default", duplicateRejected: true });
-});
-
 test("built-in media parameters and streaming file previews survive capability registration", async ({ page }) => {
   await page.goto("/__test_health");
   const result = await page.evaluate(async () => {
@@ -113,27 +95,6 @@ test("built-in media parameters and streaming file previews survive capability r
   expect(result.fileContent).toBe("# Streaming content");
   expect(result.fileParams).toContain("draft.md");
   expect(result.fileParams).not.toContain("Streaming content");
-});
-
-test("registration snapshots declarations and stale disposal preserves newer registrations", async ({ page }) => {
-  await page.goto("/__test_health");
-  const result = await page.evaluate(async () => {
-    const { ToolPresentationRegistry } = await import("/extension/sidepanel/tools/tool-presentation.js");
-    const registry = new ToolPresentationRegistry();
-    const definition = { id: "fixture.stable", argsSummary: () => "original", timelineVisibility: "standalone" };
-    const dispose = registry.register(definition);
-    definition.id = "fixture.mutated";
-    definition.argsSummary = () => "mutated";
-    definition.timelineVisibility = "hidden";
-    const snapshot = [registry.project("argsSummary", "fixture.stable", {}), registry.timelineVisibility("fixture.stable")];
-    dispose();
-    const removed = registry.project("argsSummary", "fixture.stable", {}) === undefined;
-    registry.register({ id: "fixture.stable", argsSummary: () => "replacement" });
-    dispose();
-    return { snapshot, removed, replacement: registry.project("argsSummary", "fixture.stable", {}),
-      mutatedRegistered: registry.project("argsSummary", "fixture.mutated", {}) !== undefined };
-  });
-  expect(result).toEqual({ snapshot: ["original", "standalone"], removed: true, replacement: "replacement", mutatedRegistered: false });
 });
 
 test("timeline visibility does not leak to other tools sharing a wait renderer", async ({ page }) => {

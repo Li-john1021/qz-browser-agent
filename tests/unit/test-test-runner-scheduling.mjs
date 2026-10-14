@@ -49,6 +49,41 @@ test("an ordinary failure stops peers and prevents the exclusive phase", async t
   assert.equal(events.some(event => MEASUREMENTS.includes(event.id)), false);
 });
 
+test("a blocked general command leaves its lane available while respecting dependencies", async t => {
+  const fixture = await createFixture(t);
+  const source = await readFile(fixture.suites, "utf8");
+  const dependency = 'resource: "general",\n          after: ["playwright-browser"],';
+  assert.ok(source.includes(dependency));
+  // The primary fixture waits for the release build. Queuing the dependent grid
+  // command first must not prevent that build from using the same general lane.
+  await writeFile(fixture.suites, source.replace(dependency,
+    'resource: "general",\n          after: ["image-conversion-e2e"],'));
+  const result = await fixture.run({}, ["e2e", "release", "--jobs", "2"]);
+  assert.equal(result.code, 0, result.output);
+  const events = await fixture.events();
+  const position = (id, kind) => events.findIndex(event => event.id === id && event.kind === kind);
+  const ended = position(PRIMARY, "end");
+  assert.ok(position(SECONDARY, "start") < ended);
+  assert.ok(position("tests/data-grid/extension-page.mjs", "start") > ended);
+  const starts = events.filter(event => event.kind === "start").map(event => event.id);
+  assert.equal(new Set(starts).size, starts.length, "each command runs once");
+});
+
+test("two jobs reuse the general slot for isolated browser work before the primary lane finishes", async t => {
+  const smoke = "tests/release/chrome-smoke.mjs";
+  const fixture = await createFixture(t, { secondaryPeer: smoke });
+  const result = await fixture.run({}, ["e2e", "release", "visual", "--jobs", "2"]);
+  assert.equal(result.code, 0, result.output);
+  const events = await fixture.events();
+  const position = (id, kind) => events.findIndex(event => event.id === id && event.kind === kind);
+  assert.ok(position(SECONDARY, "end") < position("tests/background/extension-e2e.mjs", "start"));
+  assert.ok(position(smoke, "start") < position(PRIMARY, "end"), "secondary work must not wait for the primary lane");
+  for (const measurement of MEASUREMENTS) {
+    assert.ok(position(measurement, "start") > position(smoke, "end"));
+    assert.ok(position(measurement, "start") > position(PRIMARY, "end"));
+  }
+});
+
 test("a selected measurement can run by itself", async t => {
   const fixture = await createFixture(t);
   const result = await fixture.run({}, ["e2e", "--match", "tool-presentation-streaming", "--jobs", "3"]);
@@ -133,7 +168,7 @@ async function waitForPortRelease(port) {
   }
 }
 
-async function createFixture(t) {
+async function createFixture(t, { secondaryPeer = SECONDARY } = {}) {
   const root = await mkdtemp(join(tmpdir(), "qingzhou-runner-scheduling-"));
   const children = new Set();
   const sockets = new Set();
@@ -156,7 +191,7 @@ async function createFixture(t) {
         events.push(event);
         if (event.kind !== "start") continue;
         if (event.id === PRIMARY) resolvePrimaryStarted();
-        if ([PRIMARY, SECONDARY].includes(event.id)) peers.set(event.id, socket);
+        if ([PRIMARY, secondaryPeer].includes(event.id)) peers.set(event.id, socket);
         if (peers.size === 2 && !peersReleased) {
           // Neither resource lane can finish until both child processes are alive.
           peersReleased = true;
@@ -211,6 +246,7 @@ async function createFixture(t) {
       const environment = {
         ...process.env,
         QZ_RUNNER_EVENT_PORT: String(server.address().port),
+        QZ_RUNNER_SECONDARY_PEER: secondaryPeer,
         PATH: [dirname(process.execPath), process.env.PATH].filter(Boolean).join(delimiter),
         ...env,
       };
@@ -258,7 +294,7 @@ import { createConnection } from "node:net";
 import { relative } from "node:path";
 const script = relative(process.cwd(), process.argv[1]).replaceAll("\\\\", "/");
 const id = script.endsWith("run-python-browser.mjs") ? process.argv[2] : script;
-const peers = ${JSON.stringify([PRIMARY, SECONDARY])};
+const peers = [${JSON.stringify(PRIMARY)}, process.env.QZ_RUNNER_SECONDARY_PEER];
 const socket = createConnection({ host: "127.0.0.1", port: Number(process.env.QZ_RUNNER_EVENT_PORT) });
 const ready = peers.includes(id) ? once(socket, "data") : null;
 await once(socket, "connect");

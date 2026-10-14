@@ -227,6 +227,19 @@ test("document title stays metadata unless a heading block makes it visible", ()
   assert.match(html, /<p>Body only<\/p>/);
 });
 
+test("HTML import escapes decoded titles and entity text when exporting the document", async () => {
+  const bytes = new TextEncoder().encode(`<title>&lt;img src=x onerror=alert(1)&gt;</title>
+    <p><scr<script>ignored</script>ipt>alert(1)</scr<script>ignored</script>ipt></p>
+    <p>&lt;img src=x onerror=alert(1)&gt;</p><p>Article text</p>`);
+  const model = await parseDocumentBytes(bytes, { filename: "untrusted.html" });
+  const html = buildDocumentHtml(model);
+  assert.match(html, /Article text/);
+  assert.equal(model.title, "<img src=x onerror=alert(1)>");
+  assert.match(html, /<title>&lt;img src=x onerror=alert\(1\)&gt;<\/title>/);
+  assert.match(html, /&amp;lt;img src=x onerror=alert\(1\)&amp;gt;/);
+  assert.doesNotMatch(html, /<script\b|<img\b/i);
+});
+
 test("title metadata alone is not treated as document body", () => {
   const summary = summarizeDocumentContent({ title: "Only metadata", blocks: [], sheets: [] });
   assert.equal(summary.titleChars, 13);

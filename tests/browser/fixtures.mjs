@@ -7,6 +7,7 @@ import {
 } from "../support/browser-v8-coverage.mjs";
 
 const testOrigin = `http://127.0.0.1:${Number(process.env.QINGZHOU_TEST_PORT || 4173)}`;
+let providerMenuScript;
 
 export function testAssetUrl(path) {
   return new URL(String(path || "").replace(/^\/+/, ""), `${testOrigin}/`).href;
@@ -15,7 +16,9 @@ export function testAssetUrl(path) {
 export const test = base.extend({
   providerMenus: [async ({ page }, use) => {
     const menus = await providerMenuFixtures(await ensureTestExtension());
-    await page.addInitScript(menus => { window.__qzProviderMenus = menus; }, menus);
+    // The immutable catalogs are serialized once; each page receives fresh objects.
+    providerMenuScript ??= `window.__qzProviderMenus = ${JSON.stringify(menus)};`;
+    await page.addInitScript({ content: providerMenuScript });
     await use(menus);
   }, { auto: true }],
   browserV8Coverage: [async ({}, use, workerInfo) => {

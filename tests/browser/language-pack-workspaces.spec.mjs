@@ -112,7 +112,7 @@ for (const width of [320, 360, 430]) {
           await page.addInitScript({ content: `(${installBenchmarkChromeStub.toString()})(${JSON.stringify(options)}); (${installWorkspaceReplies.toString()})(${JSON.stringify([task, childTask])});` });
           await page.goto("/extension/sidepanel/sidepanel.html", { waitUntil: "domcontentloaded" });
           await page.waitForFunction(() => Boolean(window.qingzhouConversationBenchmark));
-          const decodedMessages = await page.evaluate(async ({ catalog, language }) => {
+          const catalog = await page.evaluateHandle(async ({ catalog, language }) => {
             const { decodeChromeMessage, chromeMessageId } = await import("/extension/shared/i18n/definition.js");
             const { default: capabilities } = await import("/extension/capability-catalogs/translations.js");
             const { default: core } = await import("/extension/sidepanel/i18n/messages.js");
@@ -122,6 +122,7 @@ for (const width of [320, 360, 430]) {
               .map(([key, value]) => [chromeMessageId(`${pack.namespace}.${key}`), value[language] ?? value.en])));
             return { ...source, ...Object.fromEntries(Object.entries(catalog).map(([key, value]) => [key, decodeChromeMessage(value)])) };
           }, { catalog: messages, language });
+          const decodedMessages = await catalog.jsonValue();
           const t = (key, values = {}) => {
             const message = decodedMessages[messageId(key)];
             expect(message, `compiled catalog contains ${key}`).toBeTruthy();
@@ -133,7 +134,8 @@ for (const width of [320, 360, 430]) {
           const chat = await page.locator('[data-tab="chat"]').boundingBox();
           const tasks = await page.locator('[data-tab="sessions"]').boundingBox();
           expect(chat.x > tasks.x, "Arabic navigation mirrors the visible tab order").toBe(language === "ar");
-          const audit = (root, view) => auditView(page, root, decodedMessages, `${language}-${colorScheme}-${width}-${view}`, testInfo);
+          // Keep the full oracle in this page instead of resending it for every view.
+          const audit = (root, view) => auditView(page, root, catalog, `${language}-${colorScheme}-${width}-${view}`, testInfo);
 
           await page.locator("#btn-settings").click();
           await expect(page.locator("#cfg-model")).toHaveValue(config.model);

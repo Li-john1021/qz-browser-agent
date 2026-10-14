@@ -3,11 +3,7 @@ import { expect, test } from "./fixtures.mjs";
 // Keep the built markup, utility classes and skin together. Only application
 // startup is omitted: these checks exercise the cascade, not Chrome transport.
 async function openCapability(page, panelId) {
-  await page.route("**/extension/sidepanel/sidepanel.html", async route => {
-    const response = await route.fetch();
-    const html = (await response.text()).replace(/<script\b[^>]*>[\s\S]*?<\/script>/giu, "");
-    await route.fulfill({ response, body: html });
-  });
+  await page.route("**/*.js", route => route.fulfill({ contentType: "application/javascript", body: "" }));
   await page.goto("/extension/sidepanel/sidepanel.html");
   await page.evaluate(id => {
     document.getElementById("app").removeAttribute("data-workspace-booting");

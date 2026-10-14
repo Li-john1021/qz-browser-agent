@@ -1,6 +1,9 @@
 import { expect, test } from "./fixtures.mjs";
 import { createScreenActionHarness } from "./screen-action-harness.mjs";
 
+// Preserve the established browser for native keyboard input.
+test.use({ channel: process.env.QINGZHOU_PLAYWRIGHT_CHANNEL || "chromium-headless-shell" });
+
 const FIXTURE_URL = "/tests/fixtures/screen-action-runtime.html";
 
 test.describe("act_on_screen · real Chrome behavior", () => {

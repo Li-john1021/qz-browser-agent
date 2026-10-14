@@ -1,5 +1,7 @@
 import { build } from "esbuild";
+import { readFile } from "node:fs/promises";
 import { expect, test } from "./fixtures.mjs";
+import { stableCapture } from "../design-system/comparison.mjs";
 
 const vendor = "/extension/vendor/mathjax/tex-svg-full.js";
 let host;
@@ -236,7 +238,7 @@ for (const outcome of ["resolve", "reject"]) {
 }
 
 for (const colorScheme of ["light", "dark"]) for (const scale of [1, 1.25]) {
-  test(`real formulas match original direct rendering in ${colorScheme} mode at ${scale} scale`, async ({ page, context }) => {
+  test(`real formulas match original direct rendering in ${colorScheme} mode at ${scale} scale`, async ({ page, context }, testInfo) => {
     const eager = await context.newPage();
     try {
       for (const [target, options] of [[page, {}], [eager, { eager: true }]]) {
@@ -253,8 +255,12 @@ $$\frac{1}{2} + \sum_{i=1}^{n} i = \int_0^1 x^2\,dx$$` + "\n\n```math\nx = y + 1
         await target.evaluate(() => document.fonts.ready);
       }
       expect(await page.locator("#sample").boundingBox()).toEqual(await eager.locator("#sample").boundingBox());
-      expect(await page.locator("#sample").screenshot({ animations: "disabled" }))
-        .toEqual(await eager.locator("#sample").screenshot({ animations: "disabled" }));
+      const actual = await stableCapture(page.locator("#sample"), testInfo.outputPath("lazy.png"));
+      const reference = await stableCapture(eager.locator("#sample"), testInfo.outputPath("eager.png"));
+      for (const [name, capture] of [["lazy", actual], ["eager", reference]]) {
+        await testInfo.attach(`${name}.png`, { path: capture.path, contentType: "image/png" });
+      }
+      expect((await readFile(actual.path)).equals(await readFile(reference.path)), "settled formulas match byte-for-byte").toBe(true);
     } finally { await eager.close(); }
   });
 }
